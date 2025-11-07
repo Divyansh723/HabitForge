@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Shield, Eye, EyeOff, Download, Trash2, AlertTriangle, Lock, Key, Database } from 'lucide-react';
-import { Card, Button, Badge, Checkbox, Modal } from '@/components/ui';
+import React, { useState, useEffect } from 'react';
+import { Shield, Eye, EyeOff, Download, Trash2, AlertTriangle, Lock, Key, Database, Save, CheckCircle } from 'lucide-react';
+import { Card, Button, Badge, Modal } from '@/components/ui';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
 interface PrivacySettingsProps {
@@ -8,13 +9,18 @@ interface PrivacySettingsProps {
 }
 
 export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) => {
+  const { user, updateProfile } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  
   const [privacySettings, setPrivacySettings] = useState({
-    profileVisibility: 'private', // 'public', 'friends', 'private'
+    profileVisibility: 'private' as 'public' | 'friends' | 'private',
     habitDataSharing: false,
     analyticsSharing: false,
     aiPersonalization: true,
     communityParticipation: false,
-    dataRetention: '1year', // '6months', '1year', '2years', 'indefinite'
+    dataRetention: '1year' as '6months' | '1year' | '2years' | 'indefinite',
     thirdPartySharing: false,
     marketingEmails: false
   });
@@ -23,8 +29,54 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Load user privacy settings
+  useEffect(() => {
+    if (user?.privacySettings) {
+      setPrivacySettings({
+        profileVisibility: user.privacySettings.profileVisibility || 'private',
+        habitDataSharing: user.privacySettings.habitDataSharing || false,
+        analyticsSharing: user.privacySettings.analyticsSharing || false,
+        aiPersonalization: user.privacySettings.allowAIPersonalization || true,
+        communityParticipation: user.privacySettings.shareWithCommunity || false,
+        dataRetention: user.privacySettings.dataRetention || '1year',
+        thirdPartySharing: user.privacySettings.thirdPartySharing || false,
+        marketingEmails: user.privacySettings.marketingEmails || false
+      });
+    }
+  }, [user]);
+
   const updateSetting = (key: string, value: any) => {
     setPrivacySettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    try {
+      await updateProfile({
+        privacySettings: {
+          profileVisibility: privacySettings.profileVisibility,
+          habitDataSharing: privacySettings.habitDataSharing,
+          analyticsSharing: privacySettings.analyticsSharing,
+          allowAIPersonalization: privacySettings.aiPersonalization,
+          shareWithCommunity: privacySettings.communityParticipation,
+          showOnLeaderboard: privacySettings.communityParticipation,
+          dataRetention: privacySettings.dataRetention,
+          thirdPartySharing: privacySettings.thirdPartySharing,
+          marketingEmails: privacySettings.marketingEmails
+        }
+      });
+      
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to save privacy settings:', error);
+      setSaveError(error instanceof Error ? error.message : 'Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDataExport = () => {
@@ -63,6 +115,21 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
 
   return (
     <div className={cn('space-y-6', className)}>
+      {/* Success/Error Messages */}
+      {saveSuccess && (
+        <div className="p-4 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg flex items-center gap-2">
+          <CheckCircle className="h-5 w-5 text-success-600 dark:text-success-400" />
+          <p className="text-success-700 dark:text-success-300">Privacy settings saved successfully!</p>
+        </div>
+      )}
+      
+      {saveError && (
+        <div className="p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-error-600 dark:text-error-400" />
+          <p className="text-error-700 dark:text-error-300">{saveError}</p>
+        </div>
+      )}
+
       {/* Profile Visibility */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
@@ -120,9 +187,11 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
                 Allow anonymized habit data to be used for research to improve the platform
               </div>
             </div>
-            <Checkbox
+            <input
+              type="checkbox"
               checked={privacySettings.habitDataSharing}
-              onChange={(checked) => updateSetting('habitDataSharing', checked)}
+              onChange={(e) => updateSetting('habitDataSharing', e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
           </div>
 
@@ -136,9 +205,11 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
                 Help improve the app by sharing usage analytics and performance data
               </div>
             </div>
-            <Checkbox
+            <input
+              type="checkbox"
               checked={privacySettings.analyticsSharing}
-              onChange={(checked) => updateSetting('analyticsSharing', checked)}
+              onChange={(e) => updateSetting('analyticsSharing', e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
           </div>
 
@@ -152,9 +223,11 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
                 Use your data to provide personalized AI coaching and recommendations
               </div>
             </div>
-            <Checkbox
+            <input
+              type="checkbox"
               checked={privacySettings.aiPersonalization}
-              onChange={(checked) => updateSetting('aiPersonalization', checked)}
+              onChange={(e) => updateSetting('aiPersonalization', e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
           </div>
 
@@ -168,9 +241,11 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
                 Participate in community challenges and leaderboards
               </div>
             </div>
-            <Checkbox
+            <input
+              type="checkbox"
               checked={privacySettings.communityParticipation}
-              onChange={(checked) => updateSetting('communityParticipation', checked)}
+              onChange={(e) => updateSetting('communityParticipation', e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
           </div>
 
@@ -184,9 +259,11 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
                 Allow data sharing with connected third-party apps and services
               </div>
             </div>
-            <Checkbox
+            <input
+              type="checkbox"
               checked={privacySettings.thirdPartySharing}
-              onChange={(checked) => updateSetting('thirdPartySharing', checked)}
+              onChange={(e) => updateSetting('thirdPartySharing', e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
           </div>
 
@@ -200,9 +277,11 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
                 Receive promotional emails about new features and tips
               </div>
             </div>
-            <Checkbox
+            <input
+              type="checkbox"
               checked={privacySettings.marketingEmails}
-              onChange={(checked) => updateSetting('marketingEmails', checked)}
+              onChange={(e) => updateSetting('marketingEmails', e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
           </div>
         </div>
@@ -297,6 +376,18 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
           </div>
         </div>
       </Card>
+
+      {/* Save Button */}
+      <div className="flex justify-end gap-3">
+        <Button
+          onClick={handleSave}
+          loading={isSaving}
+          className="flex items-center gap-2"
+        >
+          <Save className="h-4 w-4" />
+          {isSaving ? 'Saving...' : 'Save Privacy Settings'}
+        </Button>
+      </div>
 
       {/* Delete Account Modal */}
       {showDeleteModal && (

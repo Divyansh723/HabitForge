@@ -315,6 +315,24 @@ class GamificationService {
   async getChallengeParticipations(): Promise<any[]> {
     if (USE_MOCK_API) {
       await this.delay(300);
+      
+      // Get stored participations from localStorage
+      const stored = localStorage.getItem('habitforge-challenge-participations');
+      if (stored) {
+        try {
+          const participations = JSON.parse(stored);
+          // Convert date strings back to Date objects
+          return participations.map((p: any) => ({
+            ...p,
+            startDate: new Date(p.startDate),
+            endDate: new Date(p.endDate),
+            joinedAt: new Date(p.joinedAt)
+          }));
+        } catch (error) {
+          console.warn('Failed to parse stored participations:', error);
+        }
+      }
+      
       return [];
     }
 
@@ -335,14 +353,31 @@ class GamificationService {
   }> {
     if (USE_MOCK_API) {
       await this.delay(500);
+      
+      // Get challenge details to determine duration
+      const challenges = await this.getChallenges();
+      const challenge = challenges.find(c => c.id === challengeId);
+      const duration = challenge?.duration || 7;
+      
+      const participation = {
+        id: Date.now().toString(),
+        userId: '1',
+        challengeId,
+        startDate: new Date(),
+        endDate: new Date(Date.now() + (duration * 24 * 60 * 60 * 1000)),
+        joinedAt: new Date(),
+        completed: false,
+        progress: 0
+      };
+      
+      // Store in localStorage
+      const stored = localStorage.getItem('habitforge-challenge-participations');
+      const participations = stored ? JSON.parse(stored) : [];
+      participations.push(participation);
+      localStorage.setItem('habitforge-challenge-participations', JSON.stringify(participations));
+      
       return {
-        participation: {
-          challengeId,
-          startDate: new Date(),
-          endDate: new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)),
-          completed: false,
-          progress: 0
-        },
+        participation,
         message: 'Successfully joined challenge!'
       };
     }
@@ -363,6 +398,15 @@ class GamificationService {
   }> {
     if (USE_MOCK_API) {
       await this.delay(400);
+      
+      // Remove from localStorage
+      const stored = localStorage.getItem('habitforge-challenge-participations');
+      if (stored) {
+        const participations = JSON.parse(stored);
+        const filtered = participations.filter((p: any) => p.challengeId !== challengeId || p.completed);
+        localStorage.setItem('habitforge-challenge-participations', JSON.stringify(filtered));
+      }
+      
       return {
         message: 'Successfully left challenge'
       };

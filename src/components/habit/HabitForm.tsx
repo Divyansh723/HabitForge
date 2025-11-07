@@ -198,8 +198,9 @@ export const HabitForm: React.FC<HabitFormProps> = ({
               {HABIT_TEMPLATES.map((template, index) => (
                 <Card
                   key={index}
-                  className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+                  className="hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
                   padding="sm"
+                  clickable
                   onClick={() => applyTemplate(template)}
                 >
                   <div className="flex items-center gap-3">

@@ -346,6 +346,9 @@ class HabitService {
       // Save updated habits
       saveHabitsToStorage(mockHabits);
 
+      // Update challenge progress
+      this.updateChallengeProgress();
+
       return completion;
     }
 
@@ -507,6 +510,59 @@ class HabitService {
         throw new Error(error.response?.data?.message || 'Failed to recalculate habit statistics');
       }
       throw new Error('An unexpected error occurred');
+    }
+  }
+
+  private updateChallengeProgress() {
+    try {
+      const stored = localStorage.getItem('habitforge-challenge-participations');
+      if (!stored) return;
+
+      const participations = JSON.parse(stored);
+      const today = new Date().toDateString();
+      
+      // Get today's completions
+      const todayCompletions = mockCompletions.filter(c => 
+        new Date(c.completedAt).toDateString() === today
+      );
+
+      // Update each active participation
+      const updated = participations.map((p: any) => {
+        if (p.completed) return p;
+
+        const startDate = new Date(p.startDate);
+        const endDate = new Date(p.endDate);
+        const now = new Date();
+
+        // Calculate days elapsed
+        const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        const daysElapsed = Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        // Get completions since challenge started
+        const challengeCompletions = mockCompletions.filter(c => {
+          const completionDate = new Date(c.completedAt);
+          return completionDate >= startDate && completionDate <= now;
+        });
+
+        // Get unique days with completions
+        const uniqueDays = new Set(
+          challengeCompletions.map(c => new Date(c.completedAt).toDateString())
+        );
+
+        // Calculate progress based on challenge requirements
+        // For "Perfect Week" - need to complete habits every day
+        const progress = Math.min(100, (uniqueDays.size / totalDays) * 100);
+
+        return {
+          ...p,
+          progress,
+          completed: progress >= 100
+        };
+      });
+
+      localStorage.setItem('habitforge-challenge-participations', JSON.stringify(updated));
+    } catch (error) {
+      console.warn('Failed to update challenge progress:', error);
     }
   }
 }
