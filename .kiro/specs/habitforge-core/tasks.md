@@ -150,11 +150,12 @@
     - Add account deactivation and data deletion options
     - _Requirements: 10.5, 12.6, 16.1, 16.3, 16.5_
 
-- [ ] 7. Implement AI coaching and notification system
+- [x] 7. Implement AI coaching and notification system
 
-  - [ ] 7.1 Set up AI coaching service integration
+  - [x] 7.1 Set up AI coaching service integration
 
     - Configure AWS Bedrock/OpenAI API connections
+
     - Implement personalized message generation based on user patterns
     - Create fallback system with pre-written motivational messages
     - Add AI interaction logging and audit trail
@@ -168,7 +169,8 @@
     - Build notification preferences and opt-out controls
     - _Requirements: 1.5, 4.5_
 
-  - [ ] 7.3 Create AI opt-out and privacy controls
+  - [x] 7.3 Create AI opt-out and privacy controls
+
     - Implement AI personalization toggle in settings
     - Build privacy settings for data sharing controls
     - Add transparent consent mechanisms for AI training data
@@ -176,7 +178,8 @@
 
 - [ ] 8. Build community features and moderation
 
-  - [ ] 8.1 Implement community circles and social features
+  - [-] 8.1 Implement community circles and social features
+
 
     - Create community circle creation and joining functionality
     - Build shared leaderboard with privacy controls
@@ -290,7 +293,6 @@
     - _Requirements: 18.5, 17.5_
 
   - [x] 12.5 Implement analytics and insights with database queries
-
 
     - Create efficient MongoDB aggregation queries for habit analytics
     - Implement streak calculation and consistency rate queries

@@ -227,6 +227,14 @@ class AIService {
     } catch (error) {
       console.error('AI Insights API Error:', error);
       
+      // Check if AI is disabled
+      if (axios.isAxiosError(error) && error.response?.status === 403) {
+        const errorData = error.response.data;
+        if (errorData.code === 'AI_DISABLED') {
+          throw new Error('AI_DISABLED');
+        }
+      }
+      
       // Fallback to mock data if API fails
       if (axios.isAxiosError(error)) {
         console.warn('Falling back to mock insights due to API error:', error.response?.data?.message);

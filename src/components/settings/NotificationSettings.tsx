@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Mail, Smartphone, Clock, Volume2, VolumeX, Save, CheckCircle, AlertCircle } from 'lucide-react';
-import { Card, Button, Badge } from '@/components/ui';
+import { Card, Button } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
@@ -100,11 +100,14 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
       });
 
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      
+      // Reload the page after a short delay to show success message
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error('Failed to save notification settings:', error);
       setSaveError(error instanceof Error ? error.message : 'Failed to save settings');
-    } finally {
       setIsSaving(false);
     }
   };

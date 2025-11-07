@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Eye, EyeOff, Download, Trash2, AlertTriangle, Lock, Key, Database, Save, CheckCircle } from 'lucide-react';
-import { Card, Button, Badge, Modal } from '@/components/ui';
+import { Eye, Download, Trash2, AlertTriangle, Lock, Key, Database, Save, CheckCircle } from 'lucide-react';
+import { Card, Button, Modal } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
@@ -33,14 +33,14 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
   useEffect(() => {
     if (user?.privacySettings) {
       setPrivacySettings({
-        profileVisibility: user.privacySettings.profileVisibility || 'private',
-        habitDataSharing: user.privacySettings.habitDataSharing || false,
-        analyticsSharing: user.privacySettings.analyticsSharing || false,
-        aiPersonalization: user.privacySettings.allowAIPersonalization || true,
-        communityParticipation: user.privacySettings.shareWithCommunity || false,
-        dataRetention: user.privacySettings.dataRetention || '1year',
-        thirdPartySharing: user.privacySettings.thirdPartySharing || false,
-        marketingEmails: user.privacySettings.marketingEmails || false
+        profileVisibility: user.privacySettings.profileVisibility ?? 'private',
+        habitDataSharing: user.privacySettings.habitDataSharing ?? false,
+        analyticsSharing: user.privacySettings.analyticsSharing ?? false,
+        aiPersonalization: user.privacySettings.allowAIPersonalization ?? true,
+        communityParticipation: user.privacySettings.shareWithCommunity ?? false,
+        dataRetention: user.privacySettings.dataRetention ?? '1year',
+        thirdPartySharing: user.privacySettings.thirdPartySharing ?? false,
+        marketingEmails: user.privacySettings.marketingEmails ?? false
       });
     }
   }, [user]);
@@ -70,11 +70,14 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
       });
       
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      
+      // Reload the page after a short delay to show success message
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error('Failed to save privacy settings:', error);
       setSaveError(error instanceof Error ? error.message : 'Failed to save settings');
-    } finally {
       setIsSaving(false);
     }
   };

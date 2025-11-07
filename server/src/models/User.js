@@ -102,6 +102,56 @@ const userSchema = new mongoose.Schema({
     reminderTime: {
       type: String,
       default: '09:00'
+    },
+    habitReminders: {
+      type: Boolean,
+      default: true
+    },
+    streakMilestones: {
+      type: Boolean,
+      default: true
+    },
+    dailySummary: {
+      type: Boolean,
+      default: true
+    },
+    weeklyInsights: {
+      type: Boolean,
+      default: true
+    },
+    challengeUpdates: {
+      type: Boolean,
+      default: true
+    },
+    communityActivity: {
+      type: Boolean,
+      default: false
+    },
+    systemUpdates: {
+      type: Boolean,
+      default: true
+    },
+    tipsAndTricks: {
+      type: Boolean,
+      default: false
+    },
+    quietHours: {
+      enabled: {
+        type: Boolean,
+        default: true
+      },
+      start: {
+        type: String,
+        default: '22:00'
+      },
+      end: {
+        type: String,
+        default: '08:00'
+      }
+    },
+    soundEnabled: {
+      type: Boolean,
+      default: true
     }
   },
   privacySettings: {
@@ -116,6 +166,32 @@ const userSchema = new mongoose.Schema({
     showOnLeaderboard: {
       type: Boolean,
       default: true
+    },
+    profileVisibility: {
+      type: String,
+      enum: ['public', 'friends', 'private'],
+      default: 'private'
+    },
+    habitDataSharing: {
+      type: Boolean,
+      default: false
+    },
+    analyticsSharing: {
+      type: Boolean,
+      default: false
+    },
+    thirdPartySharing: {
+      type: Boolean,
+      default: false
+    },
+    marketingEmails: {
+      type: Boolean,
+      default: false
+    },
+    dataRetention: {
+      type: String,
+      enum: ['6months', '1year', '2years', 'indefinite'],
+      default: '1year'
     }
   },
   refreshTokens: [{

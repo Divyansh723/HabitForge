@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Calendar, MapPin, Save, Edit, Camera, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import { User, Calendar, MapPin, Save, Edit, Camera, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 import { Card, Button, Input, Select, Badge, Modal, ModalContent, ModalFooter } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
@@ -62,11 +62,14 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ className }) =
       await updateProfile(formData);
       setIsEditing(false);
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      
+      // Reload the page after a short delay to show success message
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error('Failed to update profile:', error);
       setSaveError(error instanceof Error ? error.message : 'Failed to update profile');
-    } finally {
       setIsSaving(false);
     }
   };

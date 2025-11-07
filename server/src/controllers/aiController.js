@@ -1,5 +1,6 @@
 import aiService from '../services/aiService.js';
 import { validationResult } from 'express-validator';
+import AIInteractionLog from '../models/AIInteractionLog.js';
 
 // Generate comprehensive habit insights
 export const getHabitInsights = async (req, res) => {
@@ -14,6 +15,17 @@ export const getHabitInsights = async (req, res) => {
     }
 
     const userId = req.user._id;
+
+    // Check if user has AI personalization enabled
+    if (req.user.privacySettings && req.user.privacySettings.allowAIPersonalization === false) {
+      return res.status(403).json({
+        success: false,
+        message: 'AI personalization is disabled in your privacy settings',
+        code: 'AI_DISABLED',
+        settingsPath: '/settings'
+      });
+    }
+
     const insights = await aiService.generateHabitInsights(userId);
 
     if (!insights.success) {
@@ -42,6 +54,16 @@ export const getHabitSuggestions = async (req, res) => {
   try {
     const userId = req.user._id;
     const { goals, preferences } = req.body;
+
+    // Check if user has AI personalization enabled
+    if (req.user.privacySettings && req.user.privacySettings.allowAIPersonalization === false) {
+      return res.status(403).json({
+        success: false,
+        message: 'AI personalization is disabled in your privacy settings',
+        code: 'AI_DISABLED',
+        settingsPath: '/settings'
+      });
+    }
 
     const suggestions = await aiService.generateHabitSuggestions(
       userId, 
@@ -76,6 +98,16 @@ export const analyzeHabitPatterns = async (req, res) => {
     const userId = req.user._id;
     const { habitId } = req.params;
 
+    // Check if user has AI personalization enabled
+    if (req.user.privacySettings && req.user.privacySettings.allowAIPersonalization === false) {
+      return res.status(403).json({
+        success: false,
+        message: 'AI personalization is disabled in your privacy settings',
+        code: 'AI_DISABLED',
+        settingsPath: '/settings'
+      });
+    }
+
     const analysis = await aiService.analyzeHabitPatterns(userId, habitId);
 
     if (!analysis.success) {
@@ -99,13 +131,19 @@ export const analyzeHabitPatterns = async (req, res) => {
   }
 };
 
-// Generate motivational content
+// Generate motivational content (with AI interaction logging)
 export const getMotivationalContent = async (req, res) => {
   try {
     const userId = req.user._id;
     const { context = 'daily' } = req.query;
 
-    const content = await aiService.generateMotivationalContent(userId, context);
+    // Prepare request metadata for logging
+    const requestMetadata = {
+      userAgent: req.get('user-agent'),
+      ipAddress: req.ip || req.connection.remoteAddress
+    };
+
+    const content = await aiService.generateMotivationalContent(userId, context, requestMetadata);
 
     if (!content.success) {
       return res.status(500).json({
@@ -133,6 +171,16 @@ export const getMoodHabitCorrelation = async (req, res) => {
   try {
     const userId = req.user._id;
 
+    // Check if user has AI personalization enabled
+    if (req.user.privacySettings && req.user.privacySettings.allowAIPersonalization === false) {
+      return res.status(403).json({
+        success: false,
+        message: 'AI personalization is disabled in your privacy settings',
+        code: 'AI_DISABLED',
+        settingsPath: '/settings'
+      });
+    }
+
     const analysis = await aiService.analyzeMoodHabitCorrelation(userId);
 
     if (!analysis.success) {
@@ -156,14 +204,21 @@ export const getMoodHabitCorrelation = async (req, res) => {
   }
 };
 
-// Generate personalized coaching advice
+// Generate personalized coaching advice (with AI interaction logging)
 export const getPersonalizedCoaching = async (req, res) => {
   try {
     const userId = req.user._id;
     const { challenge, context } = req.body;
 
+    // Prepare request metadata for logging
+    const requestMetadata = {
+      userAgent: req.get('user-agent'),
+      ipAddress: req.ip || req.connection.remoteAddress,
+      challenge: challenge || null
+    };
+
     // This could be expanded to handle specific coaching scenarios
-    const coaching = await aiService.generateMotivationalContent(userId, context || 'coaching');
+    const coaching = await aiService.generateMotivationalContent(userId, context || 'coaching', requestMetadata);
 
     if (!coaching.success) {
       return res.status(500).json({
@@ -246,6 +301,49 @@ export const getAIStatus = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error while checking AI status'
+    });
+  }
+};
+
+// Get user's AI coaching interaction history
+export const getCoachingHistory = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { limit = 50 } = req.query;
+
+    const history = await AIInteractionLog.getUserCoachingHistory(userId, parseInt(limit));
+
+    res.json({
+      success: true,
+      data: history,
+      count: history.length
+    });
+  } catch (error) {
+    console.error('Get coaching history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while fetching coaching history'
+    });
+  }
+};
+
+// Get AI interaction statistics
+export const getInteractionStats = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { days = 30 } = req.query;
+
+    const stats = await AIInteractionLog.getInteractionStats(userId, parseInt(days));
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Get interaction stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while fetching interaction statistics'
     });
   }
 };

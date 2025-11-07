@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Brain, Lightbulb, Target, Sparkles, MessageCircle, BarChart3, Heart } from 'lucide-react';
 import { Card, Badge, Button } from '@/components/ui';
 import { useAI } from '@/hooks/useAI';
+import { useAIPermissions } from '@/hooks/useAIPermissions';
 import { cn } from '@/utils/cn';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -15,6 +16,7 @@ import {
   PersonalizedRecommendations
 } from '@/components/ai';
 import { AITestButton } from '@/components/ai/AITestButton';
+import { AIDisabledMessage } from '@/components/ai/AIDisabledMessage';
 
 type ViewType = 'overview' | 'patterns' | 'suggestions' | 'coaching' | 'mood' | 'recommendations';
 
@@ -33,12 +35,18 @@ const InsightsPage: React.FC = () => {
     clearError
   } = useAI();
 
+  const permissions = useAIPermissions();
   const [activeView, setActiveView] = useState<ViewType>('overview');
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // Initialize data on component mount
+  // Initialize data on component mount (only if AI is enabled)
   useEffect(() => {
     const initializeData = async () => {
+      if (!permissions.isAIEnabled) {
+        setIsInitialLoad(false);
+        return;
+      }
+
       try {
         await Promise.all([
           fetchHabitInsights(),
@@ -137,6 +145,29 @@ const InsightsPage: React.FC = () => {
     if (score >= 40) return 'from-yellow-500 to-orange-500';
     return 'from-red-500 to-pink-500';
   };
+
+  // Show AI disabled message if user has opted out
+  if (!permissions.isAIEnabled) {
+    return (
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <div className="relative">
+                <Brain className="h-8 w-8 text-purple-500" />
+                <Sparkles className="h-4 w-4 text-yellow-400 absolute -top-1 -right-1" />
+              </div>
+              AI Insights
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Personalized insights powered by artificial intelligence
+            </p>
+          </div>
+          <AIDisabledMessage />
+        </div>
+      </div>
+    );
+  }
 
   if (isInitialLoad && isLoading) {
     return (

@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Habit, Completion } from '../models/index.js';
 import MoodEntry from '../models/MoodEntry.js';
+import AIInteractionLog from '../models/AIInteractionLog.js';
 
 class AIService {
   constructor() {
@@ -495,8 +496,22 @@ class AIService {
 
   /**
    * Generate personalized motivational content based on comprehensive user data
+   * WITH AI INTERACTION LOGGING
    */
-  async generateMotivationalContent(userId, context = 'daily') {
+  async generateMotivationalContent(userId, context = 'daily', requestMetadata = {}) {
+    const startTime = Date.now();
+    let logData = {
+      userId,
+      interactionType: 'motivational_content',
+      context,
+      requestData: {
+        context,
+        timestamp: new Date()
+      },
+      userAgent: requestMetadata.userAgent || null,
+      ipAddress: requestMetadata.ipAddress || null
+    };
+
     try {
       // Fetch comprehensive data for personalized motivation
       const [habits, recentCompletions, moodEntries, allCompletions] = await Promise.all([
@@ -557,7 +572,9 @@ class AIService {
 
       try {
         const content = JSON.parse(text);
-        return {
+        const responseTime = Date.now() - startTime;
+        
+        const result = {
           success: true,
           data: {
             ...content,
@@ -571,12 +588,40 @@ class AIService {
           },
           generatedAt: new Date()
         };
+
+        // Log successful interaction
+        logData.success = true;
+        logData.responseTime = responseTime;
+        logData.modelUsed = this.currentModel;
+        logData.responseData = {
+          tone: content.tone,
+          hasChallenge: !!content.challenge,
+          dataPointsUsed: habits.length + allCompletions.length + moodEntries.length
+        };
+        
+        await AIInteractionLog.logInteraction(logData);
+
+        return result;
       } catch (parseError) {
         console.error('Failed to parse motivational content:', parseError);
+        
+        // Log parsing failure
+        logData.success = false;
+        logData.errorMessage = 'Failed to parse AI response';
+        logData.responseTime = Date.now() - startTime;
+        await AIInteractionLog.logInteraction(logData);
+        
         return this.getFallbackMotivationalContent(motivationData);
       }
     } catch (error) {
       console.error('Motivational Content Error:', error);
+      
+      // Log error
+      logData.success = false;
+      logData.errorMessage = error.message || 'Unknown error';
+      logData.responseTime = Date.now() - startTime;
+      await AIInteractionLog.logInteraction(logData);
+      
       return this.getFallbackMotivationalContent();
     }
   }
