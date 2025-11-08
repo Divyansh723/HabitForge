@@ -90,15 +90,15 @@ const LandingPage: React.FC = () => {
       <Navbar />
       <div className="overflow-hidden pt-16">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-20 lg:py-32">
+      <section className="relative bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-12 sm:py-16 md:py-20 lg:py-32">
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        <div className="container mx-auto px-4 relative">
+        <div className="container mx-auto px-4 sm:px-6 relative">
           <div className="max-w-4xl mx-auto text-center">
-            <Badge variant="primary" className="mb-6 animate-fade-in">
+            <Badge variant="primary" className="mb-4 sm:mb-6 animate-fade-in text-xs sm:text-sm">
               🚀 New: AI-Powered Habit Coaching
             </Badge>
             
-            <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 animate-slide-up">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 animate-slide-up">
               Build Better{' '}
               <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
                 Habits
@@ -107,17 +107,17 @@ const LandingPage: React.FC = () => {
               Transform Your Life
             </h1>
             
-            <p className="text-xl lg:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto animate-slide-up">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto animate-slide-up px-4">
               Join thousands who are building lasting habits with gamified tracking, 
               AI coaching, and community support. Start your transformation today.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-slide-up">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center mb-8 sm:mb-12 animate-slide-up px-4">
               <Button 
                 variant="primary" 
                 size="lg" 
-                className="text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all duration-300"
-                rightIcon={<ArrowRight className="h-5 w-5" />}
+                className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
+                rightIcon={<ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />}
 
               >
                 Start Building Habits
@@ -125,21 +125,21 @@ const LandingPage: React.FC = () => {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="text-lg px-8 py-4"
-                leftIcon={<Play className="h-5 w-5" />}
+                className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto"
+                leftIcon={<Play className="h-4 w-4 sm:h-5 sm:w-5" />}
               >
                 Watch Demo
               </Button>
             </div>
             
             {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-2xl mx-auto animate-fade-in">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8 max-w-2xl mx-auto animate-fade-in px-4">
               {stats.map((stat, index) => (
                 <div key={index} className="text-center">
-                  <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
                     {stat.value}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                     {stat.label}
                   </div>
                 </div>
@@ -150,32 +150,31 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+      <section className="py-12 sm:py-16 md:py-20 bg-white dark:bg-gray-900">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
               Everything You Need to Succeed
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto px-4">
               Powerful features designed to make habit building engaging, sustainable, and rewarding.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
                 <Card 
                   key={index} 
-                  className="text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-                  padding="lg"
+                  className="text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 p-4 sm:p-6"
                 >
-                  <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center">
-                      <Icon className={`h-8 w-8 ${feature.color}`} />
+                  <div className="flex justify-center mb-3 sm:mb-4">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center">
+                      <Icon className={`h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 ${feature.color}`} />
                     </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3">
                     {feature.title}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300">

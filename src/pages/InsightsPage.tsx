@@ -13,10 +13,9 @@ import {
   PatternAnalysis,
   MotivationalCoach,
   MoodHabitCorrelation,
-  PersonalizedRecommendations
+  PersonalizedRecommendations,
+  AIDisabledMessage
 } from '@/components/ai';
-import { AITestButton } from '@/components/ai/AITestButton';
-import { AIDisabledMessage } from '@/components/ai/AIDisabledMessage';
 
 type ViewType = 'overview' | 'patterns' | 'suggestions' | 'coaching' | 'mood' | 'recommendations';
 
@@ -149,17 +148,17 @@ const InsightsPage: React.FC = () => {
   // Show AI disabled message if user has opted out
   if (!permissions.isAIEnabled) {
     return (
-      <div className="p-6">
+      <div className="p-3 sm:p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+          <div className="mb-4 sm:mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
               <div className="relative">
-                <Brain className="h-8 w-8 text-purple-500" />
-                <Sparkles className="h-4 w-4 text-yellow-400 absolute -top-1 -right-1" />
+                <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />
+                <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 absolute -top-1 -right-1" />
               </div>
               AI Insights
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
               Personalized insights powered by artificial intelligence
             </p>
           </div>
@@ -171,13 +170,13 @@ const InsightsPage: React.FC = () => {
 
   if (isInitialLoad && isLoading) {
     return (
-      <div className="p-6">
+      <div className="p-3 sm:p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                <Sparkles className="h-5 w-5 animate-pulse" />
+              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+              <div className="flex items-center gap-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
                 <p>AI is analyzing your habits...</p>
               </div>
             </div>
@@ -188,28 +187,28 @@ const InsightsPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="p-3 sm:p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 md:space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
               <div className="relative">
-                <Brain className="h-8 w-8 text-purple-500" />
-                <Sparkles className="h-4 w-4 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
+                <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />
+                <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
               </div>
               AI Insights
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
               Discover patterns, get personalized recommendations, and optimize your habit journey with AI
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-row items-center gap-3 sm:gap-4">
             {insights && (
-              <div className="text-center">
+              <div className="text-center flex-shrink-0">
                 <div className={cn(
-                  'text-2xl font-bold mb-1',
+                  'text-xl sm:text-2xl font-bold mb-1',
                   getScoreColor(getInsightScore())
                 )}>
                   {getInsightScore()}
@@ -219,7 +218,6 @@ const InsightsPage: React.FC = () => {
                 </div>
               </div>
             )}
-            <AITestButton />
             <Button
               variant="outline"
               size="sm"
@@ -228,10 +226,10 @@ const InsightsPage: React.FC = () => {
                 fetchHabitInsights();
               }}
               disabled={isLoading}
-              className="flex items-center gap-2"
+              className="flex flex-row items-center gap-2 flex-1 sm:flex-initial justify-center whitespace-nowrap"
             >
-              <Sparkles className="h-4 w-4" />
-              {isLoading ? 'Analyzing...' : 'Refresh Insights'}
+              <Sparkles className="h-4 w-4 flex-shrink-0" />
+              <span>{isLoading ? 'Analyzing...' : 'Refresh Insights'}</span>
             </Button>
           </div>
         </div>
@@ -239,7 +237,7 @@ const InsightsPage: React.FC = () => {
         {/* AI Score Hero Card */}
         {insights && (
           <Card className={cn(
-            'relative overflow-hidden bg-gradient-to-br text-white border-0 p-6',
+            'relative overflow-hidden bg-gradient-to-br text-white border-0 p-4 sm:p-5 md:p-6',
             getScoreBgColor(getInsightScore())
           )}>
             {/* Background pattern */}
@@ -250,21 +248,21 @@ const InsightsPage: React.FC = () => {
             </div>
 
             <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-xl font-bold text-white mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-xl font-bold text-white mb-2">
                     AI Analysis Summary
                   </h2>
-                  <p className="text-white/90 text-sm max-w-2xl">
+                  <p className="text-white/90 text-xs sm:text-sm">
                     {insights.overallProgress.summary}
                   </p>
                 </div>
                 
-                <div className="text-right">
-                  <div className="text-4xl font-bold text-white mb-1">
+                <div className="text-center sm:text-right">
+                  <div className="text-3xl sm:text-4xl font-bold text-white mb-1">
                     {getInsightScore()}
                   </div>
-                  <div className="text-white/80 text-sm">
+                  <div className="text-white/80 text-xs sm:text-sm">
                     Overall Score
                   </div>
                   <Badge 
@@ -276,28 +274,28 @@ const InsightsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-3 sm:gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white mb-1">
+                  <div className="text-lg sm:text-2xl font-bold text-white mb-1">
                     {insights.keyInsights.length}
                   </div>
-                  <div className="text-white/80 text-sm">
+                  <div className="text-white/80 text-xs sm:text-sm">
                     Key Insights
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white mb-1">
+                  <div className="text-lg sm:text-2xl font-bold text-white mb-1">
                     {insights.habitRecommendations.length}
                   </div>
-                  <div className="text-white/80 text-sm">
+                  <div className="text-white/80 text-xs sm:text-sm">
                     Recommendations
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white mb-1">
+                  <div className="text-lg sm:text-2xl font-bold text-white mb-1">
                     {insights.nextSteps.length}
                   </div>
-                  <div className="text-white/80 text-sm">
+                  <div className="text-white/80 text-xs sm:text-sm">
                     Action Items
                   </div>
                 </div>
@@ -330,8 +328,8 @@ const InsightsPage: React.FC = () => {
         )}
 
         {/* Navigation Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="flex space-x-8 overflow-x-auto">
+        <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+          <nav className="flex space-x-4 sm:space-x-8 min-w-max">
             {viewTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeView === tab.id;
@@ -341,15 +339,16 @@ const InsightsPage: React.FC = () => {
                   key={tab.id}
                   onClick={() => setActiveView(tab.id as ViewType)}
                   className={cn(
-                    'flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap',
+                    'flex items-center gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap',
                     isActive
                       ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                       : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                   )}
                   title={tab.description}
                 >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                 </button>
               );
             })}

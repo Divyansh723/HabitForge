@@ -52,16 +52,16 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="p-3 sm:p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 md:space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <Settings className="h-8 w-8" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
+              <Settings className="h-6 w-6 sm:h-8 sm:w-8" />
               Settings
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
               Manage your account, preferences, and privacy settings
             </p>
           </div>
@@ -69,7 +69,7 @@ const SettingsPage: React.FC = () => {
           {hasUnsavedChanges && (
             <Button
               onClick={handleSaveAll}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <Save className="h-4 w-4" />
               Save Changes
@@ -77,11 +77,11 @@ const SettingsPage: React.FC = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
           {/* Settings Navigation */}
-          <div className="lg:col-span-1">
-            <Card className="p-4">
-              <nav className="space-y-2">
+          <div className="lg:col-span-1 order-2 lg:order-1">
+            <Card className="p-3 sm:p-4">
+              <nav className="space-y-1 sm:space-y-2">
                 {settingsTabs.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
@@ -91,21 +91,21 @@ const SettingsPage: React.FC = () => {
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as SettingsTab)}
                       className={cn(
-                        'w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all',
+                        'w-full flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg text-left transition-all',
                         isActive
                           ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800'
                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                       )}
                     >
                       <Icon className={cn(
-                        'h-5 w-5 flex-shrink-0 mt-0.5',
+                        'h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5',
                         isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500'
                       )} />
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium">
+                        <div className="text-sm sm:text-base font-medium">
                           {tab.label}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 hidden sm:block">
                           {tab.description}
                         </div>
                       </div>
@@ -116,16 +116,16 @@ const SettingsPage: React.FC = () => {
             </Card>
 
             {/* User Info Card */}
-            <Card className="p-4 mt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold">
+            <Card className="p-3 sm:p-4 mt-4 sm:mt-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">
                   {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-900 dark:text-white truncate">
+                  <div className="text-sm sm:text-base font-medium text-gray-900 dark:text-white truncate">
                     {user?.name || 'User'}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                  <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                     {user?.email}
                   </div>
                 </div>
@@ -134,7 +134,7 @@ const SettingsPage: React.FC = () => {
           </div>
 
           {/* Settings Content */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 order-1 lg:order-2">
             {activeTab === 'profile' && (
               <ProfileSettings />
             )}

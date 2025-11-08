@@ -170,12 +170,12 @@ const AnalyticsPage: React.FC = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <BarChart3 className="h-8 w-8" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
+              <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8" />
               Analytics & Insights
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
               Deep dive into your habit-building journey with comprehensive statistics
             </p>
           </div>
@@ -186,8 +186,8 @@ const AnalyticsPage: React.FC = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="flex space-x-8">
+        <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+          <nav className="flex space-x-4 sm:space-x-8 min-w-max">
             {viewTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeView === tab.id;
@@ -197,14 +197,15 @@ const AnalyticsPage: React.FC = () => {
                   key={tab.id}
                   onClick={() => setActiveView(tab.id as ViewType)}
                   className={cn(
-                    'flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                    'flex items-center gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap',
                     isActive
                       ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                       : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                 </button>
               );
             })}
@@ -235,11 +236,11 @@ const AnalyticsPage: React.FC = () => {
         {activeView === 'overview' && (
           <div className="space-y-8">
             {/* Key Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <Target className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+              <Card className="text-center p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-2 sm:mb-3">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 dark:text-primary-400" />
+                  <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
                     Completion Rate
                   </span>
                 </div>
@@ -255,14 +256,14 @@ const AnalyticsPage: React.FC = () => {
                 </div>
               </Card>
 
-              <Card className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <Award className="h-5 w-5 text-warning-600 dark:text-warning-400" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <Card className="text-center p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-2 sm:mb-3">
+                  <Award className="h-4 w-4 sm:h-5 sm:w-5 text-warning-600 dark:text-warning-400" />
+                  <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
                     Total XP
                   </span>
                 </div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                   {totalXP.toLocaleString()}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">
@@ -270,30 +271,30 @@ const AnalyticsPage: React.FC = () => {
                 </div>
               </Card>
 
-              <Card className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <TrendingUp className="h-5 w-5 text-success-600 dark:text-success-400" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <Card className="text-center p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-2 sm:mb-3">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-success-600 dark:text-success-400" />
+                  <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
                     Longest Streak
                   </span>
                 </div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center justify-center gap-2">
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 flex items-center justify-center gap-1 sm:gap-2">
                   <span>{stats.longestStreak}</span>
-                  <span className="text-2xl">🔥</span>
+                  <span className="text-lg sm:text-xl md:text-2xl">🔥</span>
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">
                   {stats.longestStreak === 1 ? 'day' : 'days'}
                 </div>
               </Card>
 
-              <Card className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <Clock className="h-5 w-5 text-secondary-600 dark:text-secondary-400" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <Card className="text-center p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-2 sm:mb-3">
+                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-secondary-600 dark:text-secondary-400" />
+                  <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
                     Total Completions
                   </span>
                 </div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                   {stats.totalCompletions}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-500">
@@ -303,9 +304,9 @@ const AnalyticsPage: React.FC = () => {
             </div>
 
             {/* Main Analytics Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
               {/* Left Column - Charts */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-2 lg:order-1">
                 {/* Trend Graph */}
                 <TrendGraph
                   data={trendData}
@@ -355,7 +356,7 @@ const AnalyticsPage: React.FC = () => {
               </div>
 
               {/* Right Column - Insights & Progress */}
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6 order-1 lg:order-2">
                 {/* XP Progress */}
                 <XPBar totalXP={totalXP} showDetails animated />
 

@@ -146,16 +146,16 @@ export const DailyHabitChecklist: React.FC<DailyHabitChecklistProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Header with Stats */}
       {!compact && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Calendar className="h-6 w-6" />
-              Today's Habits
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
+              <Calendar className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+              <span>Today's Habits</span>
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
               {totalStats.completedToday} of {totalStats.totalHabits} completed ({totalStats.completionRate}%)
             </p>
           </div>
@@ -165,6 +165,7 @@ export const DailyHabitChecklist: React.FC<DailyHabitChecklistProps> = ({
               variant="primary"
               onClick={() => setIsFormOpen(true)}
               leftIcon={<Plus className="h-4 w-4" />}
+              className="w-full sm:w-auto"
             >
               Add Habit
             </Button>
@@ -281,36 +282,36 @@ export const DailyHabitChecklist: React.FC<DailyHabitChecklistProps> = ({
 
       {/* Quick Stats */}
       {!compact && activeHabits.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card padding="sm" className="text-center">
-            <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <Card padding="sm" className="text-center p-3 sm:p-4 min-w-0">
+            <div className="text-xl sm:text-2xl font-bold text-primary-600 dark:text-primary-400">
               {totalStats.currentStreaks}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 break-words">
               Active Streaks
             </div>
           </Card>
-          <Card padding="sm" className="text-center">
-            <div className="text-2xl font-bold text-success-600 dark:text-success-400">
+          <Card padding="sm" className="text-center p-3 sm:p-4 min-w-0">
+            <div className="text-xl sm:text-2xl font-bold text-success-600 dark:text-success-400">
               {totalStats.totalCompletions}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 break-words">
               Total Completions
             </div>
           </Card>
-          <Card padding="sm" className="text-center">
-            <div className="text-2xl font-bold text-warning-600 dark:text-warning-400">
+          <Card padding="sm" className="text-center p-3 sm:p-4 min-w-0">
+            <div className="text-xl sm:text-2xl font-bold text-warning-600 dark:text-warning-400">
               {totalStats.longestStreak}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 break-words">
               Longest Streak
             </div>
           </Card>
-          <Card padding="sm" className="text-center">
-            <div className="text-2xl font-bold text-secondary-600 dark:text-secondary-400">
+          <Card padding="sm" className="text-center p-3 sm:p-4 min-w-0">
+            <div className="text-xl sm:text-2xl font-bold text-secondary-600 dark:text-secondary-400">
               {totalStats.averageConsistency}%
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 break-words">
               Avg Consistency
             </div>
           </Card>

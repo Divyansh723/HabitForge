@@ -69,10 +69,10 @@ export const CreateCircleModal: React.FC<CreateCircleModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Create Community Circle">
       {!inviteCode ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 p-4 sm:p-6">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Circle Name *
             </label>
             <Input
@@ -83,12 +83,13 @@ export const CreateCircleModal: React.FC<CreateCircleModalProps> = ({
               required
               minLength={3}
               maxLength={50}
+              className="text-sm sm:text-base"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Description
             </label>
             <Textarea
@@ -97,6 +98,7 @@ export const CreateCircleModal: React.FC<CreateCircleModalProps> = ({
               placeholder="What's this circle about?"
               rows={3}
               maxLength={200}
+              className="text-sm sm:text-base"
             />
           </div>
 

@@ -89,64 +89,65 @@ export const HabitSuggestions: React.FC<HabitSuggestionsProps> = ({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Header with Goals Input */}
-      <Card>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+      <Card className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center flex-shrink-0">
             <Lightbulb className="h-5 w-5 text-purple-600 dark:text-purple-400" />
           </div>
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
               Smart Habit Suggestions
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
+            <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
               AI-powered recommendations based on your current habits and goals
             </p>
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Input
-            placeholder="Tell AI about your goals (e.g., 'improve focus', 'better sleep', 'lose weight')"
+            placeholder="Tell AI about your goals..."
             value={goals}
             onChange={(e) => setGoals(e.target.value)}
-            className="flex-1"
+            className="flex-1 text-sm sm:text-base"
           />
           <Button
             onClick={onRefresh}
             disabled={isLoading}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto whitespace-nowrap"
           >
             <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
-            {isLoading ? 'Generating...' : 'Get New Suggestions'}
+            <span className="hidden sm:inline">{isLoading ? 'Generating...' : 'Get New Suggestions'}</span>
+            <span className="sm:hidden">{isLoading ? 'Generating...' : 'Refresh'}</span>
           </Button>
         </div>
       </Card>
 
       {/* Suggestions Grid */}
       {suggestions.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {suggestions.map((suggestion, index) => (
-            <Card key={index} className="hover:shadow-lg transition-all duration-200 group">
-              <div className="space-y-4">
+            <Card key={index} className="hover:shadow-lg transition-all duration-200 group p-4 sm:p-6">
+              <div className="space-y-3 sm:space-y-4">
                 {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     <div 
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-xl sm:text-2xl shadow-sm flex-shrink-0"
                       style={{ backgroundColor: suggestion.color }}
                     >
                       {suggestion.icon}
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate">
                         {suggestion.name}
                       </h3>
                       <Badge 
                         variant="outline" 
                         size="sm"
-                        className={getCategoryColor(suggestion.category)}
+                        className={cn(getCategoryColor(suggestion.category), "text-xs")}
                       >
                         {suggestion.category}
                       </Badge>

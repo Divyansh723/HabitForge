@@ -62,21 +62,21 @@ const WellbeingPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="p-3 sm:p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 md:space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <Heart className="h-8 w-8 text-pink-500" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
+              <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-pink-500" />
               Wellbeing Dashboard
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
               Track how your habits impact your mental health and overall wellness
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <Badge
               variant="outline"
               size="sm"
@@ -102,8 +102,8 @@ const WellbeingPage: React.FC = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="flex space-x-8">
+        <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+          <nav className="flex space-x-4 sm:space-x-8 min-w-max">
             {viewTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeView === tab.id;
@@ -113,14 +113,15 @@ const WellbeingPage: React.FC = () => {
                   key={tab.id}
                   onClick={() => setActiveView(tab.id as ViewType)}
                   className={cn(
-                    'flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                    'flex items-center gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap',
                     isActive
                       ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                       : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                 </button>
               );
             })}
@@ -132,7 +133,7 @@ const WellbeingPage: React.FC = () => {
           <div className="space-y-8">
             {/* Wellbeing Score Hero */}
             <Card className={cn(
-              'relative overflow-hidden bg-gradient-to-br text-white border-0 p-8',
+              'relative overflow-hidden bg-gradient-to-br text-white border-0 p-4 sm:p-6 md:p-8',
               getScoreBgColor(wellbeingData.overall)
             )}>
               {/* Background pattern */}
@@ -143,48 +144,48 @@ const WellbeingPage: React.FC = () => {
               </div>
 
               <div className="relative">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
                       Your Wellbeing Score
                     </h2>
-                    <p className="text-white/80">
+                    <p className="text-sm sm:text-base text-white/80">
                       Based on mood, energy, stress levels, and habit consistency
                     </p>
                   </div>
 
-                  <div className="text-right">
-                    <div className="text-4xl font-bold text-white mb-1">
+                  <div className="text-center sm:text-right">
+                    <div className="text-3xl sm:text-4xl font-bold text-white mb-1">
                       {wellbeingData.overall}
                     </div>
-                    <div className="text-white/80 text-sm">
+                    <div className="text-white/80 text-xs sm:text-sm">
                       out of 100
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="grid grid-cols-3 gap-3 sm:gap-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white mb-1">
+                    <div className="text-lg sm:text-2xl font-bold text-white mb-1">
                       +{wellbeingData.weeklyChange}
                     </div>
-                    <div className="text-white/80 text-sm">
+                    <div className="text-white/80 text-xs sm:text-sm">
                       This Week
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white mb-1">
+                    <div className="text-lg sm:text-2xl font-bold text-white mb-1">
                       {wellbeingData.mood.toFixed(1)}
                     </div>
-                    <div className="text-white/80 text-sm">
+                    <div className="text-white/80 text-xs sm:text-sm">
                       Avg Mood
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white mb-1">
+                    <div className="text-lg sm:text-2xl font-bold text-white mb-1">
                       {Math.round(wellbeingData.habitCorrelation * 100)}%
                     </div>
-                    <div className="text-white/80 text-sm">
+                    <div className="text-white/80 text-xs sm:text-sm">
                       Habit Impact
                     </div>
                   </div>
@@ -193,11 +194,11 @@ const WellbeingPage: React.FC = () => {
             </Card>
 
             {/* Key Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <Heart className="h-6 w-6 text-pink-500" />
-                  <span className="font-medium text-gray-900 dark:text-white">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <Card className="text-center p-4 sm:p-6">
+                <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
+                  <Heart className="h-5 w-5 sm:h-6 sm:w-6 text-pink-500" />
+                  <span className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">
                     Mood Trends
                   </span>
                 </div>

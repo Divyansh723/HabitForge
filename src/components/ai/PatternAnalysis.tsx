@@ -304,19 +304,19 @@ export const PatternAnalysis: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Header with Habit Selection */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+      <Card className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
               <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                 AI Pattern Analysis
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm hidden sm:block">
                 Discover when and how you perform best with your habits
               </p>
             </div>
@@ -324,18 +324,19 @@ export const PatternAnalysis: React.FC = () => {
           <Button
             onClick={handleAnalyzeHabit}
             disabled={isLoading || !selectedHabitId}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto whitespace-nowrap"
           >
             <Sparkles className={cn('h-4 w-4', isLoading && 'animate-spin')} />
-            {isLoading ? 'Analyzing...' : 'Refresh Analysis'}
+            <span className="hidden sm:inline">{isLoading ? 'Analyzing...' : 'Refresh Analysis'}</span>
+            <span className="sm:hidden">{isLoading ? 'Analyzing...' : 'Refresh'}</span>
           </Button>
         </div>
 
-        <div className="flex items-center gap-4">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
             Select Habit:
           </label>
-          <div className="flex-1 max-w-xs">
+          <div className="flex-1 sm:max-w-xs">
             <Select
               value={selectedHabitId}
               onChange={(e) => setSelectedHabitId(e.target.value)}
@@ -343,6 +344,7 @@ export const PatternAnalysis: React.FC = () => {
                 { value: '', label: 'Choose a habit...' },
                 ...habitOptions
               ]}
+              className="text-sm sm:text-base"
             />
           </div>
         </div>

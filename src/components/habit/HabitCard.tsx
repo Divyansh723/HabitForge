@@ -102,7 +102,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
 
         <div className="flex-1 min-w-0">
           <h3 className={cn(
-            'font-medium truncate',
+            'font-medium text-sm break-words',
             isCompletedToday 
               ? 'text-gray-500 dark:text-gray-400 line-through' 
               : 'text-gray-900 dark:text-white'
@@ -152,10 +152,10 @@ export const HabitCard: React.FC<HabitCardProps> = ({
 
         {/* Habit Details */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <h3 className={cn(
-                'text-lg font-semibold mb-1',
+                'text-base sm:text-lg font-semibold mb-1 break-words',
                 isCompletedToday 
                   ? 'text-gray-500 dark:text-gray-400 line-through' 
                   : 'text-gray-900 dark:text-white'
@@ -169,7 +169,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
                 </p>
               )}
 
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center flex-wrap gap-2 mb-3">
                 <Badge 
                   variant="outline" 
                   size="sm"
@@ -177,13 +177,13 @@ export const HabitCard: React.FC<HabitCardProps> = ({
                 >
                   {habit.category}
                 </Badge>
-                <Badge variant="outline" size="sm">
-                  <Calendar className="h-3 w-3 mr-1" />
+                <Badge variant="outline" size="sm" className="whitespace-nowrap">
+                  <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
                   {habit.frequency}
                 </Badge>
                 {habit.reminderEnabled && habit.reminderTime && (
-                  <Badge variant="outline" size="sm">
-                    <Clock className="h-3 w-3 mr-1" />
+                  <Badge variant="outline" size="sm" className="whitespace-nowrap">
+                    <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
                     {habit.reminderTime}
                   </Badge>
                 )}
@@ -191,37 +191,39 @@ export const HabitCard: React.FC<HabitCardProps> = ({
 
               {/* Stats */}
               <div className={cn(
-                "flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400",
-                variant === 'detailed' ? "flex-wrap" : ""
+                "flex items-center flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400"
               )}>
-                <div className="flex items-center gap-1">
-                  <Flame className="h-4 w-4 text-orange-500" />
-                  <span>
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {habit.currentStreak}
-                    </span> day streak
+                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                  <Flame className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {habit.currentStreak}
                   </span>
+                  <span>day streak</span>
                 </div>
-                <div>
+                <div className="whitespace-nowrap">
                   <span className="font-medium text-gray-900 dark:text-white">
                     {Math.round(habit.consistencyRate)}%
-                  </span> consistency
+                  </span>
+                  <span className="ml-1">consistency</span>
                 </div>
-                <div>
+                <div className="whitespace-nowrap">
                   <span className="font-medium text-gray-900 dark:text-white">
                     {habit.totalCompletions}
-                  </span> completions
+                  </span>
+                  <span className="ml-1">completions</span>
                 </div>
                 {variant === 'detailed' && (
                   <>
-                    <div>
+                    <div className="whitespace-nowrap">
                       <span className="font-medium text-gray-900 dark:text-white">
                         {habit.longestStreak}
-                      </span> best streak
+                      </span>
+                      <span className="ml-1">best streak</span>
                     </div>
-                    <div>
-                      Status: <span className={cn(
-                        "font-medium",
+                    <div className="whitespace-nowrap">
+                      <span>Status:</span>
+                      <span className={cn(
+                        "font-medium ml-1",
                         habit.active 
                           ? "text-success-600 dark:text-success-400" 
                           : "text-warning-600 dark:text-warning-400"

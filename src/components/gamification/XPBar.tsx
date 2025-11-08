@@ -30,25 +30,25 @@ export const XPBar: React.FC<XPBarProps> = ({
 
   const sizeClasses = {
     sm: {
-      container: 'p-3',
+      container: 'p-2 sm:p-3',
       bar: 'h-2',
-      text: 'text-sm',
-      level: 'text-lg',
-      icon: 'h-4 w-4',
+      text: 'text-xs sm:text-sm',
+      level: 'text-base sm:text-lg',
+      icon: 'h-3 w-3 sm:h-4 sm:w-4',
     },
     md: {
-      container: 'p-4',
-      bar: 'h-3',
-      text: 'text-sm',
-      level: 'text-xl',
-      icon: 'h-5 w-5',
+      container: 'p-3 sm:p-4',
+      bar: 'h-2 sm:h-3',
+      text: 'text-xs sm:text-sm',
+      level: 'text-lg sm:text-xl',
+      icon: 'h-4 w-4 sm:h-5 sm:w-5',
     },
     lg: {
-      container: 'p-6',
-      bar: 'h-4',
-      text: 'text-base',
-      level: 'text-2xl',
-      icon: 'h-6 w-6',
+      container: 'p-4 sm:p-5 md:p-6',
+      bar: 'h-3 sm:h-4',
+      text: 'text-sm sm:text-base',
+      level: 'text-xl sm:text-2xl',
+      icon: 'h-5 w-5 sm:h-6 sm:w-6',
     },
   };
 
@@ -70,23 +70,23 @@ export const XPBar: React.FC<XPBarProps> = ({
 
       <div className="relative">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between mb-3 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <div 
               className={cn(
-                'rounded-full flex items-center justify-center text-white bg-gradient-to-r',
+                'rounded-full flex items-center justify-center text-white bg-gradient-to-r flex-shrink-0',
                 levelColors.gradient,
-                size === 'sm' ? 'w-8 h-8' : size === 'md' ? 'w-10 h-10' : 'w-12 h-12'
+                size === 'sm' ? 'w-7 h-7 sm:w-8 sm:h-8' : size === 'md' ? 'w-8 h-8 sm:w-10 sm:h-10' : 'w-10 h-10 sm:w-12 sm:h-12'
               )}
             >
               <Zap className={classes.icon} />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <div className={cn('font-bold text-gray-900 dark:text-white', classes.level)}>
                 Level {levelInfo.currentLevel}
               </div>
               {showDetails && (
-                <div className={cn('text-gray-600 dark:text-gray-400', classes.text)}>
+                <div className={cn('text-gray-600 dark:text-gray-400 truncate', classes.text)}>
                   {levelTitle}
                 </div>
               )}
@@ -96,7 +96,7 @@ export const XPBar: React.FC<XPBarProps> = ({
           <Badge 
             variant="outline" 
             className={cn(
-              'font-semibold',
+              'font-semibold flex-shrink-0',
               classes.text
             )}
           >
@@ -107,11 +107,11 @@ export const XPBar: React.FC<XPBarProps> = ({
         {/* Progress Bar */}
         <div className="space-y-2">
           {showDetails && (
-            <div className={cn('flex justify-between', classes.text)}>
-              <span className="text-gray-600 dark:text-gray-400">
+            <div className={cn('flex justify-between gap-2', classes.text)}>
+              <span className="text-gray-600 dark:text-gray-400 truncate">
                 Progress to Level {levelInfo.currentLevel + 1}
               </span>
-              <span className="text-gray-600 dark:text-gray-400">
+              <span className="text-gray-600 dark:text-gray-400 flex-shrink-0">
                 {formatXP(levelInfo.xpForNextLevel - levelInfo.currentXP)} to go
               </span>
             </div>

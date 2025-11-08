@@ -90,16 +90,16 @@ const GoalsPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="p-3 sm:p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 md:space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <Target className="h-8 w-8" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
+              <Target className="h-6 w-6 sm:h-8 sm:w-8" />
               Goals & Challenges
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
               Manage your habits, join challenges, and track achievements
             </p>
           </div>
@@ -110,7 +110,7 @@ const GoalsPage: React.FC = () => {
                 setEditingHabit(null);
                 setShowHabitForm(true);
               }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <Plus className="h-4 w-4" />
               Create Habit
@@ -119,8 +119,8 @@ const GoalsPage: React.FC = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="flex space-x-8">
+        <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+          <nav className="flex space-x-4 sm:space-x-8 min-w-max">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -130,14 +130,15 @@ const GoalsPage: React.FC = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as TabType)}
                   className={cn(
-                    'flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                    'flex items-center gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap',
                     isActive
                       ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                       : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                   {tab.count > 0 && (
                     <Badge variant="secondary" size="sm">
                       {tab.count}
@@ -151,9 +152,9 @@ const GoalsPage: React.FC = () => {
 
         {/* Tab Content */}
         {activeTab === 'habits' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Filters and Search */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -165,7 +166,7 @@ const GoalsPage: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="sm:w-48">
+              <div className="w-full sm:w-48">
                 <Select
                   value={habitFilter}
                   onChange={(e) => setHabitFilter(e.target.value as HabitFilter)}
@@ -176,7 +177,7 @@ const GoalsPage: React.FC = () => {
 
             {/* Habits Grid */}
             {filteredHabits.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredHabits.map((habit) => (
                   <HabitCard
                     key={habit.id}
@@ -193,10 +194,10 @@ const GoalsPage: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <Card className="text-center py-12">
+              <Card className="text-center py-8 sm:py-12 px-4">
                 <div className="max-w-md mx-auto">
-                  <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  <Target className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">
                     {searchQuery || habitFilter !== 'all' ? 'No habits found' : 'No habits yet'}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">

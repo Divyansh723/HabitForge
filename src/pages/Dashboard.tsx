@@ -45,42 +45,43 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 overflow-x-hidden">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Welcome Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="flex flex-col gap-4">
+          <div className="min-w-0 overflow-hidden">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white break-words">
               {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}! 👋
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
               Ready to build some great habits today?
             </p>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
             <Button
               variant="outline"
               size="sm"
               onClick={handleRecalculateStats}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-xs sm:text-sm"
             >
-              <RefreshCw className="h-4 w-4" />
-              Fix Streaks
+              <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Fix Streaks</span>
+              <span className="xs:hidden">Fix</span>
             </Button>
             <LevelBadge totalXP={totalXP} variant="compact" showProgress />
           </div>
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Daily Habits - Takes up 2 columns on large screens */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 min-w-0">
             <DailyHabitChecklist showStreaks />
           </div>
 
           {/* Sidebar with Quick Info */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 min-w-0">
             {/* XP Progress */}
             <XPBar totalXP={totalXP} showDetails animated />
 

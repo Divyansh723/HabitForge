@@ -91,19 +91,19 @@ export const AIInsightsOverview: React.FC<AIInsightsOverviewProps> = ({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Motivational Message */}
       {motivationalContent && (
-        <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
+        <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800 p-4 sm:p-6">
           <div className="text-center">
-            <div className="text-3xl mb-4">✨</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="text-2xl sm:text-3xl mb-3 sm:mb-4">✨</div>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
               Daily Motivation
             </h3>
-            <p className="text-gray-700 dark:text-gray-300 mb-4 italic">
+            <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-3 sm:mb-4 italic">
               "{motivationalContent.message}"
             </p>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               {motivationalContent.affirmation}
             </div>
           </div>
@@ -111,36 +111,36 @@ export const AIInsightsOverview: React.FC<AIInsightsOverviewProps> = ({
       )}
 
       {/* Key Insights */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
             Key Insights
           </h2>
-          <Badge variant="outline">
+          <Badge variant="outline" className="w-fit">
             {insights.keyInsights.length} insights found
           </Badge>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {insights.keyInsights.map((insight, index) => (
-            <Card key={index} className="hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-4">
+            <Card key={index} className="hover:shadow-md transition-shadow p-4 sm:p-6">
+              <div className="flex items-start gap-3 sm:gap-4">
                 <div className="flex-shrink-0 mt-1">
                   {getInsightIcon(insight.type)}
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                    <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">
                       {insight.title}
                     </h3>
                     <Badge 
                       size="sm" 
-                      className={getPriorityColor(insight.priority)}
+                      className={cn(getPriorityColor(insight.priority), "w-fit")}
                     >
                       {insight.priority}
                     </Badge>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
+                  <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3">
                     {insight.description}
                   </p>
                   {insight.actionable && (

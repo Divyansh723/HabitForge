@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
-import { Button } from '@/components/ui';
 import { Menu } from 'lucide-react';
 
 interface PageLayoutProps {
@@ -26,7 +25,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
       {/* Sidebar - Show for all pages */}
       <Sidebar 
         isOpen={isSidebarOpen}
@@ -34,24 +33,21 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Mobile menu button - only show when sidebar is hidden on mobile */}
-        <div className="lg:hidden p-4">
-          <Button
-            variant="ghost"
-            size="sm"
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile menu button - fixed position for better UX, hidden when sidebar is open */}
+        {!isSidebarOpen && (
+          <button
             onClick={toggleSidebar}
-            className="mb-4"
-            aria-label="Toggle menu"
+            className="lg:hidden fixed top-3 left-3 z-50 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Open menu"
           >
-            <Menu className="h-5 w-5" />
-            <span className="ml-2">Menu</span>
-          </Button>
-        </div>
+            <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+          </button>
+        )}
 
         {/* Main Content */}
-        <main className="flex-1">
-          <div className="min-h-full">
+        <main className="flex-1 overflow-x-hidden">
+          <div className="min-h-full w-full pt-14 lg:pt-0">
             {children}
           </div>
         </main>
