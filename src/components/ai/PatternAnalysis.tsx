@@ -64,241 +64,98 @@ export const PatternAnalysis: React.FC = () => {
     return 'bg-red-100 dark:bg-red-900';
   };
 
-  // Show demo data if no active habits with enough completions
-  const showDemoData = activeHabits.length === 0;
+  // Show message if no active habits with enough completions
+  const showNoDataMessage = activeHabits.length === 0;
   
-  if (showDemoData) {
-    // Create demo habit and analysis for display
-    const demoHabit = {
-      id: 'demo-1',
-      name: 'Morning Exercise',
-      description: 'Start your day with 30 minutes of exercise',
-      icon: '🏃',
-      color: '#3B82F6',
-      active: true,
-      currentStreak: 7,
-      totalCompletions: 45,
-      category: 'fitness',
-      frequency: 'daily'
-    };
-
-    const demoAnalysis: PatternAnalysisType = {
-      patterns: {
-        bestDays: ['Monday', 'Tuesday', 'Wednesday'],
-        bestTimes: ['morning', 'early evening'],
-        consistencyScore: 85,
-        streakPatterns: 'Strong weekday performance with weekend challenges. You maintain excellent consistency during work days.'
-      },
-      predictions: {
-        optimalSchedule: 'Best performed in the morning between 7-9 AM on weekdays',
-        riskFactors: ['Weekend schedule changes', 'Travel days', 'High stress periods'],
-        successFactors: ['Morning routine anchor', 'Consistent sleep schedule', 'Preparation the night before']
-      },
-      recommendations: [
-        'Set weekend-specific reminders to maintain consistency',
-        'Prepare materials the night before to reduce friction',
-        'Consider a simplified version for challenging days',
-        'Track your energy levels to optimize timing'
-      ]
-    };
-
+  if (showNoDataMessage) {
     return (
-      <div className="space-y-8">
-        {/* Demo Data Banner */}
+      <div className="space-y-6">
         <Card className="border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
-          <div className="flex items-start gap-3">
-            <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-900 dark:text-blue-100">
-              <strong>Demo Pattern Analysis:</strong> Complete habits at least 3 times to see your personalized AI pattern analysis. 
-              The example below shows what insights you'll receive once you have enough data.
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BarChart3 className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              No Pattern Data Available
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+              Create habits and complete them at least 3 times to unlock AI-powered pattern analysis and personalized insights.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                onClick={() => window.location.href = '/'}
+                className="flex items-center gap-2"
+              >
+                <Target className="h-4 w-4" />
+                Create Your First Habit
+              </Button>
             </div>
           </div>
         </Card>
 
-        {/* Demo Analysis Display */}
-        <div className="space-y-8 opacity-90">
-          {/* Habit Overview */}
-          <Card>
-            <div className="flex items-center gap-4 mb-6">
-              <div 
-                className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl shadow-sm"
-                style={{ backgroundColor: demoHabit.color }}
-              >
-                {demoHabit.icon}
+        {/* What You'll Get Section */}
+        <Card>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            What You'll Get with Pattern Analysis
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {demoHabit.name}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {demoHabit.description}
+                <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                  Best Performance Days
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Discover which days of the week you're most consistent
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className={cn(
-                  'text-3xl font-bold mb-2',
-                  getConsistencyColor(demoAnalysis.patterns.consistencyScore)
-                )}>
-                  {demoAnalysis.patterns.consistencyScore}%
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Consistency Score
-                </div>
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Clock className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  {demoHabit.currentStreak}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Current Streak
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  {demoHabit.totalCompletions}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Total Completions
-                </div>
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                  Optimal Times
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Find out when you're most likely to complete habits
+                </p>
               </div>
             </div>
-          </Card>
 
-          {/* Pattern Insights */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Best Days */}
-            <Card>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-500" />
-                Best Performance Days
-              </h3>
-              <div className="space-y-3">
-                {demoAnalysis.patterns.bestDays.map((day, index) => (
-                  <div key={day} className="flex items-center justify-between">
-                    <span className="text-gray-700 dark:text-gray-300">{day}</span>
-                    <Badge 
-                      variant="outline" 
-                      className={index === 0 ? 'bg-green-50 text-green-700 border-green-200' : ''}
-                    >
-                      {index === 0 ? 'Best' : 'Good'}
-                    </Badge>
-                  </div>
-                ))}
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-            </Card>
-
-            {/* Best Times */}
-            <Card>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Clock className="h-5 w-5 text-purple-500" />
-                Optimal Times
-              </h3>
-              <div className="space-y-3">
-                {demoAnalysis.patterns.bestTimes.map((time, index) => (
-                  <div key={time} className="flex items-center justify-between">
-                    <span className="text-gray-700 dark:text-gray-300 capitalize">{time}</span>
-                    <Badge 
-                      variant="outline"
-                      className={index === 0 ? 'bg-purple-50 text-purple-700 border-purple-200' : ''}
-                    >
-                      {index === 0 ? 'Optimal' : 'Good'}
-                    </Badge>
-                  </div>
-                ))}
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                  Streak Patterns
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Understand your consistency trends and behaviors
+                </p>
               </div>
-            </Card>
-          </div>
-
-          {/* Streak Patterns */}
-          <Card>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-500" />
-              Streak Behavior Analysis
-            </h3>
-            <div className={cn(
-              'p-4 rounded-lg mb-4',
-              getConsistencyBg(demoAnalysis.patterns.consistencyScore)
-            )}>
-              <p className="text-gray-700 dark:text-gray-300">
-                {demoAnalysis.patterns.streakPatterns}
-              </p>
             </div>
-          </Card>
 
-          {/* Predictions & Recommendations */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Success & Risk Factors */}
-            <Card>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Target className="h-5 w-5 text-orange-500" />
-                Success & Risk Factors
-              </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-green-700 dark:text-green-300 mb-2">
-                    Success Factors
-                  </h4>
-                  <ul className="space-y-1">
-                    {demoAnalysis.predictions.successFactors.map((factor, index) => (
-                      <li key={index} className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2">
-                        <span className="text-green-500 mt-1">✓</span>
-                        <span>{factor}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-red-700 dark:text-red-300 mb-2">
-                    Risk Factors
-                  </h4>
-                  <ul className="space-y-1">
-                    {demoAnalysis.predictions.riskFactors.map((factor, index) => (
-                      <li key={index} className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2">
-                        <span className="text-red-500 mt-1">⚠</span>
-                        <span>{factor}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Sparkles className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
               </div>
-            </Card>
-
-            {/* AI Recommendations */}
-            <Card>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-yellow-500" />
-                AI Recommendations
-              </h3>
-              
-              <div className="space-y-3">
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 mb-4">
-                  <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                    Optimal Schedule
-                  </h4>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    {demoAnalysis.predictions.optimalSchedule}
-                  </p>
-                </div>
-
-                {demoAnalysis.recommendations.map((recommendation, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center text-xs font-semibold text-primary-600 dark:text-primary-400">
-                      {index + 1}
-                    </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      {recommendation}
-                    </p>
-                  </div>
-                ))}
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                  AI Recommendations
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Get personalized tips to improve your success rate
+                </p>
               </div>
-            </Card>
+            </div>
           </div>
-        </div>
+        </Card>
       </div>
     );
   }

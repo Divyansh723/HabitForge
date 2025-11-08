@@ -19,9 +19,24 @@ export interface CircleEvent {
 
 export interface ChallengeParticipant {
   userId: string;
+  habitId?: string;
   progress: number;
   completed: boolean;
   completedAt?: Date;
+  joinedAt?: Date;
+}
+
+export interface HabitTemplate {
+  name: string;
+  description?: string;
+  category: string;
+  frequency: 'daily' | 'weekly' | 'custom';
+  customFrequency?: {
+    daysOfWeek?: number[];
+    timesPerWeek?: number;
+  };
+  reminderTime?: string;
+  icon?: string;
 }
 
 export interface CircleChallenge {
@@ -33,6 +48,7 @@ export interface CircleChallenge {
   pointsReward: number;
   startDate: Date;
   endDate: Date;
+  habitTemplate?: HabitTemplate;
   participants: ChallengeParticipant[];
   createdBy: string;
   createdAt: Date;

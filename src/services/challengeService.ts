@@ -118,9 +118,11 @@ class ChallengeService {
     try {
       const response = await api.post(`/challenges/personal/${challengeId}/join`);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error joining challenge:', error);
-      throw new Error('Failed to join challenge');
+      // Extract the error message from the API response
+      const message = error.response?.data?.message || 'Failed to join challenge';
+      throw new Error(message);
     }
   }
 

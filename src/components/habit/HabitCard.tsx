@@ -60,7 +60,14 @@ export const HabitCard: React.FC<HabitCardProps> = ({
 
   const handleDelete = () => {
     setShowMenu(false);
-    if (onDelete && window.confirm('Are you sure you want to delete this habit?')) {
+    if (!onDelete) return;
+    
+    let confirmMessage = 'Are you sure you want to delete this habit?';
+    if (habit.isChallengeHabit) {
+      confirmMessage = '⚠️ This habit is linked to a community challenge. Deleting it will remove you from the challenge. Are you sure you want to continue?';
+    }
+    
+    if (window.confirm(confirmMessage)) {
       onDelete(habit.id);
     }
   };
@@ -185,6 +192,15 @@ export const HabitCard: React.FC<HabitCardProps> = ({
                   <Badge variant="outline" size="sm" className="whitespace-nowrap">
                     <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
                     {habit.reminderTime}
+                  </Badge>
+                )}
+                {habit.isChallengeHabit && (
+                  <Badge 
+                    variant="outline" 
+                    size="sm" 
+                    className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 whitespace-nowrap"
+                  >
+                    🎯 Challenge Habit
                   </Badge>
                 )}
               </div>

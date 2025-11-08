@@ -141,6 +141,18 @@ export const joinChallenge = async (req, res) => {
       });
     }
 
+    // Check if user has any active habits
+    const Habit = mongoose.model('Habit');
+    const userHabits = await Habit.find({ userId, active: true }).session(session);
+    
+    if (userHabits.length === 0) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'Please create habit to join the challenge'
+      });
+    }
+
     // Check if user already has an active participation
     const existingParticipation = await ChallengeParticipation.findOne({
       userId,

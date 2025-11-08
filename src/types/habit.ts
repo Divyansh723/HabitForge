@@ -17,6 +17,11 @@ export interface Habit {
   longestStreak: number;
   totalCompletions: number;
   consistencyRate: number;
+  // Challenge linking
+  isChallengeHabit?: boolean;
+  challengeId?: string;
+  circleId?: string;
+  autoDeleteOnChallengeEnd?: boolean;
 }
 
 export interface Completion {

@@ -112,6 +112,23 @@ const habitSchema = new mongoose.Schema({
     type: Number, // in minutes
     min: 1,
     max: 1440 // 24 hours
+  },
+  // Challenge linking
+  isChallengeHabit: {
+    type: Boolean,
+    default: false
+  },
+  challengeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CommunityCircle.challenges'
+  },
+  circleId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CommunityCircle'
+  },
+  autoDeleteOnChallengeEnd: {
+    type: Boolean,
+    default: true
   }
 }, {
   timestamps: true,
@@ -275,6 +292,74 @@ habitSchema.methods.toJSON = function() {
   
   return habit;
 };
+
+// Pre-remove hook: Remove user from challenge when they delete a challenge habit
+habitSchema.pre('findOneAndDelete', async function(next) {
+  try {
+    const habit = await this.model.findOne(this.getFilter());
+    
+    if (habit && habit.isChallengeHabit && habit.challengeId && habit.circleId) {
+      const CommunityCircle = mongoose.model('CommunityCircle');
+      const circle = await CommunityCircle.findById(habit.circleId);
+      
+      if (circle) {
+        const challenge = circle.challenges.id(habit.challengeId);
+        if (challenge) {
+          // Remove user from challenge participants
+          const participantIndex = challenge.participants.findIndex(
+            p => p.userId.toString() === habit.userId.toString()
+          );
+          
+          if (participantIndex !== -1) {
+            challenge.participants.splice(participantIndex, 1);
+            await circle.save();
+            console.log(`Removed user ${habit.userId} from challenge ${habit.challengeId} after habit deletion`);
+          }
+        }
+      }
+    }
+    
+    next();
+  } catch (error) {
+    console.error('Error in habit pre-remove hook:', error);
+    next(error);
+  }
+});
+
+// Pre-remove hook for deleteMany operations
+habitSchema.pre('deleteMany', async function(next) {
+  try {
+    const habits = await this.model.find(this.getFilter());
+    
+    for (const habit of habits) {
+      if (habit.isChallengeHabit && habit.challengeId && habit.circleId) {
+        const CommunityCircle = mongoose.model('CommunityCircle');
+        const circle = await CommunityCircle.findById(habit.circleId);
+        
+        if (circle) {
+          const challenge = circle.challenges.id(habit.challengeId);
+          if (challenge) {
+            // Remove user from challenge participants
+            const participantIndex = challenge.participants.findIndex(
+              p => p.userId.toString() === habit.userId.toString()
+            );
+            
+            if (participantIndex !== -1) {
+              challenge.participants.splice(participantIndex, 1);
+              await circle.save();
+              console.log(`Removed user ${habit.userId} from challenge ${habit.challengeId} after habit deletion`);
+            }
+          }
+        }
+      }
+    }
+    
+    next();
+  } catch (error) {
+    console.error('Error in habit deleteMany pre-hook:', error);
+    next(error);
+  }
+});
 
 const Habit = mongoose.model('Habit', habitSchema);
 

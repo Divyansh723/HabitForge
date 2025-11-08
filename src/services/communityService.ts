@@ -291,6 +291,18 @@ class CommunityService {
       throw new Error('An unexpected error occurred');
     }
   }
+
+  // Update challenge progress (for challenges without habit templates)
+  async updateChallengeProgress(circleId: string, challengeId: string, progress: number): Promise<void> {
+    try {
+      await this.api.put(`/${circleId}/challenges/${challengeId}/progress`, { progress });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to update progress');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
 }
 
 export const communityService = new CommunityService();

@@ -26,6 +26,15 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
   const [endDate, setEndDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  
+  // Habit template fields
+  const [enableHabitTemplate, setEnableHabitTemplate] = useState(false);
+  const [habitName, setHabitName] = useState('');
+  const [habitDescription, setHabitDescription] = useState('');
+  const [habitCategory, setHabitCategory] = useState('health');
+  const [habitFrequency, setHabitFrequency] = useState<'daily' | 'weekly' | 'custom'>('daily');
+  const [habitIcon, setHabitIcon] = useState('🎯');
+  const [habitReminderTime, setHabitReminderTime] = useState('');
 
   // Populate form if editing
   useEffect(() => {
@@ -37,6 +46,17 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
       setPointsReward(challenge.pointsReward.toString());
       setStartDate(new Date(challenge.startDate).toISOString().split('T')[0]);
       setEndDate(new Date(challenge.endDate).toISOString().split('T')[0]);
+      
+      // Populate habit template if it exists
+      if (challenge.habitTemplate) {
+        setEnableHabitTemplate(true);
+        setHabitName(challenge.habitTemplate.name);
+        setHabitDescription(challenge.habitTemplate.description || '');
+        setHabitCategory(challenge.habitTemplate.category);
+        setHabitFrequency(challenge.habitTemplate.frequency);
+        setHabitIcon(challenge.habitTemplate.icon || '🎯');
+        setHabitReminderTime(challenge.habitTemplate.reminderTime || '');
+      }
     } else {
       // Set default start date to today
       const today = new Date().toISOString().split('T')[0];
@@ -93,8 +113,22 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
     setIsSubmitting(true);
     setError('');
 
+    // Validate habit template if enabled
+    if (enableHabitTemplate) {
+      if (!habitName.trim()) {
+        setError('Habit name is required when habit template is enabled');
+        setIsSubmitting(false);
+        return;
+      }
+      if (habitName.length > 100) {
+        setError('Habit name must be 100 characters or less');
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     try {
-      const challengeData = {
+      const challengeData: any = {
         title: title.trim(),
         description: description.trim(),
         type,
@@ -103,6 +137,18 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
         startDate,
         endDate
       };
+
+      // Add habit template if enabled
+      if (enableHabitTemplate && habitName.trim()) {
+        challengeData.habitTemplate = {
+          name: habitName.trim(),
+          description: habitDescription.trim(),
+          category: habitCategory,
+          frequency: habitFrequency,
+          icon: habitIcon,
+          reminderTime: habitReminderTime || undefined
+        };
+      }
 
       if (challenge) {
         // Update existing challenge
@@ -266,6 +312,152 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
                   className="w-full"
                 />
               </div>
+            </div>
+
+            {/* Habit Template Section */}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+              <div className="flex items-center gap-2 mb-4">
+                <input
+                  type="checkbox"
+                  id="enableHabitTemplate"
+                  checked={enableHabitTemplate}
+                  onChange={(e) => setEnableHabitTemplate(e.target.checked)}
+                  className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                />
+                <label htmlFor="enableHabitTemplate" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Create Habit Template (Auto-create habit for participants)
+                </label>
+              </div>
+
+              {enableHabitTemplate && (
+                <div className="space-y-4 pl-6 border-l-2 border-primary-200 dark:border-primary-800">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    When participants join this challenge, a habit will be automatically created in their profile based on this template.
+                  </p>
+
+                  {/* Habit Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Habit Name *
+                    </label>
+                    <Input
+                      value={habitName}
+                      onChange={(e) => setHabitName(e.target.value)}
+                      placeholder="e.g., Morning Exercise"
+                      maxLength={100}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Habit Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Habit Description
+                    </label>
+                    <Textarea
+                      value={habitDescription}
+                      onChange={(e) => setHabitDescription(e.target.value)}
+                      placeholder="Describe the habit..."
+                      rows={2}
+                      maxLength={500}
+                      className="w-full resize-none"
+                    />
+                  </div>
+
+                  {/* Category and Icon Row */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Category */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Category *
+                      </label>
+                      <Select
+                        value={habitCategory}
+                        onChange={(e) => setHabitCategory(e.target.value)}
+                        options={[
+                          { value: 'health', label: 'Health' },
+                          { value: 'fitness', label: 'Fitness' },
+                          { value: 'productivity', label: 'Productivity' },
+                          { value: 'learning', label: 'Learning' },
+                          { value: 'mindfulness', label: 'Mindfulness' },
+                          { value: 'social', label: 'Social' },
+                          { value: 'creativity', label: 'Creativity' },
+                          { value: 'finance', label: 'Finance' },
+                          { value: 'other', label: 'Other' }
+                        ]}
+                        className="w-full"
+                      />
+                    </div>
+
+                    {/* Icon */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Icon
+                      </label>
+                      <Select
+                        value={habitIcon}
+                        onChange={(e) => setHabitIcon(e.target.value)}
+                        options={[
+                          { value: '🎯', label: '🎯 Target' },
+                          { value: '💪', label: '💪 Strength' },
+                          { value: '🏃', label: '🏃 Running' },
+                          { value: '🧘', label: '🧘 Meditation' },
+                          { value: '📚', label: '📚 Reading' },
+                          { value: '💧', label: '💧 Water' },
+                          { value: '🥗', label: '🥗 Healthy Food' },
+                          { value: '😴', label: '😴 Sleep' },
+                          { value: '✍️', label: '✍️ Writing' },
+                          { value: '🎨', label: '🎨 Art' },
+                          { value: '🎵', label: '🎵 Music' },
+                          { value: '💼', label: '💼 Work' },
+                          { value: '🌱', label: '🌱 Growth' },
+                          { value: '❤️', label: '❤️ Health' },
+                          { value: '🔥', label: '🔥 Streak' },
+                          { value: '⭐', label: '⭐ Star' },
+                          { value: '🌟', label: '🌟 Shine' },
+                          { value: '💎', label: '💎 Diamond' },
+                          { value: '🏆', label: '🏆 Trophy' },
+                          { value: '🎓', label: '🎓 Learning' }
+                        ]}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Frequency and Reminder Row */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Frequency */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Frequency *
+                      </label>
+                      <Select
+                        value={habitFrequency}
+                        onChange={(e) => setHabitFrequency(e.target.value as 'daily' | 'weekly' | 'custom')}
+                        options={[
+                          { value: 'daily', label: 'Daily' },
+                          { value: 'weekly', label: 'Weekly' },
+                          { value: 'custom', label: 'Custom' }
+                        ]}
+                        className="w-full"
+                      />
+                    </div>
+
+                    {/* Reminder Time */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Reminder Time
+                      </label>
+                      <Input
+                        type="time"
+                        value={habitReminderTime}
+                        onChange={(e) => setHabitReminderTime(e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Actions */}

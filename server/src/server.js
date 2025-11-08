@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/database.js';
 import apiRoutes from './routes/index.js';
 import { logServerStart } from './utils/logger.js';
+import { startChallengeCleanupJob } from './jobs/challengeCleanup.js';
 
 // Load environment variables
 dotenv.config();
@@ -162,11 +163,14 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Start server  
+// Start server
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
   logServerStart(PORT, process.env.NODE_ENV || 'development');
+  
+  // Start background jobs
+  startChallengeCleanupJob();
 });
 
 // Graceful shutdown

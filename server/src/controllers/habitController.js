@@ -388,6 +388,54 @@ export const markComplete = async (req, res) => {
 
       await user.save({ session });
 
+      // Update challenge progress if this is a challenge habit
+      let challengeCompleted = false;
+      if (habit.isChallengeHabit && habit.circleId && habit.challengeId) {
+        const CommunityCircle = mongoose.model('CommunityCircle');
+        const circle = await CommunityCircle.findById(habit.circleId).session(session);
+        
+        if (circle) {
+          const challenge = circle.challenges.id(habit.challengeId);
+          if (challenge) {
+            const participant = challenge.participants.find(p => 
+              p.userId.toString() === userId.toString() && 
+              p.habitId && p.habitId.toString() === habitId.toString()
+            );
+            
+            if (participant && !participant.completed) {
+              // Update progress based on challenge type
+              if (challenge.type === 'completion') {
+                participant.progress += 1;
+              } else if (challenge.type === 'streak') {
+                participant.progress = habit.currentStreak;
+              } else if (challenge.type === 'consistency') {
+                // Calculate consistency for challenge period
+                const challengeStart = new Date(Math.max(challenge.startDate, participant.joinedAt));
+                const daysSinceStart = Math.ceil((new Date() - challengeStart) / (1000 * 60 * 60 * 24));
+                const completionsInPeriod = await Completion.countDocuments({
+                  habitId,
+                  userId,
+                  completedAt: { $gte: challengeStart }
+                }).session(session);
+                participant.progress = Math.round((completionsInPeriod / daysSinceStart) * 100);
+              }
+              
+              // Check if challenge is completed
+              if (participant.progress >= challenge.target) {
+                participant.completed = true;
+                participant.completedAt = new Date();
+                challengeCompleted = true;
+                
+                // Award community points
+                circle.addCommunityPoints(userId, challenge.pointsReward);
+              }
+              
+              await circle.save({ session });
+            }
+          }
+        }
+      }
+
       res.status(201).json({
         success: true,
         message: 'Habit marked as complete',
@@ -397,7 +445,8 @@ export const markComplete = async (req, res) => {
           levelUpBonus,
           newLevel,
           leveledUp: newLevel > oldLevel,
-          newTotalXP: user.totalXP
+          newTotalXP: user.totalXP,
+          challengeCompleted
         }
       });
     });

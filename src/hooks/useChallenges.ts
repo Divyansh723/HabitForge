@@ -22,6 +22,10 @@ interface UseChallengesReturn {
   historyLoading: boolean;
   historyError: string | null;
   
+  // Join challenge error
+  joinError: string | null;
+  clearJoinError: () => void;
+  
   // Actions
   fetchChallenges: () => Promise<void>;
   fetchActiveParticipations: () => Promise<void>;
@@ -53,6 +57,9 @@ export const useChallenges = (): UseChallengesReturn => {
   const [history, setHistory] = useState<ChallengeHistory[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  
+  // Join error state
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   // Fetch available challenges
   const fetchChallenges = useCallback(async () => {
@@ -111,12 +118,20 @@ export const useChallenges = (): UseChallengesReturn => {
     }
   }, [user]);
 
+  // Clear join error
+  const clearJoinError = useCallback(() => {
+    setJoinError(null);
+  }, []);
+
   // Join a challenge
   const joinChallenge = useCallback(async (challengeId: string): Promise<boolean> => {
     if (!user) {
-      console.error('Please log in to join challenges');
+      setJoinError('Please log in to join challenges');
       return false;
     }
+    
+    // Clear previous error
+    setJoinError(null);
     
     try {
       await challengeService.joinChallenge(challengeId);
@@ -131,6 +146,9 @@ export const useChallenges = (): UseChallengesReturn => {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to join challenge';
       console.error('Error joining challenge:', message);
+      
+      // Set error to display in UI
+      setJoinError(message);
       return false;
     }
   }, [user, fetchChallenges, fetchActiveParticipations]);
@@ -199,6 +217,10 @@ export const useChallenges = (): UseChallengesReturn => {
     history,
     historyLoading,
     historyError,
+    
+    // Join error
+    joinError,
+    clearJoinError,
     
     // Actions
     fetchChallenges,

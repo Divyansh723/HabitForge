@@ -86,10 +86,41 @@ const circleChallengeSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
+  // Habit template for auto-creation
+  habitTemplate: {
+    name: {
+      type: String,
+      required: true,
+      maxlength: 100
+    },
+    description: {
+      type: String,
+      maxlength: 500
+    },
+    category: {
+      type: String,
+      required: true
+    },
+    frequency: {
+      type: String,
+      enum: ['daily', 'weekly', 'custom'],
+      default: 'daily'
+    },
+    customFrequency: {
+      daysOfWeek: [Number], // 0-6 for Sunday-Saturday
+      timesPerWeek: Number
+    },
+    reminderTime: String,
+    icon: String
+  },
   participants: [{
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
+    },
+    habitId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Habit'
     },
     progress: {
       type: Number,
@@ -99,7 +130,11 @@ const circleChallengeSchema = new mongoose.Schema({
       type: Boolean,
       default: false
     },
-    completedAt: Date
+    completedAt: Date,
+    joinedAt: {
+      type: Date,
+      default: Date.now
+    }
   }],
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -400,7 +435,7 @@ communityCircleSchema.methods.addChallenge = function(userId, challengeData) {
 };
 
 // Method to join challenge
-communityCircleSchema.methods.joinChallenge = function(userId, challengeId) {
+communityCircleSchema.methods.joinChallenge = async function(userId, challengeId) {
   if (!this.isMember(userId)) {
     throw new Error('Only members can join challenges');
   }
@@ -412,7 +447,72 @@ communityCircleSchema.methods.joinChallenge = function(userId, challengeId) {
   if (alreadyJoined) {
     throw new Error('Already joined this challenge');
   }
-  challenge.participants.push({ userId, progress: 0, completed: false });
+  
+  // Create habit from template if it exists
+  let habitId = null;
+  if (challenge.habitTemplate && challenge.habitTemplate.name) {
+    const Habit = mongoose.model('Habit');
+    const habit = new Habit({
+      userId,
+      name: challenge.habitTemplate.name,
+      description: challenge.habitTemplate.description || `Challenge: ${challenge.title}`,
+      category: challenge.habitTemplate.category,
+      frequency: challenge.habitTemplate.frequency || 'daily',
+      customFrequency: challenge.habitTemplate.customFrequency,
+      reminderTime: challenge.habitTemplate.reminderTime,
+      reminderEnabled: !!challenge.habitTemplate.reminderTime,
+      color: '#8B5CF6', // Purple for challenge habits
+      icon: challenge.habitTemplate.icon || '🎯',
+      active: true,
+      isChallengeHabit: true,
+      challengeId: challengeId,
+      circleId: this._id,
+      autoDeleteOnChallengeEnd: true
+    });
+    await habit.save();
+    habitId = habit._id;
+  } else {
+    // If no habit template, check if user has any active habits
+    const Habit = mongoose.model('Habit');
+    const userHabits = await Habit.find({ userId, active: true });
+    
+    if (userHabits.length === 0) {
+      throw new Error('Please create habit to join the challenge');
+    }
+  }
+  
+  challenge.participants.push({ 
+    userId, 
+    habitId,
+    progress: 0, 
+    completed: false,
+    joinedAt: new Date()
+  });
+  return this.save();
+};
+
+// Method to leave challenge
+communityCircleSchema.methods.leaveChallenge = async function(userId, challengeId) {
+  const challenge = this.challenges.id(challengeId);
+  if (!challenge) {
+    throw new Error('Challenge not found');
+  }
+  
+  const participantIndex = challenge.participants.findIndex(p => p.userId.toString() === userId.toString());
+  if (participantIndex === -1) {
+    throw new Error('Not participating in this challenge');
+  }
+  
+  const participant = challenge.participants[participantIndex];
+  
+  // Delete the associated habit if it exists
+  if (participant.habitId) {
+    const Habit = mongoose.model('Habit');
+    await Habit.findByIdAndDelete(participant.habitId);
+  }
+  
+  // Remove participant
+  challenge.participants.splice(participantIndex, 1);
   return this.save();
 };
 
@@ -434,6 +534,37 @@ communityCircleSchema.methods.updateChallengeProgress = function(userId, challen
     this.addCommunityPoints(userId, challenge.pointsReward);
   }
   return this.save();
+};
+
+// Static method to clean up ended challenges
+communityCircleSchema.statics.cleanupEndedChallenges = async function() {
+  const Habit = mongoose.model('Habit');
+  const now = new Date();
+  
+  // Find all circles with ended challenges
+  const circles = await this.find({
+    'challenges.endDate': { $lt: now }
+  });
+  
+  for (const circle of circles) {
+    for (const challenge of circle.challenges) {
+      if (challenge.endDate < now) {
+        // Delete all associated habits
+        const habitIds = challenge.participants
+          .filter(p => p.habitId)
+          .map(p => p.habitId);
+        
+        if (habitIds.length > 0) {
+          await Habit.deleteMany({
+            _id: { $in: habitIds },
+            autoDeleteOnChallengeEnd: true
+          });
+          
+          console.log(`Deleted ${habitIds.length} habits for ended challenge: ${challenge.title}`);
+        }
+      }
+    }
+  }
 };
 
 const CommunityCircle = mongoose.model('CommunityCircle', communityCircleSchema);

@@ -826,7 +826,7 @@ export const createEvent = async (req, res) => {
 export const createChallenge = async (req, res) => {
   try {
     const { circleId } = req.params;
-    const { title, description, type, target, pointsReward, startDate, endDate } = req.body;
+    const { title, description, type, target, pointsReward, startDate, endDate, habitTemplate } = req.body;
     const userId = req.user._id;
 
     const circle = await CommunityCircle.findById(circleId);
@@ -845,7 +845,8 @@ export const createChallenge = async (req, res) => {
       target,
       pointsReward: pointsReward || 50,
       startDate,
-      endDate
+      endDate,
+      habitTemplate
     });
 
     res.status(201).json({
@@ -854,6 +855,15 @@ export const createChallenge = async (req, res) => {
     });
   } catch (error) {
     console.error('Create challenge error:', error);
+    
+    // Check if it's a validation error related to habit template
+    if (error.name === 'ValidationError' && error.message.includes('habitTemplate')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please create habit before submitting the form'
+      });
+    }
+    
     res.status(400).json({
       success: false,
       message: error.message || 'Failed to create challenge'
@@ -1194,7 +1204,7 @@ export const updateAnnouncement = async (req, res) => {
 export const updateChallenge = async (req, res) => {
   try {
     const { circleId, challengeId } = req.params;
-    const { title, description, type, target, pointsReward, startDate, endDate } = req.body;
+    const { title, description, type, target, pointsReward, startDate, endDate, habitTemplate } = req.body;
     const userId = req.user._id;
 
     const circle = await CommunityCircle.findById(circleId);
@@ -1229,6 +1239,7 @@ export const updateChallenge = async (req, res) => {
     if (pointsReward) challenge.pointsReward = pointsReward;
     if (startDate) challenge.startDate = new Date(startDate);
     if (endDate) challenge.endDate = new Date(endDate);
+    if (habitTemplate !== undefined) challenge.habitTemplate = habitTemplate;
 
     await circle.save();
 
@@ -1241,6 +1252,15 @@ export const updateChallenge = async (req, res) => {
     });
   } catch (error) {
     console.error('Update challenge error:', error);
+    
+    // Check if it's a validation error related to habit template
+    if (error.name === 'ValidationError' && error.message.includes('habitTemplate')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please create habit before submitting the form'
+      });
+    }
+    
     res.status(400).json({
       success: false,
       message: error.message || 'Failed to update challenge'
@@ -1278,13 +1298,29 @@ export const deleteChallenge = async (req, res) => {
       });
     }
 
+    // Delete all habits associated with this challenge from all participants
+    const habitIds = challenge.participants
+      .filter(p => p.habitId)
+      .map(p => p.habitId);
+    
+    if (habitIds.length > 0) {
+      await Habit.deleteMany({
+        _id: { $in: habitIds },
+        isChallengeHabit: true
+      });
+      console.log(`Deleted ${habitIds.length} habits associated with challenge ${challengeId}`);
+    }
+
     // Use pull to remove subdocument from array
     circle.challenges.pull(challengeId);
     await circle.save();
 
     res.json({
       success: true,
-      message: 'Challenge deleted successfully'
+      message: 'Challenge deleted successfully',
+      data: {
+        habitsDeleted: habitIds.length
+      }
     });
   } catch (error) {
     console.error('Delete challenge error:', error);
