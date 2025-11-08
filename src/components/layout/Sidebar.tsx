@@ -17,6 +17,7 @@ import { Button, ThemeToggle } from '@/components/ui';
 import { AuthModal } from '@/components/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { useGamification } from '@/hooks/useGamification';
+import { useCommunityAccess } from '@/hooks/useCommunityAccess';
 import { cn } from '@/utils/cn';
 
 interface SidebarProps {
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const { totalXP, currentLevel, forgivenessTokens } = useGamification();
+  const { canAccessCommunity } = useCommunityAccess();
 
   const navigation = [
     { 
@@ -224,7 +226,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Navigation */}
           {isAuthenticated && (
             <nav className="flex-1 px-4 py-6 space-y-2">
-              {navigation.map((item) => {
+              {navigation
+                .filter((item) => {
+                  // Hide Community link if user has disabled community features
+                  if (item.name === 'Community' && !canAccessCommunity) {
+                    return false;
+                  }
+                  return true;
+                })
+                .map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
                 

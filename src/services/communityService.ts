@@ -170,6 +170,127 @@ class CommunityService {
       throw new Error('An unexpected error occurred');
     }
   }
+
+  // Create announcement
+  async createAnnouncement(circleId: string, announcement: {
+    title: string;
+    content: string;
+    isImportant?: boolean;
+  }): Promise<void> {
+    try {
+      await this.api.post(`/${circleId}/announcements`, announcement);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to create announcement');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  // Get announcements
+  async getAnnouncements(circleId: string): Promise<any> {
+    try {
+      const response = await this.api.get(`/${circleId}/announcements`);
+      return response.data.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch announcements');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  // Update announcement
+  async updateAnnouncement(circleId: string, announcementId: string, announcement: {
+    title: string;
+    content: string;
+    isImportant?: boolean;
+  }): Promise<void> {
+    try {
+      await this.api.put(`/${circleId}/announcements/${announcementId}`, announcement);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to update announcement');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  // Delete announcement
+  async deleteAnnouncement(circleId: string, announcementId: string): Promise<void> {
+    try {
+      await this.api.delete(`/${circleId}/announcements/${announcementId}`);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to delete announcement');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  // Create challenge
+  async createChallenge(circleId: string, challenge: {
+    title: string;
+    description?: string;
+    type: 'streak' | 'completion' | 'consistency';
+    target: number;
+    pointsReward?: number;
+    startDate: string;
+    endDate: string;
+  }): Promise<void> {
+    try {
+      await this.api.post(`/${circleId}/challenges`, challenge);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to create challenge');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  // Update challenge
+  async updateChallenge(circleId: string, challengeId: string, challenge: {
+    title?: string;
+    description?: string;
+    type?: 'streak' | 'completion' | 'consistency';
+    target?: number;
+    pointsReward?: number;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<void> {
+    try {
+      await this.api.put(`/${circleId}/challenges/${challengeId}`, challenge);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to update challenge');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  // Delete challenge
+  async deleteChallenge(circleId: string, challengeId: string): Promise<void> {
+    try {
+      await this.api.delete(`/${circleId}/challenges/${challengeId}`);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to delete challenge');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  // Join challenge
+  async joinChallenge(circleId: string, challengeId: string): Promise<void> {
+    try {
+      await this.api.post(`/${circleId}/challenges/${challengeId}/join`);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to join challenge');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
 }
 
 export const communityService = new CommunityService();

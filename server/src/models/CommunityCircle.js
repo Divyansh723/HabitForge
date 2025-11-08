@@ -155,6 +155,34 @@ const circleMessageSchema = new mongoose.Schema({
   }
 });
 
+const circleAnnouncementSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 100
+  },
+  content: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 1000
+  },
+  isImportant: {
+    type: Boolean,
+    default: false
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
 const communityCircleSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -206,6 +234,7 @@ const communityCircleSchema = new mongoose.Schema({
   messages: [circleMessageSchema],
   events: [circleEventSchema],
   challenges: [circleChallengeSchema],
+  announcements: [circleAnnouncementSchema],
   leaderboardUpdateDay: {
     type: String,
     enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -294,6 +323,21 @@ communityCircleSchema.methods.addMessage = function(userId, content) {
   }
   
   this.messages.push({ userId, content });
+  return this.save();
+};
+
+// Method to add announcement
+communityCircleSchema.methods.addAnnouncement = function(userId, { title, content, isImportant = false }) {
+  if (!this.isAdmin(userId)) {
+    throw new Error('Only admins can create announcements');
+  }
+  
+  this.announcements.push({ 
+    title, 
+    content, 
+    isImportant,
+    createdBy: userId 
+  });
   return this.save();
 };
 

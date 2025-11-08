@@ -921,3 +921,376 @@ export const updateChallengeProgress = async (req, res) => {
     });
   }
 };
+
+// Create announcement (admin only)
+export const createAnnouncement = async (req, res) => {
+  try {
+    const { circleId } = req.params;
+    const { title, content, isImportant } = req.body;
+    const userId = req.user._id;
+
+    // Validate input
+    if (!title || !content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and content are required'
+      });
+    }
+
+    if (title.trim().length === 0 || content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and content cannot be empty'
+      });
+    }
+
+    if (title.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title must be 100 characters or less'
+      });
+    }
+
+    if (content.length > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Content must be 1000 characters or less'
+      });
+    }
+
+    const circle = await CommunityCircle.findById(circleId);
+    
+    if (!circle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Circle not found'
+      });
+    }
+
+    // Check if user is admin
+    if (!circle.isAdmin(userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admins can create announcements'
+      });
+    }
+
+    // Add announcement
+    await circle.addAnnouncement(userId, { 
+      title: title.trim(), 
+      content: content.trim(), 
+      isImportant: !!isImportant 
+    });
+
+    // Populate the new announcement with user info
+    await circle.populate('announcements.createdBy', 'name');
+    const newAnnouncement = circle.announcements[circle.announcements.length - 1];
+
+    res.status(201).json({
+      success: true,
+      message: 'Announcement created successfully',
+      data: {
+        announcement: newAnnouncement
+      }
+    });
+  } catch (error) {
+    console.error('Create announcement error:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to create announcement'
+    });
+  }
+};
+
+// Get announcements for a circle
+export const getAnnouncements = async (req, res) => {
+  try {
+    const { circleId } = req.params;
+    const userId = req.user._id;
+
+    const circle = await CommunityCircle.findById(circleId)
+      .populate('announcements.createdBy', 'name');
+
+    if (!circle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Circle not found'
+      });
+    }
+
+    // Check if user is a member
+    if (!circle.isMember(userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only members can view announcements'
+      });
+    }
+
+    // Sort announcements by date (newest first)
+    const announcements = circle.announcements
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map(announcement => ({
+        _id: announcement._id,
+        title: announcement.title,
+        content: announcement.content,
+        isImportant: announcement.isImportant,
+        createdBy: announcement.createdBy,
+        createdAt: announcement.createdAt
+      }));
+
+    res.json({
+      success: true,
+      data: {
+        circleId: circle._id,
+        circleName: circle.name,
+        announcements,
+        totalAnnouncements: announcements.length
+      }
+    });
+  } catch (error) {
+    console.error('Get announcements error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch announcements'
+    });
+  }
+};
+
+// Delete announcement (admin only)
+export const deleteAnnouncement = async (req, res) => {
+  try {
+    const { circleId, announcementId } = req.params;
+    const userId = req.user._id;
+
+    const circle = await CommunityCircle.findById(circleId);
+
+    if (!circle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Circle not found'
+      });
+    }
+
+    if (!circle.isAdmin(userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admins can delete announcements'
+      });
+    }
+
+    const announcement = circle.announcements.id(announcementId);
+    if (!announcement) {
+      return res.status(404).json({
+        success: false,
+        message: 'Announcement not found'
+      });
+    }
+
+    // Use pull to remove subdocument from array
+    circle.announcements.pull(announcementId);
+    await circle.save();
+
+    res.json({
+      success: true,
+      message: 'Announcement deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete announcement error:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to delete announcement'
+    });
+  }
+};
+
+// Update announcement (admin only)
+export const updateAnnouncement = async (req, res) => {
+  try {
+    const { circleId, announcementId } = req.params;
+    const { title, content, isImportant } = req.body;
+    const userId = req.user._id;
+
+    // Validate input
+    if (!title || !content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and content are required'
+      });
+    }
+
+    if (title.trim().length === 0 || content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and content cannot be empty'
+      });
+    }
+
+    if (title.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title must be 100 characters or less'
+      });
+    }
+
+    if (content.length > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Content must be 1000 characters or less'
+      });
+    }
+
+    const circle = await CommunityCircle.findById(circleId);
+
+    if (!circle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Circle not found'
+      });
+    }
+
+    if (!circle.isAdmin(userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admins can update announcements'
+      });
+    }
+
+    const announcement = circle.announcements.id(announcementId);
+    if (!announcement) {
+      return res.status(404).json({
+        success: false,
+        message: 'Announcement not found'
+      });
+    }
+
+    // Update announcement fields
+    announcement.title = title.trim();
+    announcement.content = content.trim();
+    announcement.isImportant = !!isImportant;
+
+    await circle.save();
+
+    // Populate the updated announcement
+    await circle.populate('announcements.createdBy', 'name');
+    const updatedAnnouncement = circle.announcements.id(announcementId);
+
+    res.json({
+      success: true,
+      message: 'Announcement updated successfully',
+      data: {
+        announcement: updatedAnnouncement
+      }
+    });
+  } catch (error) {
+    console.error('Update announcement error:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to update announcement'
+    });
+  }
+};
+
+// Update challenge (admin only)
+export const updateChallenge = async (req, res) => {
+  try {
+    const { circleId, challengeId } = req.params;
+    const { title, description, type, target, pointsReward, startDate, endDate } = req.body;
+    const userId = req.user._id;
+
+    const circle = await CommunityCircle.findById(circleId);
+
+    if (!circle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Circle not found'
+      });
+    }
+
+    if (!circle.isAdmin(userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admins can update challenges'
+      });
+    }
+
+    const challenge = circle.challenges.id(challengeId);
+    if (!challenge) {
+      return res.status(404).json({
+        success: false,
+        message: 'Challenge not found'
+      });
+    }
+
+    // Update challenge fields
+    if (title) challenge.title = title.trim();
+    if (description !== undefined) challenge.description = description.trim();
+    if (type) challenge.type = type;
+    if (target) challenge.target = target;
+    if (pointsReward) challenge.pointsReward = pointsReward;
+    if (startDate) challenge.startDate = new Date(startDate);
+    if (endDate) challenge.endDate = new Date(endDate);
+
+    await circle.save();
+
+    res.json({
+      success: true,
+      message: 'Challenge updated successfully',
+      data: {
+        challenge
+      }
+    });
+  } catch (error) {
+    console.error('Update challenge error:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to update challenge'
+    });
+  }
+};
+
+// Delete challenge (admin only)
+export const deleteChallenge = async (req, res) => {
+  try {
+    const { circleId, challengeId } = req.params;
+    const userId = req.user._id;
+
+    const circle = await CommunityCircle.findById(circleId);
+
+    if (!circle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Circle not found'
+      });
+    }
+
+    if (!circle.isAdmin(userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admins can delete challenges'
+      });
+    }
+
+    const challenge = circle.challenges.id(challengeId);
+    if (!challenge) {
+      return res.status(404).json({
+        success: false,
+        message: 'Challenge not found'
+      });
+    }
+
+    // Use pull to remove subdocument from array
+    circle.challenges.pull(challengeId);
+    await circle.save();
+
+    res.json({
+      success: true,
+      message: 'Challenge deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete challenge error:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to delete challenge'
+    });
+  }
+};

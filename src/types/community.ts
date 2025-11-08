@@ -38,6 +38,15 @@ export interface CircleChallenge {
   createdAt: Date;
 }
 
+export interface CircleAnnouncement {
+  _id: string;
+  title: string;
+  content: string;
+  isImportant: boolean;
+  createdBy: string | { _id: string; name: string }; // Can be populated
+  createdAt: Date;
+}
+
 export interface CircleMessage {
   _id: string;
   userId: string | { _id: string; name: string }; // Can be populated
@@ -67,6 +76,7 @@ export interface CommunityCircle {
   messages: CircleMessage[];
   events: CircleEvent[];
   challenges: CircleChallenge[];
+  announcements: CircleAnnouncement[];
   leaderboardUpdateDay: string;
   lastLeaderboardUpdate?: Date;
   createdAt: Date;

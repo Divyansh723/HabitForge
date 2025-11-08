@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/auth';
+import { CommunityAccessGuard } from '@/components/community/CommunityAccessGuard';
 import LandingPage from '@/pages/LandingPage';
 import Dashboard from '@/pages/Dashboard';
 import GoalsPage from '@/pages/GoalsPage';
@@ -63,7 +64,9 @@ const AppRoutes: React.FC = () => {
         path="/community" 
         element={
           <ProtectedRoute>
-            <CommunityPage />
+            <CommunityAccessGuard>
+              <CommunityPage />
+            </CommunityAccessGuard>
           </ProtectedRoute>
         } 
       />

@@ -17,15 +17,25 @@ import {
   createEvent,
   createChallenge,
   joinChallenge,
-  updateChallengeProgress
+  updateChallengeProgress,
+  createAnnouncement,
+  getAnnouncements,
+  deleteAnnouncement,
+  updateAnnouncement,
+  updateChallenge,
+  deleteChallenge
 } from '../controllers/communityController.js';
 import { authenticate } from '../middleware/auth.js';
+import { checkCommunityAccess } from '../middleware/communityAccess.js';
 import { body } from 'express-validator';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authenticate);
+
+// All routes require community access (privacy check)
+router.use(checkCommunityAccess);
 
 // Circle management
 router.post('/', [
@@ -87,9 +97,34 @@ router.post('/:circleId/challenges/:challengeId/join', joinChallenge);
 router.put('/:circleId/challenges/:challengeId/progress', [
   body('progress').isInt({ min: 0 }).withMessage('Progress must be a non-negative number')
 ], updateChallengeProgress);
+router.put('/:circleId/challenges/:challengeId', [
+  body('title').optional().trim().isLength({ min: 3, max: 100 }).withMessage('Title must be 3-100 characters'),
+  body('description').optional().trim().isLength({ max: 500 }).withMessage('Description must be less than 500 characters'),
+  body('type').optional().isIn(['streak', 'completion', 'consistency']).withMessage('Invalid challenge type'),
+  body('target').optional().isInt({ min: 1 }).withMessage('Target must be a positive number'),
+  body('pointsReward').optional().isInt({ min: 1 }).withMessage('Points reward must be a positive number'),
+  body('startDate').optional().isISO8601().withMessage('Valid start date required'),
+  body('endDate').optional().isISO8601().withMessage('Valid end date required')
+], updateChallenge);
+router.delete('/:circleId/challenges/:challengeId', deleteChallenge);
 
 // Leaderboard
 router.get('/:circleId/leaderboard', getCircleLeaderboard);
 router.put('/:circleId/leaderboard/opt-out', toggleLeaderboardOptOut);
+
+// Announcements
+router.post('/:circleId/announcements', [
+  body('title').trim().isLength({ min: 1, max: 100 }).withMessage('Title must be 1-100 characters'),
+  body('content').trim().isLength({ min: 1, max: 1000 }).withMessage('Content must be 1-1000 characters'),
+  body('isImportant').optional().isBoolean().withMessage('isImportant must be a boolean')
+], createAnnouncement);
+
+router.get('/:circleId/announcements', getAnnouncements);
+router.put('/:circleId/announcements/:announcementId', [
+  body('title').trim().isLength({ min: 1, max: 100 }).withMessage('Title must be 1-100 characters'),
+  body('content').trim().isLength({ min: 1, max: 1000 }).withMessage('Content must be 1-1000 characters'),
+  body('isImportant').optional().isBoolean().withMessage('isImportant must be a boolean')
+], updateAnnouncement);
+router.delete('/:circleId/announcements/:announcementId', deleteAnnouncement);
 
 export default router;
