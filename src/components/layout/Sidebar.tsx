@@ -67,6 +67,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       description: 'Mental health insights'
     },
     { 
+      name: 'Community', 
+      href: '/community', 
+      icon: Trophy,
+      description: 'Join circles and compete'
+    },
+    { 
       name: 'Settings', 
       href: '/settings', 
       icon: Settings,

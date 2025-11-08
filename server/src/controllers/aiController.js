@@ -210,15 +210,16 @@ export const getPersonalizedCoaching = async (req, res) => {
     const userId = req.user._id;
     const { challenge, context } = req.body;
 
-    // Prepare request metadata for logging
+    // Prepare request metadata for logging and AI generation
     const requestMetadata = {
       userAgent: req.get('user-agent'),
       ipAddress: req.ip || req.connection.remoteAddress,
-      challenge: challenge || null
+      challenge: challenge || null,
+      context: context || null
     };
 
-    // This could be expanded to handle specific coaching scenarios
-    const coaching = await aiService.generateMotivationalContent(userId, context || 'coaching', requestMetadata);
+    // Generate personalized coaching with user's specific challenge
+    const coaching = await aiService.generateMotivationalContent(userId, 'coaching', requestMetadata);
 
     if (!coaching.success) {
       return res.status(500).json({

@@ -5,13 +5,42 @@ import Completion from '../models/Completion.js';
 import mongoose from 'mongoose';
 
 // Calculate level from XP
+// Progressive XP system: each level requires 20% more XP than previous
+// Level 1→2: 100 XP, Level 2→3: 120 XP, Level 3→4: 140 XP, etc.
+const XP_BASE = 100;
+const XP_MULTIPLIER = 1.2;
+
+// Helper function to round to nearest multiple of 10
+const roundToNearestTen = (value) => {
+  return Math.round(value / 10) * 10;
+};
+
 const calculateLevel = (totalXP) => {
-  return Math.floor(Math.sqrt(totalXP / 100)) + 1;
+  let level = 1;
+  let accumulatedXP = 0;
+  let xpForNextLevel = XP_BASE;
+  
+  while (totalXP >= accumulatedXP + xpForNextLevel) {
+    accumulatedXP += xpForNextLevel;
+    level++;
+    xpForNextLevel = roundToNearestTen(XP_BASE * Math.pow(XP_MULTIPLIER, level - 1));
+  }
+  
+  return level;
 };
 
 // Calculate XP needed for next level
 const calculateXPForNextLevel = (currentLevel) => {
-  return Math.pow(currentLevel, 2) * 100;
+  return roundToNearestTen(XP_BASE * Math.pow(XP_MULTIPLIER, currentLevel - 1));
+};
+
+// Calculate XP accumulated up to a specific level
+const calculateXPForLevel = (level) => {
+  let accumulatedXP = 0;
+  for (let i = 1; i < level; i++) {
+    accumulatedXP += roundToNearestTen(XP_BASE * Math.pow(XP_MULTIPLIER, i - 1));
+  }
+  return accumulatedXP;
 };
 
 // Get user's gamification data
@@ -29,9 +58,10 @@ export const getGamificationData = async (req, res) => {
 
     // Calculate level info
     const currentLevel = calculateLevel(user.totalXP);
-    const xpForCurrentLevel = currentLevel > 1 ? Math.pow(currentLevel - 1, 2) * 100 : 0;
-    const xpForNextLevel = calculateXPForNextLevel(currentLevel);
-    const progressPercentage = ((user.totalXP - xpForCurrentLevel) / (xpForNextLevel - xpForCurrentLevel)) * 100;
+    const xpForCurrentLevel = calculateXPForLevel(currentLevel);
+    const xpNeededForNextLevel = calculateXPForNextLevel(currentLevel);
+    const xpForNextLevel = xpForCurrentLevel + xpNeededForNextLevel;
+    const progressPercentage = ((user.totalXP - xpForCurrentLevel) / xpNeededForNextLevel) * 100;
 
     // Get recent XP transactions
     const recentTransactions = await XPTransaction.find({ userId })

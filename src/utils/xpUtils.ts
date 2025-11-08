@@ -14,28 +14,42 @@ export interface LevelUpResult {
 }
 
 export const XP_PER_LEVEL = 100;
-export const XP_MULTIPLIER = 1.2;
+export const XP_MULTIPLIER = 1.2; // 20% increase per level
+
+// Helper function to round to nearest multiple of 10
+const roundToNearestTen = (value: number): number => {
+  return Math.round(value / 10) * 10;
+};
 
 export function calculateLevelInfo(totalXP: number): LevelInfo {
+  // Progressive XP system: each level requires 20% more XP than previous
+  // Level 1→2: 100 XP
+  // Level 2→3: 120 XP
+  // Level 3→4: 140 XP (144 rounded to 140)
+  // Level 4→5: 170 XP (172.8 rounded to 170), etc.
+  
   let level = 1;
   let xpForCurrentLevel = 0;
   let xpForNextLevel = XP_PER_LEVEL;
+  let accumulatedXP = 0;
   
-  while (totalXP >= xpForNextLevel) {
+  // Calculate level by accumulating XP requirements
+  while (totalXP >= accumulatedXP + xpForNextLevel) {
+    accumulatedXP += xpForNextLevel;
     level++;
-    xpForCurrentLevel = xpForNextLevel;
-    xpForNextLevel = Math.floor(xpForNextLevel * XP_MULTIPLIER);
+    xpForCurrentLevel = accumulatedXP;
+    xpForNextLevel = roundToNearestTen(XP_PER_LEVEL * Math.pow(XP_MULTIPLIER, level - 1));
   }
   
   const xpProgress = totalXP - xpForCurrentLevel;
-  const xpNeeded = xpForNextLevel - xpForCurrentLevel;
+  const xpNeeded = xpForNextLevel;
   const progressPercentage = (xpProgress / xpNeeded) * 100;
   
   return {
     currentLevel: level,
     currentXP: totalXP,
     xpForCurrentLevel,
-    xpForNextLevel,
+    xpForNextLevel: xpForCurrentLevel + xpForNextLevel,
     xpProgress,
     progressPercentage
   };

@@ -5,6 +5,7 @@ import gamificationRoutes from './gamification.js';
 import wellbeingRoutes from './wellbeing.js';
 import analyticsRoutes from './analytics.js';
 import aiRoutes from './ai.js';
+import communityRoutes from './community.js';
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router.use('/gamification', gamificationRoutes);
 router.use('/wellbeing', wellbeingRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/ai', aiRoutes);
+router.use('/community', communityRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

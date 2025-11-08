@@ -13,13 +13,13 @@ class AIService {
       "gemini-2.5-flash-lite-preview-09-2025"  // Fallback 3: Gemini 2.5 Flash Lite Preview
     ];
     this.modelIndex = 0;
-    
+
     if (!process.env.GEMINI_API_KEY) {
       console.error('GEMINI_API_KEY is not set in environment variables');
       this.model = null;
       return;
     }
-    
+
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     this.initializeModel();
   }
@@ -29,7 +29,7 @@ class AIService {
    */
   initializeModel() {
     const modelName = this.availableModels[this.modelIndex];
-    
+
     try {
       const config = {
         model: modelName,
@@ -63,7 +63,7 @@ class AIService {
 
       this.model = this.genAI.getGenerativeModel(config);
       this.currentModel = modelName;
-      
+
       const modelTier = this.getModelTier(modelName);
       console.log(`✅ Initialized AI service with ${modelName} (${modelTier})`);
     } catch (error) {
@@ -132,23 +132,23 @@ class AIService {
       try {
         const modelTier = this.getModelTier(this.currentModel);
         console.log(`🤖 Making AI request with ${this.currentModel} (${modelTier})`);
-        
+
         const result = await this.model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
-        
+
         console.log(`✅ AI request successful with ${this.currentModel}`);
         return text;
       } catch (error) {
         lastError = error;
         const modelTier = this.getModelTier(this.currentModel);
         console.error(`❌ AI request failed with ${this.currentModel} (${modelTier}):`, error.message);
-        
+
         // Try next model if available
         if (this.modelIndex < this.availableModels.length - 1) {
           console.log(`🔄 Switching to next model (${this.modelIndex + 1}/${this.availableModels.length})...`);
           this.tryNextModel();
-          
+
           if (!this.model) {
             console.error('❌ Failed to initialize next model, stopping fallback chain');
             break;
@@ -159,7 +159,7 @@ class AIService {
         }
       }
     }
-    
+
     // If we get here, all models failed
     console.error('❌ All AI models failed after trying all fallbacks');
     throw new Error(`All AI models failed. Last error: ${lastError?.message || 'Unknown error'}`);
@@ -193,6 +193,10 @@ class AIService {
       const comprehensiveData = this.prepareComprehensiveDataForAI(habits, completions, moodEntries, xpTransactions);
 
       const prompt = `
+        YOU ARE HABITFORGE AI COACH - A specialized assistant focused EXCLUSIVELY on habit formation, 
+        daily routines, and small lifestyle improvements. You do NOT provide medical, mental health, 
+        financial, legal, or relationship advice.
+        
         As an AI habit coach, analyze the following comprehensive user data and provide personalized insights:
 
         ${comprehensiveData}
@@ -256,6 +260,12 @@ class AIService {
           }
         }
 
+        SCOPE RESTRICTIONS:
+        - Focus ONLY on habit patterns, routines, and lifestyle improvements
+        - Do NOT provide medical, mental health, financial, or relationship advice
+        - If data suggests concerning patterns (e.g., very low mood consistently), acknowledge it but recommend professional consultation
+        - Keep all recommendations within the realm of habit formation and daily routine optimization
+        
         IMPORTANT: Base ALL insights on the actual data provided. Reference specific metrics, dates, and patterns found in the user's data. Avoid generic advice - make everything personalized to their actual behavior patterns.
       `;
 
@@ -280,13 +290,13 @@ class AIService {
       }
     } catch (error) {
       console.error('AI Service Error:', error);
-      
+
       // If it's an API key error, return fallback
       if (error.message && (error.message.includes('API key') || error.message.includes('API_KEY'))) {
         console.warn('Gemini API key issue, returning fallback insights');
         return this.getFallbackInsights();
       }
-      
+
       // For other errors, also return fallback instead of failing
       console.warn('AI service error, returning fallback insights:', error.message);
       return this.getFallbackInsights();
@@ -314,6 +324,10 @@ class AIService {
       const habitAnalysis = this.analyzeHabitEcosystem(existingHabits, completions, moodEntries);
 
       const prompt = `
+        YOU ARE HABITFORGE AI COACH - A specialized assistant focused EXCLUSIVELY on habit formation, 
+        daily routines, and small lifestyle improvements. You do NOT provide medical, mental health, 
+        financial, legal, or relationship advice.
+        
         Based on comprehensive analysis of the user's habit data, suggest personalized new habits.
 
         CURRENT HABIT ECOSYSTEM ANALYSIS:
@@ -348,6 +362,19 @@ class AIService {
           ]
         }
 
+        SCOPE RESTRICTIONS - ONLY SUGGEST HABITS RELATED TO:
+        ✅ Daily routines and productivity (morning/evening routines, time management)
+        ✅ Basic wellness practices (sleep hygiene, hydration, simple exercise)
+        ✅ Habit formation techniques (habit stacking, consistency building)
+        ✅ Small lifestyle improvements (organization, mindfulness, reading)
+        
+        DO NOT SUGGEST HABITS RELATED TO:
+        ❌ Medical treatments or health interventions
+        ❌ Mental health therapy or clinical practices
+        ❌ Financial investments or complex financial planning
+        ❌ Relationship dynamics or family therapy
+        ❌ Career changes or major life decisions
+        
         CRITICAL REQUIREMENTS:
         - Return ONLY valid JSON, no markdown formatting or extra text
         - Base suggestions on actual user data patterns
@@ -356,6 +383,7 @@ class AIService {
         - Consider user's consistency patterns and suggest appropriate difficulty levels
         - Each suggestion must have all required fields
         - Use simple, achievable habits that build on existing success patterns
+        - ALL suggestions must be within the allowed scope (habits and lifestyle only)
       `;
 
       const text = await this.makeAIRequest(prompt);
@@ -363,7 +391,7 @@ class AIService {
       try {
         // Clean the response text to ensure it's valid JSON
         let cleanedText = text.trim();
-        
+
         // Remove any markdown code block formatting
         if (cleanedText.startsWith('```json')) {
           cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
@@ -378,7 +406,7 @@ class AIService {
         }
 
         const suggestions = JSON.parse(cleanedText);
-        
+
         // Validate the response structure
         if (!suggestions.suggestions || !Array.isArray(suggestions.suggestions)) {
           console.error('Invalid suggestions structure:', suggestions);
@@ -386,9 +414,9 @@ class AIService {
         }
 
         // Validate each suggestion has required fields
-        const validSuggestions = suggestions.suggestions.filter(s => 
-          s.name && s.description && s.category && s.difficulty && 
-          s.timeCommitment && s.expectedBenefits && s.startingTips && 
+        const validSuggestions = suggestions.suggestions.filter(s =>
+          s.name && s.description && s.category && s.difficulty &&
+          s.timeCommitment && s.expectedBenefits && s.startingTips &&
           s.frequency && s.icon && s.color && s.reasoning
         );
 
@@ -407,19 +435,19 @@ class AIService {
       } catch (parseError) {
         console.error('Failed to parse habit suggestions:', parseError);
         console.error('Raw AI response:', text);
-        
+
         // Return fallback suggestions instead of error
         return this.getFallbackHabitSuggestions();
       }
     } catch (error) {
       console.error('Habit Suggestions Error:', error);
-      
+
       // If it's an API key error, return fallback
       if (error.message && (error.message.includes('API key') || error.message.includes('API_KEY'))) {
         console.warn('Gemini API key issue, returning fallback suggestions');
         return this.getFallbackHabitSuggestions();
       }
-      
+
       // For other errors, also return fallback instead of failing
       console.warn('AI service error, returning fallback suggestions:', error.message);
       return this.getFallbackHabitSuggestions();
@@ -500,12 +528,17 @@ class AIService {
    */
   async generateMotivationalContent(userId, context = 'daily', requestMetadata = {}) {
     const startTime = Date.now();
+    const userChallenge = requestMetadata.challenge || null;
+    const userContext = requestMetadata.context || null;
+
     let logData = {
       userId,
       interactionType: 'motivational_content',
       context,
       requestData: {
         context,
+        challenge: userChallenge,
+        userContext,
         timestamp: new Date()
       },
       userAgent: requestMetadata.userAgent || null,
@@ -531,6 +564,10 @@ class AIService {
       const motivationData = this.analyzeMotivationContext(habits, recentCompletions, moodEntries, allCompletions, context);
 
       const prompt = `
+        YOU ARE HABITFORGE AI COACH - A specialized assistant focused EXCLUSIVELY on habit formation, 
+        daily routines, and small lifestyle improvements. You do NOT provide medical, mental health, 
+        financial, legal, or relationship advice.
+        
         Generate highly personalized motivational content based on detailed user analysis:
 
         USER MOTIVATION CONTEXT:
@@ -544,18 +581,57 @@ class AIService {
         - Achievement highlights: ${motivationData.achievements.join(', ')}
         - Areas needing support: ${motivationData.challengeAreas.join(', ')}
 
+        ${userChallenge ? `
+        USER'S SPECIFIC QUESTION/CHALLENGE:
+        "${userChallenge}"
+        
+        IMPORTANT: Your response MUST directly address this specific question or challenge. 
+        Use the user's data and context to provide a personalized, actionable answer.
+        ` : ''}
+
+        ${userContext ? `
+        ADDITIONAL CONTEXT PROVIDED BY USER:
+        "${userContext}"
+        ` : ''}
+
+        CRITICAL: YOU ARE A HABIT & LIFESTYLE COACH ONLY
+        
+        SCOPE RESTRICTIONS - YOU MUST ONLY PROVIDE ADVICE ON:
+        ✅ Habit formation and maintenance
+        ✅ Daily routines and productivity
+        ✅ Small lifestyle improvements
+        ✅ Motivation and consistency strategies
+        ✅ Time management and organization
+        ✅ Basic wellness practices (sleep hygiene, exercise routines, simple nutrition habits)
+        
+        PROHIBITED TOPICS - YOU MUST NOT PROVIDE ADVICE ON:
+        ❌ Medical conditions, diagnoses, or treatment
+        ❌ Mental health disorders or therapy
+        ❌ Financial investment or legal matters
+        ❌ Relationship counseling or family therapy
+        ❌ Career decisions or major life changes
+        ❌ Substance abuse or addiction treatment
+        
+        SAFETY REQUIREMENTS:
+        - If the user's question touches on sensitive areas (mental health, medical, etc.), you MUST include a professional consultation disclaimer
+        - For mental health concerns, add: "If you're experiencing persistent mood issues, anxiety, or depression, please reach out to a mental health professional."
+        - For medical concerns, add: "For health concerns beyond basic wellness habits, please consult with a qualified healthcare professional."
+        - For other sensitive topics, add: "For concerns beyond habit formation, please consult with a qualified professional."
+        - If a question is completely outside your scope, politely redirect to habit-related topics and suggest professional consultation
+        
         Generate motivational content in JSON format:
         {
-          "message": "Highly personalized main message based on user's specific situation and data",
+          "message": "Highly personalized main message based on user's specific situation and data (habit-focused only)",
           "tone": "encouraging|celebratory|supportive|energizing|gentle|empowering",
           "quote": "Relevant inspirational quote that matches their current situation",
-          "tips": ["data-driven practical tip 1", "personalized practical tip 2"],
-          "challenge": "Specific challenge based on their patterns and current performance",
-          "affirmation": "Personal affirmation statement reflecting their journey and strengths",
-          "celebration": "specific achievement or progress to celebrate",
-          "encouragement": "targeted encouragement for their current challenges",
-          "dataInsight": "positive insight derived from their actual data",
-          "nextMilestone": "next achievable milestone based on their progress"
+          "tips": ["data-driven practical tip 1 (habit-related)", "personalized practical tip 2 (habit-related)"],
+          "challenge": "Specific habit-related challenge based on their patterns and current performance",
+          "affirmation": "Personal affirmation statement reflecting their habit journey and strengths",
+          "celebration": "specific habit achievement or progress to celebrate",
+          "encouragement": "targeted encouragement for their current habit challenges",
+          "dataInsight": "positive insight derived from their actual habit data",
+          "nextMilestone": "next achievable habit milestone based on their progress",
+          "disclaimer": "Professional consultation disclaimer if the topic requires it (optional, only include if user's question touches sensitive areas)"
         }
 
         PERSONALIZATION REQUIREMENTS:
@@ -573,7 +649,7 @@ class AIService {
       try {
         const content = JSON.parse(text);
         const responseTime = Date.now() - startTime;
-        
+
         const result = {
           success: true,
           data: {
@@ -598,30 +674,30 @@ class AIService {
           hasChallenge: !!content.challenge,
           dataPointsUsed: habits.length + allCompletions.length + moodEntries.length
         };
-        
+
         await AIInteractionLog.logInteraction(logData);
 
         return result;
       } catch (parseError) {
         console.error('Failed to parse motivational content:', parseError);
-        
+
         // Log parsing failure
         logData.success = false;
         logData.errorMessage = 'Failed to parse AI response';
         logData.responseTime = Date.now() - startTime;
         await AIInteractionLog.logInteraction(logData);
-        
+
         return this.getFallbackMotivationalContent(motivationData);
       }
     } catch (error) {
       console.error('Motivational Content Error:', error);
-      
+
       // Log error
       logData.success = false;
       logData.errorMessage = error.message || 'Unknown error';
       logData.responseTime = Date.now() - startTime;
       await AIInteractionLog.logInteraction(logData);
-      
+
       return this.getFallbackMotivationalContent();
     }
   }
@@ -634,7 +710,7 @@ class AIService {
       const moodEntries = await MoodEntry.find({ userId })
         .sort({ date: -1 })
         .limit(60);
-      
+
       const completions = await Completion.find({ userId })
         .sort({ completedAt: -1 })
         .limit(200);
@@ -710,10 +786,10 @@ class AIService {
     // Enhanced habit statistics with performance metrics
     const habitStats = habits.map(habit => {
       const habitCompletions = completions.filter(c => c.habitId.toString() === habit._id.toString());
-      const last30Days = habitCompletions.filter(c => 
+      const last30Days = habitCompletions.filter(c =>
         new Date(c.completedAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
       );
-      
+
       return {
         id: habit._id,
         name: habit.name,
@@ -755,7 +831,7 @@ class AIService {
         energy: mood.energy,
         stress: mood.stress,
         dayOfWeek: new Date(mood.date).getDay(),
-        habitsCompletedThatDay: completions.filter(c => 
+        habitsCompletedThatDay: completions.filter(c =>
           new Date(c.completedAt).toDateString() === new Date(mood.date).toDateString()
         ).length
       })),
@@ -972,17 +1048,17 @@ class AIService {
       const day = new Date(c.completedAt).getDay();
       dayCount[day] = (dayCount[day] || 0) + 1;
     });
-    
+
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return Object.entries(dayCount)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 3)
       .map(([day]) => days[parseInt(day)]);
   }
 
   getCompletionTimePattern(completions) {
     const timeSlots = { morning: 0, afternoon: 0, evening: 0, night: 0 };
-    
+
     completions.forEach(c => {
       const hour = new Date(c.completedAt).getHours();
       if (hour >= 5 && hour < 12) timeSlots.morning++;
@@ -992,23 +1068,23 @@ class AIService {
     });
 
     return Object.entries(timeSlots)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .map(([slot]) => slot);
   }
 
   analyzeWeeklyPatterns(completions) {
     const weeklyData = {};
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    
+
     days.forEach(day => weeklyData[day] = 0);
-    
+
     completions.forEach(c => {
       const day = days[new Date(c.completedAt).getDay()];
       weeklyData[day]++;
     });
 
-    const sortedDays = Object.entries(weeklyData).sort(([,a], [,b]) => b - a);
-    
+    const sortedDays = Object.entries(weeklyData).sort(([, a], [, b]) => b - a);
+
     return {
       bestDays: sortedDays.slice(0, 3).map(([day]) => day),
       worstDays: sortedDays.slice(-2).map(([day]) => day),
@@ -1021,7 +1097,7 @@ class AIService {
     const weekdayTotal = Object.entries(weeklyData)
       .filter(([day]) => !['Saturday', 'Sunday'].includes(day))
       .reduce((sum, [, count]) => sum + count, 0);
-    
+
     return {
       weekendAverage: weekendTotal / 2,
       weekdayAverage: weekdayTotal / 5,
@@ -1032,14 +1108,14 @@ class AIService {
   analyzeDailyPatterns(completions) {
     const hourlyData = {};
     for (let i = 0; i < 24; i++) hourlyData[i] = 0;
-    
+
     completions.forEach(c => {
       const hour = new Date(c.completedAt).getHours();
       hourlyData[hour]++;
     });
 
     const peakHours = Object.entries(hourlyData)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 3)
       .map(([hour]) => parseInt(hour));
 
@@ -1066,9 +1142,9 @@ class AIService {
   analyzeCategoryDistribution(completions, habits) {
     const categoryCount = {};
     const habitCategories = {};
-    
+
     habits.forEach(h => habitCategories[h._id.toString()] = h.category);
-    
+
     completions.forEach(c => {
       const category = habitCategories[c.habitId.toString()] || 'unknown';
       categoryCount[category] = (categoryCount[category] || 0) + 1;
@@ -1076,7 +1152,7 @@ class AIService {
 
     const total = Object.values(categoryCount).reduce((sum, count) => sum + count, 0);
     const distribution = {};
-    
+
     Object.entries(categoryCount).forEach(([category, count]) => {
       distribution[category] = {
         count,
@@ -1101,7 +1177,7 @@ class AIService {
 
   getStreakDistribution(habits) {
     const ranges = { '0': 0, '1-7': 0, '8-30': 0, '31-90': 0, '90+': 0 };
-    
+
     habits.forEach(h => {
       const streak = h.currentStreak;
       if (streak === 0) ranges['0']++;
@@ -1126,7 +1202,7 @@ class AIService {
   analyzeConsistencyTrends(completions) {
     // Group completions by week and analyze trends
     const weeklyCompletions = {};
-    
+
     completions.forEach(c => {
       const weekStart = this.getWeekStart(new Date(c.completedAt));
       const weekKey = weekStart.toISOString().split('T')[0];
@@ -1135,7 +1211,7 @@ class AIService {
 
     const weeks = Object.keys(weeklyCompletions).sort();
     const recentWeeks = weeks.slice(-8); // Last 8 weeks
-    
+
     if (recentWeeks.length < 2) return { trend: 'insufficient_data' };
 
     const firstHalf = recentWeeks.slice(0, Math.floor(recentWeeks.length / 2));
@@ -1191,17 +1267,17 @@ class AIService {
 
   analyzeMoodHabitCorrelations(moodEntries, completions) {
     const correlations = {};
-    
+
     moodEntries.forEach(mood => {
       const moodDate = new Date(mood.date).toDateString();
-      const dayCompletions = completions.filter(c => 
+      const dayCompletions = completions.filter(c =>
         new Date(c.completedAt).toDateString() === moodDate
       ).length;
 
       if (!correlations[dayCompletions]) {
         correlations[dayCompletions] = { moods: [], energies: [], stresses: [] };
       }
-      
+
       correlations[dayCompletions].moods.push(mood.mood);
       correlations[dayCompletions].energies.push(mood.energy);
       correlations[dayCompletions].stresses.push(mood.stress);
@@ -1225,7 +1301,7 @@ class AIService {
     // Analyze XP earning patterns and motivation
     return {
       totalXPEarned: xpTransactions.reduce((sum, xp) => sum + (xp.amount || 0), 0),
-      xpPerCompletion: xpTransactions.length > 0 ? 
+      xpPerCompletion: xpTransactions.length > 0 ?
         xpTransactions.reduce((sum, xp) => sum + (xp.amount || 0), 0) / completions.length : 0,
       motivationLevel: this.calculateMotivationLevel(xpTransactions, completions)
     };
@@ -1233,10 +1309,10 @@ class AIService {
 
   calculateMotivationLevel(xpTransactions, completions) {
     // Simple motivation calculation based on recent activity
-    const recentCompletions = completions.filter(c => 
+    const recentCompletions = completions.filter(c =>
       new Date(c.completedAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     ).length;
-    
+
     if (recentCompletions >= 10) return 'high';
     if (recentCompletions >= 5) return 'medium';
     return 'low';
@@ -1244,12 +1320,12 @@ class AIService {
 
   calculateEngagementMetrics(completions, habits) {
     const totalPossibleCompletions = habits.length * 30; // 30 days
-    const actualCompletions = completions.filter(c => 
+    const actualCompletions = completions.filter(c =>
       new Date(c.completedAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     ).length;
 
     return {
-      engagementRate: totalPossibleCompletions > 0 ? 
+      engagementRate: totalPossibleCompletions > 0 ?
         Math.round((actualCompletions / totalPossibleCompletions) * 100) : 0,
       dailyAverage: actualCompletions / 30,
       consistency: this.calculateConsistencyScore(completions, habits)
@@ -1261,7 +1337,7 @@ class AIService {
     const last30Days = [];
     for (let i = 0; i < 30; i++) {
       const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
-      const dayCompletions = completions.filter(c => 
+      const dayCompletions = completions.filter(c =>
         new Date(c.completedAt).toDateString() === date.toDateString()
       ).length;
       last30Days.push(dayCompletions);
@@ -1288,7 +1364,7 @@ class AIService {
 
   identifyImprovementAreas(habits, completions) {
     const areas = [];
-    
+
     // Low consistency habits
     const lowConsistencyHabits = habits.filter(h => h.consistencyRate < 50);
     if (lowConsistencyHabits.length > 0) {
@@ -1314,7 +1390,7 @@ class AIService {
 
   identifySuccessFactors(habits, completions, moodEntries) {
     const factors = [];
-    
+
     // High performing habits
     const highPerformers = habits.filter(h => h.consistencyRate > 80);
     if (highPerformers.length > 0) {
@@ -1340,7 +1416,7 @@ class AIService {
 
   calculateAccountAge(habits) {
     if (habits.length === 0) return 0;
-    const oldestHabit = habits.reduce((oldest, habit) => 
+    const oldestHabit = habits.reduce((oldest, habit) =>
       new Date(habit.createdAt) < new Date(oldest.createdAt) ? habit : oldest
     );
     const ageInDays = Math.floor((Date.now() - new Date(oldestHabit.createdAt)) / (1000 * 60 * 60 * 24));
@@ -1350,7 +1426,7 @@ class AIService {
   determineExperienceLevel(habits, completions) {
     const totalCompletions = completions.length;
     const accountAge = this.calculateAccountAge(habits);
-    
+
     if (totalCompletions > 500 && accountAge > 90) return 'expert';
     if (totalCompletions > 200 && accountAge > 30) return 'advanced';
     if (totalCompletions > 50 && accountAge > 14) return 'intermediate';
@@ -1433,7 +1509,7 @@ class AIService {
 
     // Timing patterns from successful habits
     const successfulHabitIds = successfulHabits.map(h => h._id.toString());
-    const successfulCompletions = completions.filter(c => 
+    const successfulCompletions = completions.filter(c =>
       successfulHabitIds.includes(c.habitId.toString())
     );
 
@@ -1447,7 +1523,7 @@ class AIService {
 
   analyzeOptimalTiming(completions) {
     const timeSlots = { morning: 0, afternoon: 0, evening: 0, night: 0 };
-    
+
     completions.forEach(c => {
       const hour = new Date(c.completedAt).getHours();
       if (hour >= 5 && hour < 12) timeSlots.morning++;
@@ -1457,7 +1533,7 @@ class AIService {
     });
 
     const sortedTimes = Object.entries(timeSlots)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .map(([time]) => time);
 
     return {
@@ -1471,15 +1547,15 @@ class AIService {
 
     // Check for missing foundational categories
     const categories = new Set(habits.map(h => h.category));
-    
+
     if (!categories.has('health') && !categories.has('fitness')) {
       gaps.push('Physical wellness habits missing');
     }
-    
+
     if (!categories.has('mindfulness')) {
       gaps.push('Mental wellness and mindfulness practices missing');
     }
-    
+
     if (!categories.has('learning')) {
       gaps.push('Personal development and learning habits missing');
     }
@@ -1503,15 +1579,15 @@ class AIService {
 
   identifyStackingOpportunities(habits, completions) {
     const opportunities = [];
-    
+
     // Find habits with high consistency that could anchor new habits
     const anchorHabits = habits.filter(h => h.consistencyRate > 80);
-    
+
     anchorHabits.forEach(habit => {
-      const habitCompletions = completions.filter(c => 
+      const habitCompletions = completions.filter(c =>
         c.habitId.toString() === habit._id.toString()
       );
-      
+
       const commonTime = this.getMostCommonCompletionTime(habitCompletions);
       if (commonTime !== null) {
         opportunities.push({
@@ -1528,16 +1604,16 @@ class AIService {
 
   getMostCommonCompletionTime(completions) {
     if (completions.length === 0) return null;
-    
+
     const hours = completions.map(c => new Date(c.completedAt).getHours());
     const hourCount = {};
-    
+
     hours.forEach(hour => {
       hourCount[hour] = (hourCount[hour] || 0) + 1;
     });
 
     const mostCommonHour = Object.entries(hourCount)
-      .sort(([,a], [,b]) => b - a)[0];
+      .sort(([, a], [, b]) => b - a)[0];
 
     return mostCommonHour ? parseInt(mostCommonHour[0]) : null;
   }
@@ -1552,7 +1628,7 @@ class AIService {
 
     moodEntries.forEach(mood => {
       const moodDate = new Date(mood.date).toDateString();
-      const dayCompletions = completions.filter(c => 
+      const dayCompletions = completions.filter(c =>
         new Date(c.completedAt).toDateString() === moodDate
       ).length;
 
@@ -1585,37 +1661,37 @@ class AIService {
     const completionRate = habits.length > 0 ? (todayCompletions.length / habits.length) * 100 : 0;
     const totalStreaks = habits.reduce((sum, habit) => sum + habit.currentStreak, 0);
     const longestCurrentStreak = Math.max(...habits.map(h => h.currentStreak), 0);
-    
+
     // Analyze recent performance (last 7 days)
     const last7Days = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
-      const dayCompletions = allCompletions.filter(c => 
+      const dayCompletions = allCompletions.filter(c =>
         new Date(c.completedAt).toDateString() === date.toDateString()
       ).length;
       last7Days.push(dayCompletions);
     }
 
     const weeklyAverage = last7Days.reduce((sum, count) => sum + count, 0) / 7;
-    const recentTrend = last7Days[0] > weeklyAverage ? 'improving' : 
-                       last7Days[0] < weeklyAverage ? 'declining' : 'stable';
+    const recentTrend = last7Days[0] > weeklyAverage ? 'improving' :
+      last7Days[0] < weeklyAverage ? 'declining' : 'stable';
 
     // Identify achievements
     const achievements = [];
     if (longestCurrentStreak >= 7) achievements.push(`${longestCurrentStreak}-day streak active`);
     if (completionRate >= 80) achievements.push('excellent daily completion rate');
     if (totalStreaks > habits.length) achievements.push('multiple active streaks');
-    
+
     const strongHabits = habits.filter(h => h.consistencyRate > 80);
     if (strongHabits.length > 0) achievements.push(`${strongHabits.length} highly consistent habits`);
 
     // Identify challenge areas
     const challengeAreas = [];
     if (completionRate < 50) challengeAreas.push('daily completion consistency');
-    
+
     const strugglingHabits = habits.filter(h => h.consistencyRate < 40);
     if (strugglingHabits.length > 0) challengeAreas.push(`${strugglingHabits.length} habits need attention`);
-    
+
     if (habits.filter(h => h.currentStreak === 0).length > habits.length * 0.5) {
       challengeAreas.push('streak rebuilding');
     }
@@ -1625,7 +1701,7 @@ class AIService {
     if (moodEntries.length > 0) {
       const recentMood = moodEntries.slice(0, 3);
       const avgRecentMood = recentMood.reduce((sum, m) => sum + m.mood, 0) / recentMood.length;
-      
+
       if (avgRecentMood >= 4) emotionalContext = 'positive';
       else if (avgRecentMood <= 2) emotionalContext = 'challenging';
       else emotionalContext = 'moderate';
@@ -1763,7 +1839,7 @@ class AIService {
       if (motivationData.longestCurrentStreak > 0) {
         baseContent.celebration = `You have a ${motivationData.longestCurrentStreak}-day streak going strong!`;
       }
-      
+
       if (motivationData.completionRate >= 70) {
         baseContent.message = `Amazing! You're at ${motivationData.completionRate}% completion today. Your dedication is paying off!`;
         baseContent.tone = 'celebratory';

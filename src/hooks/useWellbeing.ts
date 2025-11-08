@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { wellbeingService, type MoodEntry, type WellbeingScore, type HabitImpact } from '@/services/wellbeingService';
+import { eventBus, EVENTS } from '@/utils/eventBus';
 
 export const useWellbeing = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +30,15 @@ export const useWellbeing = () => {
       setIsLoading(true);
       setError(null);
       const entries = await wellbeingService.getMoodEntries(days);
-      setMoodEntries(entries);
+      
+      // Ensure all dates are properly converted to Date objects
+      const normalizedEntries = entries.map(entry => ({
+        ...entry,
+        date: entry.date ? new Date(entry.date) : new Date(),
+        createdAt: entry.createdAt ? new Date(entry.createdAt) : new Date()
+      }));
+      
+      setMoodEntries(normalizedEntries);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch mood entries';
       setError(errorMessage);
@@ -43,8 +52,20 @@ export const useWellbeing = () => {
       setIsLoading(true);
       setError(null);
       const newEntry = await wellbeingService.createMoodEntry(entry);
-      setMoodEntries(prev => [newEntry, ...prev]);
-      return newEntry;
+      
+      // Ensure date is properly converted to Date object
+      const normalizedEntry = {
+        ...newEntry,
+        date: newEntry.date ? new Date(newEntry.date) : new Date(),
+        createdAt: newEntry.createdAt ? new Date(newEntry.createdAt) : new Date()
+      };
+      
+      setMoodEntries(prev => [normalizedEntry, ...prev]);
+      
+      // Emit event to notify other components
+      eventBus.emit(EVENTS.MOOD_LOGGED, normalizedEntry);
+      
+      return normalizedEntry;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create mood entry';
       setError(errorMessage);

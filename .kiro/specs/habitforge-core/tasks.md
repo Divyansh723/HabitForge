@@ -178,8 +178,7 @@
 
 - [ ] 8. Build community features and moderation
 
-  - [-] 8.1 Implement community circles and social features
-
+  - [x] 8.1 Implement community circles and social features
 
     - Create community circle creation and joining functionality
     - Build shared leaderboard with privacy controls
@@ -187,9 +186,11 @@
     - Add member management and circle administration
     - _Requirements: 6.1, 6.2, 6.5_
 
-  - [ ] 8.2 Add moderation and safety features
+  - [x] 8.2 Add moderation and safety features
+
     - Implement rate limiting for messages (10 per day per user)
     - Build profanity filtering and content moderation
+
     - Create reporting mechanisms for inappropriate content
     - Add opt-out controls for leaderboard visibility
     - _Requirements: 6.3, 6.4_

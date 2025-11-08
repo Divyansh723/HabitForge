@@ -3,6 +3,7 @@ import { useGamificationStore } from '@/stores/gamificationStore';
 import { useAuthStore } from '@/stores/authStore';
 import { calculateLevelInfo, type LevelUpResult } from '@/utils/xpUtils';
 import { gamificationService } from '@/services/gamificationService';
+import { eventBus, EVENTS } from '@/utils/eventBus';
 
 // Fallback achievements for when API is not available
 const fallbackAchievements = [
@@ -349,6 +350,36 @@ export const useGamification = () => {
     fetchChallenges();
     fetchAchievements();
   }, [fetchChallenges, fetchAchievements]);
+
+  // Listen for events and auto-refresh
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchGamificationData();
+      fetchAchievements();
+    };
+
+    const handleChallengeEvent = () => {
+      fetchChallenges();
+    };
+
+    // Subscribe to events
+    eventBus.on(EVENTS.HABIT_COMPLETED, handleRefresh);
+    eventBus.on(EVENTS.XP_GAINED, handleRefresh);
+    eventBus.on(EVENTS.LEVEL_UP, handleRefresh);
+    eventBus.on(EVENTS.FORGIVENESS_USED, handleRefresh);
+    eventBus.on(EVENTS.CHALLENGE_JOINED, handleChallengeEvent);
+    eventBus.on(EVENTS.CHALLENGE_COMPLETED, handleChallengeEvent);
+
+    // Cleanup
+    return () => {
+      eventBus.off(EVENTS.HABIT_COMPLETED, handleRefresh);
+      eventBus.off(EVENTS.XP_GAINED, handleRefresh);
+      eventBus.off(EVENTS.LEVEL_UP, handleRefresh);
+      eventBus.off(EVENTS.FORGIVENESS_USED, handleRefresh);
+      eventBus.off(EVENTS.CHALLENGE_JOINED, handleChallengeEvent);
+      eventBus.off(EVENTS.CHALLENGE_COMPLETED, handleChallengeEvent);
+    };
+  }, [fetchGamificationData, fetchAchievements, fetchChallenges]);
 
 
 

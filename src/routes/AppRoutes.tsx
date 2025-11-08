@@ -7,6 +7,7 @@ import GoalsPage from '@/pages/GoalsPage';
 import WellbeingPage from '@/pages/WellbeingPage';
 import AnalyticsPage from '@/pages/AnalyticsPage';
 import InsightsPage from '@/pages/InsightsPage';
+import CommunityPage from '@/pages/CommunityPage';
 import SettingsPage from '@/pages/SettingsPage';
 import TestAuthPage from '@/TestAuthPage';
 import TestLogin from '@/TestLogin';
@@ -55,6 +56,14 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute>
             <InsightsPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/community" 
+        element={
+          <ProtectedRoute>
+            <CommunityPage />
           </ProtectedRoute>
         } 
       />

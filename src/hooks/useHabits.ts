@@ -4,6 +4,7 @@ import { analyticsService } from '@/services/analyticsService';
 import { type Habit } from '@/types/habit';
 import { type HabitFormData } from '@/utils/validationUtils';
 import { useGamificationStore } from '@/stores/gamificationStore';
+import { eventBus, EVENTS } from '@/utils/eventBus';
 
 export const useHabits = () => {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -31,6 +32,37 @@ export const useHabits = () => {
     }
   }, []);
 
+  // Listen for events from other components and auto-refresh
+  useEffect(() => {
+    const handleHabitEvent = () => {
+      fetchHabits();
+    };
+
+    const handleXPEvent = () => {
+      fetchGamificationData();
+    };
+
+    // Subscribe to events
+    eventBus.on(EVENTS.HABIT_COMPLETED, handleHabitEvent);
+    eventBus.on(EVENTS.HABIT_CREATED, handleHabitEvent);
+    eventBus.on(EVENTS.HABIT_UPDATED, handleHabitEvent);
+    eventBus.on(EVENTS.HABIT_DELETED, handleHabitEvent);
+    eventBus.on(EVENTS.FORGIVENESS_USED, handleHabitEvent);
+    eventBus.on(EVENTS.XP_GAINED, handleXPEvent);
+    eventBus.on(EVENTS.LEVEL_UP, handleXPEvent);
+
+    // Cleanup
+    return () => {
+      eventBus.off(EVENTS.HABIT_COMPLETED, handleHabitEvent);
+      eventBus.off(EVENTS.HABIT_CREATED, handleHabitEvent);
+      eventBus.off(EVENTS.HABIT_UPDATED, handleHabitEvent);
+      eventBus.off(EVENTS.HABIT_DELETED, handleHabitEvent);
+      eventBus.off(EVENTS.FORGIVENESS_USED, handleHabitEvent);
+      eventBus.off(EVENTS.XP_GAINED, handleXPEvent);
+      eventBus.off(EVENTS.LEVEL_UP, handleXPEvent);
+    };
+  }, [fetchHabits, fetchGamificationData]);
+
   // Create a new habit
   const createHabit = useCallback(async (habitData: HabitFormData) => {
     try {
@@ -38,6 +70,10 @@ export const useHabits = () => {
       const newHabit = await habitService.createHabit(habitData);
       console.log('useHabits: Habit created successfully:', newHabit);
       setHabits(prev => [...prev, newHabit]);
+      
+      // Emit event to notify other components
+      eventBus.emit(EVENTS.HABIT_CREATED, newHabit);
+      
       return newHabit;
     } catch (err) {
       console.error('useHabits: Error creating habit:', err);
@@ -54,6 +90,10 @@ export const useHabits = () => {
       setHabits(prev => prev.map(habit => 
         habit.id === habitId ? updatedHabit : habit
       ));
+      
+      // Emit event to notify other components
+      eventBus.emit(EVENTS.HABIT_UPDATED, updatedHabit);
+      
       return updatedHabit;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update habit';
@@ -68,6 +108,10 @@ export const useHabits = () => {
       await habitService.deleteHabit(habitId);
       setHabits(prev => prev.filter(habit => habit.id !== habitId));
       setTodayCompletions(prev => prev.filter(id => id !== habitId));
+      
+      // Emit event to notify other components
+      eventBus.emit(EVENTS.HABIT_DELETED, { habitId });
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete habit';
       setError(errorMessage);
@@ -111,6 +155,15 @@ export const useHabits = () => {
       // Refresh habits to get updated stats from server
       await fetchHabits();
       
+      // Emit event to notify other components
+      eventBus.emit(EVENTS.HABIT_COMPLETED, {
+        habitId,
+        xpEarned: response.xpEarned,
+        leveledUp: response.leveledUp,
+        newLevel: response.newLevel,
+        streakUpdated: true
+      });
+      
       return response;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to complete habit';
@@ -141,13 +194,16 @@ export const useHabits = () => {
       // Update local state - refresh habits to get updated streak data
       await fetchHabits();
       
+      // Emit event to notify other components
+      eventBus.emit(EVENTS.FORGIVENESS_USED, { habitId });
+      
       return completion;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to use forgiveness token';
       setError(errorMessage);
       throw new Error(errorMessage);
     }
-  }, [fetchHabits]);
+  }, [fetchHabits, fetchGamificationData]);
 
   // Get habit completions
   const getHabitCompletions = useCallback(async (habitId: string, days: number = 30) => {

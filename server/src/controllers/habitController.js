@@ -232,8 +232,28 @@ export const archiveHabit = async (req, res) => {
 };
 
 // Calculate level from XP
+// Progressive XP system: each level requires 20% more XP than previous
+// Level 1→2: 100 XP, Level 2→3: 120 XP, Level 3→4: 140 XP, etc.
+const XP_BASE = 100;
+const XP_MULTIPLIER = 1.2;
+
+// Helper function to round to nearest multiple of 10
+const roundToNearestTen = (value) => {
+  return Math.round(value / 10) * 10;
+};
+
 const calculateLevel = (totalXP) => {
-  return Math.floor(Math.sqrt(totalXP / 100)) + 1;
+  let level = 1;
+  let accumulatedXP = 0;
+  let xpForNextLevel = XP_BASE;
+  
+  while (totalXP >= accumulatedXP + xpForNextLevel) {
+    accumulatedXP += xpForNextLevel;
+    level++;
+    xpForNextLevel = roundToNearestTen(XP_BASE * Math.pow(XP_MULTIPLIER, level - 1));
+  }
+  
+  return level;
 };
 
 // Mark habit as complete
