@@ -5,13 +5,6 @@ import { type Habit, type Completion, type HabitStats } from '@/types/habit';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 const USE_MOCK_API = import.meta.env.VITE_MOCK_API === 'true';
 
-console.log('Environment variables:', {
-  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-  VITE_MOCK_API: import.meta.env.VITE_MOCK_API,
-  USE_MOCK_API,
-  API_BASE_URL
-});
-
 // Mock data storage keys
 const HABITS_STORAGE_KEY = 'habitforge-habits';
 const COMPLETIONS_STORAGE_KEY = 'habitforge-completions';

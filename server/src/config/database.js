@@ -9,7 +9,7 @@ const connectDB = async () => {
       // Remove deprecated options that are now defaults in Mongoose 6+
     });
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log('MongoDB Connected successfully');
     
     // Handle connection events
     mongoose.connection.on('error', (err) => {

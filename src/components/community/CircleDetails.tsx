@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Trophy, Flag, Eye, EyeOff, Users } from 'lucide-react';
 import { Button, Input, Card } from '@/components/ui';
 import { useCircleDetails } from '@/hooks/useCommunity';
@@ -41,6 +41,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
   const [editingAnnouncement, setEditingAnnouncement] = useState<any>(null);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [editingChallenge, setEditingChallenge] = useState<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Clear justJoined flag once circle data confirms membership
   React.useEffect(() => {
@@ -49,6 +50,13 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
       setJustJoined(false);
     }
   }, [circle?.userIsMember, justJoined]);
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    if (activeTab === 'messages' && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [circle?.messages, activeTab]);
 
   // Debug admin status
   React.useEffect(() => {
@@ -363,7 +371,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
       {isMember && activeTab === 'messages' && (
         <div className="space-y-4">
           {/* Message List */}
-          <Card className="p-6 max-h-[500px] overflow-y-auto">
+          <Card className="p-6 max-h-[300px] overflow-y-auto">
             {circle.messages.length === 0 ? (
               <div className="text-center py-12">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
@@ -487,6 +495,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
                   </div>
                   );
                 })}
+                <div ref={messagesEndRef} />
               </div>
             )}
           </Card>

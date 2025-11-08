@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
-import { Plus, Target, Trophy, Search, Star } from 'lucide-react';
+import { Plus, Target, Search, Star, Flame } from 'lucide-react';
 import { Card, Button, Badge, Input, Select } from '@/components/ui';
 import { HabitForm, HabitCard } from '@/components/habit';
-import { ChallengeList, AchievementGrid } from '@/components/gamification';
+import { AchievementGrid } from '@/components/gamification';
+import { ChallengeCard } from '@/components/challenges/ChallengeCard';
+import { ChallengeDetailsModal } from '@/components/challenges/ChallengeDetailsModal';
+import { ChallengeProgressBar } from '@/components/challenges/ChallengeProgressBar';
 import { useHabits } from '@/hooks/useHabits';
 import { useGamification } from '@/hooks/useGamification';
+import { useChallenges } from '@/hooks/useChallenges';
+import { PersonalChallenge } from '@/services/challengeService';
 
 import { cn } from '@/utils/cn';
 import type { Habit } from '@/types/habit';
@@ -16,19 +21,26 @@ const GoalsPage: React.FC = () => {
   const { habits, createHabit, updateHabit, deleteHabit } = useHabits();
   const { 
     achievements, 
-    achievementsLoading,
-    challenges, 
-    challengeParticipations, 
-    challengesLoading,
-    joinChallenge,
-    leaveChallenge
+    achievementsLoading
   } = useGamification();
+  
+  const {
+    challenges: personalChallenges,
+    challengesLoading: personalChallengesLoading,
+    activeParticipations,
+    joinChallenge: joinPersonalChallenge,
+    abandonChallenge,
+    activeChallengeCount
+  } = useChallenges();
 
   const [activeTab, setActiveTab] = useState<TabType>('habits');
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [habitFilter, setHabitFilter] = useState<HabitFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedChallenge, setSelectedChallenge] = useState<PersonalChallenge | null>(null);
+  const [showChallengeDetails, setShowChallengeDetails] = useState(false);
+  const [personalChallengeFilter, setPersonalChallengeFilter] = useState<'all' | 'active' | 'available'>('all');
 
   // Filter habits based on current filter and search
   const filteredHabits = habits.filter(habit => {
@@ -78,7 +90,7 @@ const GoalsPage: React.FC = () => {
 
   const tabs = [
     { id: 'habits', label: 'My Habits', icon: Target, count: habits.length },
-    { id: 'challenges', label: 'Challenges', icon: Trophy, count: challenges.length },
+    { id: 'challenges', label: 'Challenges', icon: Flame, count: activeChallengeCount },
     { id: 'achievements', label: 'Achievements', icon: Star, count: achievements.filter((a: any) => a.unlocked).length }
   ];
 
@@ -256,24 +268,124 @@ const GoalsPage: React.FC = () => {
 
         {activeTab === 'challenges' && (
           <div className="space-y-6">
+            {/* Active Challenges Summary */}
+            {activeParticipations.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Active Challenges ({activeParticipations.length})
+                </h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {activeParticipations.map((participation: any) => {
+                    const challenge = participation.challengeId as PersonalChallenge;
+                    return (
+                      <Card key={participation._id} className="p-6">
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className="text-4xl">{challenge.icon}</div>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                              {challenge.title}
+                            </h3>
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                              Active
+                            </Badge>
+                          </div>
+                        </div>
+                        <ChallengeProgressBar
+                          current={participation.progress.current}
+                          target={participation.progress.target}
+                          percentage={participation.progress.percentage}
+                          startDate={participation.startDate}
+                          duration={challenge.duration}
+                        />
+                        <div className="mt-4">
+                          <Button
+                            onClick={() => {
+                              setSelectedChallenge(challenge);
+                              setShowChallengeDetails(true);
+                            }}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            View Details
+                          </Button>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Filter */}
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Available Challenges
+                  {personalChallengeFilter === 'active' ? 'Active Challenges' : 
+                   personalChallengeFilter === 'available' ? 'Available Challenges' : 
+                   'All Challenges'}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Join time-bound challenges to earn bonus XP and achievements
+                  Complete personal challenges to earn XP and build consistency
                 </p>
+              </div>
+              <div className="w-48">
+                <Select
+                  value={personalChallengeFilter}
+                  onChange={(e) => setPersonalChallengeFilter(e.target.value as 'all' | 'active' | 'available')}
+                  options={[
+                    { value: 'all', label: 'All Challenges' },
+                    { value: 'active', label: 'Active' },
+                    { value: 'available', label: 'Available' }
+                  ]}
+                />
               </div>
             </div>
 
-            <ChallengeList 
-              challenges={challenges}
-              participations={challengeParticipations}
-              onJoinChallenge={joinChallenge}
-              onLeaveChallenge={leaveChallenge}
-              isLoading={challengesLoading}
-            />
+            {/* Challenges Grid */}
+            {personalChallengesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600 dark:text-gray-400">Loading challenges...</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {personalChallenges
+                  .filter(challenge => {
+                    if (personalChallengeFilter === 'active') {
+                      return challenge.userStatus?.isActive;
+                    }
+                    if (personalChallengeFilter === 'available') {
+                      return !challenge.userStatus?.isActive;
+                    }
+                    return true;
+                  })
+                  .map((challenge: PersonalChallenge) => (
+                    <ChallengeCard
+                      key={challenge._id}
+                      challenge={challenge}
+                      onJoin={joinPersonalChallenge}
+                      onViewDetails={(selectedChallenge: PersonalChallenge) => {
+                        setSelectedChallenge(selectedChallenge);
+                        setShowChallengeDetails(true);
+                      }}
+                    />
+                  ))}
+              </div>
+            )}
+
+            {personalChallenges.length === 0 && !personalChallengesLoading && (
+              <Card className="text-center py-12">
+                <Flame className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  No challenges available
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Check back later for new challenges to join
+                </p>
+              </Card>
+            )}
           </div>
         )}
 
@@ -316,6 +428,20 @@ const GoalsPage: React.FC = () => {
               setShowHabitForm(false);
               setEditingHabit(null);
             }}
+          />
+        )}
+
+        {/* Challenge Details Modal */}
+        {showChallengeDetails && selectedChallenge && (
+          <ChallengeDetailsModal
+            isOpen={showChallengeDetails}
+            onClose={() => {
+              setShowChallengeDetails(false);
+              setSelectedChallenge(null);
+            }}
+            challengeId={selectedChallenge._id}
+            onJoin={joinPersonalChallenge}
+            onAbandon={abandonChallenge}
           />
         )}
       </div>

@@ -21,6 +21,7 @@ interface GamificationState {
   // Actions
   addXP: (xp: number, source?: string) => LevelUpResult | null;
   addHabitCompletionXP: (streakLength?: number, isFirstCompletion?: boolean, isPerfectWeek?: boolean) => LevelUpResult | null;
+  addChallengeCompletionXP: (xp: number, challengeTitle: string) => LevelUpResult | null;
   clearPendingLevelUp: () => void;
   setTotalXP: (xp: number) => void;
   clearRecentXPGains: () => void;
@@ -85,6 +86,29 @@ export const useGamificationStore = create<GamificationState>()(
           currentLevel: calculateLevelInfo(newTotalXP).currentLevel,
           pendingLevelUp: levelUpResult,
           recentXPGains: [xpCalculation, ...state.recentXPGains.slice(0, 9)], // Keep last 10
+        }));
+
+        return levelUpResult;
+      },
+
+      addChallengeCompletionXP: (xp: number, challengeTitle: string) => {
+        const { totalXP } = get();
+        const newTotalXP = totalXP + xp;
+        const levelUpResult = processLevelUp(totalXP, newTotalXP);
+        
+        const xpGain: XPCalculation = {
+          baseXP: xp,
+          streakBonus: 0,
+          multiplierBonus: 0,
+          totalXP: xp,
+          reason: `Challenge completed: ${challengeTitle}`,
+        };
+
+        set(state => ({
+          totalXP: newTotalXP,
+          currentLevel: calculateLevelInfo(newTotalXP).currentLevel,
+          pendingLevelUp: levelUpResult,
+          recentXPGains: [xpGain, ...state.recentXPGains.slice(0, 9)], // Keep last 10
         }));
 
         return levelUpResult;
