@@ -163,7 +163,7 @@ const SettingsPage: React.FC = () => {
                     <div className="flex items-center gap-4">
                       <ThemeToggle variant="dropdown" />
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Choose between light, dark, or system theme
+                        Choose between light or dark theme
                       </span>
                     </div>
                   </div>

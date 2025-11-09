@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useThemeStore } from '@/stores/themeStore';
 
-type Theme = 'light' | 'dark' | 'system';
+type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  actualTheme: 'light' | 'dark';
   toggleTheme: () => void;
 }
 
@@ -25,7 +24,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const { theme, actualTheme, setTheme, toggleTheme, initializeTheme } = useThemeStore();
+  const { theme, setTheme, toggleTheme, initializeTheme } = useThemeStore();
 
   useEffect(() => {
     // Initialize theme on mount
@@ -33,7 +32,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [initializeTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, actualTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from './Button';
 
@@ -16,12 +16,11 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   position = 'header',
   variant = 'button',
 }) => {
-  const { theme, setTheme, toggleTheme, actualTheme } = useTheme();
+  const { theme, setTheme, toggleTheme } = useTheme();
 
   const themes = [
     { value: 'light', icon: Sun, label: 'Light' },
     { value: 'dark', icon: Moon, label: 'Dark' },
-    { value: 'system', icon: Monitor, label: 'System' },
   ] as const;
 
   const currentTheme = themes.find(t => t.value === theme) || themes[0];
@@ -33,7 +32,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Theme
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {themes.map((themeOption) => {
             const ThemeIcon = themeOption.icon;
             const isActive = theme === themeOption.value;
@@ -52,9 +51,6 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
             );
           })}
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Currently using: {actualTheme} mode
-        </p>
       </div>
     );
   }
@@ -65,7 +61,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       size={size}
       onClick={toggleTheme}
       className="flex items-center gap-2 transition-transform duration-200 hover:scale-105"
-      title={`Current theme: ${currentTheme.label}. Click to cycle themes.`}
+      title={`Current theme: ${currentTheme.label}. Click to toggle theme.`}
     >
       <Icon className="h-4 w-4 transition-transform duration-300" />
       {showLabel && <span>{currentTheme.label}</span>}

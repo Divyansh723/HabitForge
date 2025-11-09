@@ -1,11 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-type Theme = 'light' | 'dark' | 'system';
+type Theme = 'light' | 'dark';
 
 interface ThemeState {
   theme: Theme;
-  actualTheme: 'light' | 'dark';
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
   initializeTheme: () => void;
@@ -14,25 +13,22 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      theme: 'system',
-      actualTheme: 'light',
+      theme: 'light',
       
       setTheme: (theme: Theme) => {
         set({ theme });
-        updateActualTheme(theme, set);
+        updateTheme(theme);
       },
       
       toggleTheme: () => {
         const { theme } = get();
-        const themes: Theme[] = ['light', 'dark', 'system'];
-        const currentIndex = themes.indexOf(theme);
-        const nextTheme = themes[(currentIndex + 1) % themes.length];
+        const nextTheme = theme === 'light' ? 'dark' : 'light';
         get().setTheme(nextTheme);
       },
       
       initializeTheme: () => {
         const { theme } = get();
-        updateActualTheme(theme, set);
+        updateTheme(theme);
       },
     }),
     {
@@ -42,37 +38,16 @@ export const useThemeStore = create<ThemeState>()(
   )
 );
 
-const updateActualTheme = (theme: Theme, set: (partial: Partial<ThemeState>) => void) => {
+const updateTheme = (theme: Theme) => {
   const root = window.document.documentElement;
-  
-  let resolvedTheme: 'light' | 'dark';
-  
-  if (theme === 'system') {
-    resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  } else {
-    resolvedTheme = theme;
-  }
-  
-  set({ actualTheme: resolvedTheme });
   
   // Update DOM classes
   root.classList.remove('light', 'dark');
-  root.classList.add(resolvedTheme);
+  root.classList.add(theme);
   
   // Update meta theme-color for mobile browsers
   const metaThemeColor = document.querySelector('meta[name="theme-color"]');
   if (metaThemeColor) {
-    metaThemeColor.setAttribute('content', resolvedTheme === 'dark' ? '#111827' : '#ffffff');
+    metaThemeColor.setAttribute('content', theme === 'dark' ? '#111827' : '#ffffff');
   }
 };
-
-// Listen for system theme changes
-if (typeof window !== 'undefined') {
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  mediaQuery.addEventListener('change', () => {
-    const { theme } = useThemeStore.getState();
-    if (theme === 'system') {
-      updateActualTheme('system', useThemeStore.setState);
-    }
-  });
-}

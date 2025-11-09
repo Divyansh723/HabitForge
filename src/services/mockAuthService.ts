@@ -12,7 +12,7 @@ const mockUsers: User[] = [
     totalXP: 450,
     forgivenessTokens: 2,
     aiOptOut: false,
-    theme: 'system',
+    theme: 'light',
     notificationPreferences: {
       push: true,
       email: true,
@@ -75,7 +75,7 @@ class MockAuthService {
       totalXP: 0,
       forgivenessTokens: 2,
       aiOptOut: false,
-      theme: 'system',
+      theme: 'light',
       notificationPreferences: {
         push: true,
         email: true,
