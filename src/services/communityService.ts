@@ -303,6 +303,20 @@ class CommunityService {
       throw new Error('An unexpected error occurred');
     }
   }
+
+  // Remove member from circle (admin only)
+  async removeMember(circleId: string, memberId: string, reason: string): Promise<void> {
+    try {
+      await this.api.delete(`/${circleId}/members/${memberId}`, {
+        data: { reason }
+      });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to remove member');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
 }
 
 export const communityService = new CommunityService();

@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Trophy, Flag, Eye, EyeOff, Users } from 'lucide-react';
+import { ArrowLeft, Send, Trophy, Flag, Eye, EyeOff, Users, UserMinus, Shield, Crown } from 'lucide-react';
 import { Button, Input, Card } from '@/components/ui';
 import { useCircleDetails } from '@/hooks/useCommunity';
 import { useAuth } from '@/hooks/useAuth';
 import communityService from '@/services/communityService';
 import { CreateAnnouncementModal } from './CreateAnnouncementModal';
 import { CreateChallengeModal } from './CreateChallengeModal';
+import { RemoveMemberModal } from './RemoveMemberModal';
 import { cn } from '@/utils/cn';
 
 interface CircleDetailsProps {
@@ -33,7 +34,8 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
   } = useCircleDetails(circleId);
 
   const [messageContent, setMessageContent] = useState('');
-  const [activeTab, setActiveTab] = useState<'messages' | 'leaderboard' | 'challenges' | 'announcements'>('messages');
+  const [activeTab, setActiveTab] = useState<'messages' | 'leaderboard' | 'challenges' | 'announcements' | 'members'>('messages');
+  const [removingMember, setRemovingMember] = useState<{ id: string; name: string } | null>(null);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [joiningCircle, setJoiningCircle] = useState(false);
   const [justJoined, setJustJoined] = useState(false);
@@ -363,6 +365,17 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
           )}
         >
           📢 Announcements
+        </button>
+        <button
+          onClick={() => setActiveTab('members')}
+          className={cn(
+            'flex-1 px-4 py-3 font-semibold text-sm rounded-md transition-all whitespace-nowrap',
+            activeTab === 'members'
+              ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          )}
+        >
+          👥 Members
         </button>
         </div>
       )}
@@ -944,6 +957,101 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
             </Card>
           )}
         </div>
+      )}
+
+      {/* Members Tab - Only for members */}
+      {isMember && activeTab === 'members' && (
+        <div className="space-y-4">
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Circle Members ({circle.memberCount}/{circle.maxMembers})
+            </h3>
+            
+            <div className="space-y-3">
+              {circle.members && circle.members.length > 0 ? (
+                circle.members.map((member: any) => {
+                  const memberId = typeof member.userId === 'object' ? member.userId._id : member.userId;
+                  const memberName = typeof member.userId === 'object' ? member.userId.name : 'Unknown User';
+                  const isCurrentUser = memberId === user?.id;
+                  const isAdmin = member.role === 'admin';
+                  const isModerator = member.role === 'moderator';
+
+                  return (
+                    <div
+                      key={memberId}
+                      className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium text-white">
+                            {memberName.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-900 dark:text-white">
+                              {memberName}
+                              {isCurrentUser && (
+                                <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">(You)</span>
+                              )}
+                            </span>
+                            {isAdmin && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs font-medium rounded">
+                                <Crown className="h-3 w-3" />
+                                Admin
+                              </span>
+                            )}
+                            {isModerator && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs font-medium rounded">
+                                <Shield className="h-3 w-3" />
+                                Moderator
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Joined {new Date(member.joinedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Admin Actions */}
+                      {circle.userIsAdmin && !isCurrentUser && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setRemovingMember({ id: memberId, name: memberName })}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <UserMinus className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  No members found
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Remove Member Modal */}
+      {removingMember && (
+        <RemoveMemberModal
+          isOpen={true}
+          onClose={() => setRemovingMember(null)}
+          onConfirm={async (reason) => {
+            await communityService.removeMember(circleId, removingMember.id, reason);
+            setRemovingMember(null);
+            await refreshCircle();
+          }}
+          memberName={removingMember.name}
+          circleName={circle.name}
+        />
       )}
 
       {/* Create/Edit Announcement Modal */}

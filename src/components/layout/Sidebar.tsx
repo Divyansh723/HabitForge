@@ -11,13 +11,15 @@ import {
   Trophy,
   User,
   LogOut,
-  X
+  X,
+  Bell
 } from 'lucide-react';
-import { Button, ThemeToggle } from '@/components/ui';
+import { Button, ThemeToggle, Badge } from '@/components/ui';
 import { AuthModal } from '@/components/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { useGamification } from '@/hooks/useGamification';
 import { useCommunityAccess } from '@/hooks/useCommunityAccess';
+import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/utils/cn';
 
 interface SidebarProps {
@@ -36,6 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { user, isAuthenticated, logout } = useAuth();
   const { totalXP, currentLevel, forgivenessTokens } = useGamification();
   const { canAccessCommunity } = useCommunityAccess();
+  const { unreadCount } = useNotifications();
 
   const navigation = [
     { 
@@ -171,6 +174,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className="relative"
                   >
                     <User className="h-4 w-4" />
+                    {/* Unread notification badge on user icon */}
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-[16px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -178,6 +187,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* User Menu Dropdown */}
               {showUserMenu && (
                 <div className="mt-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
+                  <Link
+                    to="/notifications"
+                    className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      onClose?.();
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Bell className="h-4 w-4" />
+                      Notifications
+                    </div>
+                    {unreadCount > 0 && (
+                      <Badge 
+                        variant="primary" 
+                        className="ml-auto px-2 py-0.5 text-xs bg-red-500 text-white"
+                      >
+                        {unreadCount}
+                      </Badge>
+                    )}
+                  </Link>
                   <Link
                     to="/settings"
                     className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"

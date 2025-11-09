@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Heart, Zap, Brain, Target, Lightbulb, Sparkles, Plus, Check, Clock } from 'lucide-react';
+import { Heart, Zap, Brain, Target, Lightbulb, Sparkles, Plus, Check, Clock, Calendar } from 'lucide-react';
 import { Card, Badge, Button, Modal, Checkbox } from '@/components/ui';
 import { useWellbeing } from '@/hooks/useWellbeing';
 import { useAI } from '@/hooks/useAI';
 import { useHabits } from '@/hooks/useHabits';
+import { useAIPermissions } from '@/hooks/useAIPermissions';
 import { cn } from '@/utils/cn';
 
 
@@ -16,6 +17,7 @@ export const HabitImpactAnalysis: React.FC<HabitImpactAnalysisProps> = ({ classN
   const { habitImpacts, fetchHabitImpacts } = useWellbeing();
   const { fetchHabitInsights } = useAI();
   const { createHabit } = useHabits();
+  const { canUseAISuggestions } = useAIPermissions();
   const [showOptimizationModal, setShowOptimizationModal] = useState(false);
   const [optimizationSuggestions, setOptimizationSuggestions] = useState<any>(null);
   const [isLoadingOptimization, setIsLoadingOptimization] = useState(false);
@@ -446,10 +448,20 @@ export const HabitImpactAnalysis: React.FC<HabitImpactAnalysisProps> = ({ classN
         <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
           <div className="flex items-start gap-3">
             <Lightbulb className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-900 dark:text-blue-100">
-              <strong>How Habit Impact Works:</strong> Track your mood daily in the Wellbeing page, and complete your habits regularly. 
-              After a few days, we'll analyze the correlation between your habits and wellbeing metrics (mood, energy, stress). 
-              The values below are examples showing what insights you'll receive once you have enough data.
+            <div className="text-sm text-blue-900 dark:text-blue-100 space-y-2">
+              <div>
+                <strong>How Habit Impact Works:</strong> Track your mood daily in the Wellbeing page, and complete your habits regularly. 
+                We'll analyze the correlation between your habits and wellbeing metrics (mood, energy, stress).
+              </div>
+              <div className="flex items-start gap-2 bg-blue-100 dark:bg-blue-900/40 p-2 rounded">
+                <Calendar className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong>Data Required:</strong> For each habit, we need at least <strong>3 days of mood tracking when you completed the habit</strong> and <strong>3 days when you didn't</strong> (minimum 6 days total). This ensures meaningful correlation analysis.
+                </div>
+              </div>
+              <div className="text-xs opacity-90">
+                The values below are examples showing what insights you'll receive once you have enough data.
+              </div>
             </div>
           </div>
         </Card>
@@ -671,30 +683,32 @@ export const HabitImpactAnalysis: React.FC<HabitImpactAnalysisProps> = ({ classN
                 </p>
               </div>
             )}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mt-3"
-              onClick={handleOptimizeHabits}
-              disabled={isLoadingOptimization}
-            >
-              {isLoadingOptimization ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                  Analyzing...
-                </>
-              ) : showSuccessMessage ? (
-                <>
-                  <Target className="h-4 w-4 mr-2" />
-                  Get New Suggestions
-                </>
-              ) : (
-                <>
-                  <Target className="h-4 w-4 mr-2" />
-                  Optimize My Habits
-                </>
-              )}
-            </Button>
+            {canUseAISuggestions && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-3"
+                onClick={handleOptimizeHabits}
+                disabled={isLoadingOptimization}
+              >
+                {isLoadingOptimization ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                    Analyzing...
+                  </>
+                ) : showSuccessMessage ? (
+                  <>
+                    <Target className="h-4 w-4 mr-2" />
+                    Get New Suggestions
+                  </>
+                ) : (
+                  <>
+                    <Target className="h-4 w-4 mr-2" />
+                    Optimize My Habits
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </Card>

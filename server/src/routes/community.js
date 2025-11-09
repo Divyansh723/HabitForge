@@ -41,7 +41,7 @@ router.use(checkCommunityAccess);
 router.post('/', [
   body('name').trim().isLength({ min: 3, max: 50 }).withMessage('Name must be 3-50 characters'),
   body('description').optional().trim().isLength({ max: 200 }).withMessage('Description must be less than 200 characters'),
-  body('maxMembers').optional().isInt({ min: 2, max: 50 }).withMessage('Max members must be between 2 and 50'),
+  body('maxMembers').optional().isInt({ min: 2, max: 100 }).withMessage('Max members must be between 2 and 100'),
   body('isPrivate').optional().isBoolean().withMessage('isPrivate must be a boolean')
 ], createCircle);
 

@@ -10,6 +10,7 @@ import AnalyticsPage from '@/pages/AnalyticsPage';
 import InsightsPage from '@/pages/InsightsPage';
 import CommunityPage from '@/pages/CommunityPage';
 import SettingsPage from '@/pages/SettingsPage';
+import NotificationsPage from '@/pages/NotificationsPage';
 import TestAuthPage from '@/TestAuthPage';
 import TestLogin from '@/TestLogin';
 
@@ -75,6 +76,14 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute>
             <SettingsPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/notifications" 
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
           </ProtectedRoute>
         } 
       />

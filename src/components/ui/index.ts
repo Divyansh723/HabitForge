@@ -8,3 +8,4 @@ export { Textarea } from './Textarea';
 export { Checkbox } from './Checkbox';
 export { Badge } from './Badge';
 export { ThemeToggle } from './ThemeToggle';
+export { ConfirmDialog } from './ConfirmDialog';

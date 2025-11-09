@@ -765,6 +765,7 @@ export const promoteMember = async (req, res) => {
 export const removeMember = async (req, res) => {
   try {
     const { circleId, memberId } = req.params;
+    const { reason } = req.body;
     const userId = req.user._id;
 
     const circle = await CommunityCircle.findById(circleId);
@@ -776,11 +777,50 @@ export const removeMember = async (req, res) => {
       });
     }
 
+    // Validate reason
+    if (!reason || reason.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Removal reason is required'
+      });
+    }
+
+    if (reason.length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: 'Reason must be less than 500 characters'
+      });
+    }
+
     await circle.removeMemberByAdmin(userId, memberId);
+
+    // Send notification to removed member
+    const Notification = (await import('../models/Notification.js')).default;
+    console.log('Creating notification for removed member:', {
+      userId: memberId,
+      circleName: circle.name,
+      reason
+    });
+    
+    const notification = await Notification.createNotification({
+      userId: memberId,
+      type: 'community',
+      title: `Removed from ${circle.name}`,
+      message: `You have been removed from the community circle "${circle.name}". Reason: ${reason}`,
+      actionUrl: '/community',
+      metadata: {
+        circleId: circle._id,
+        circleName: circle.name,
+        reason,
+        removedBy: userId
+      }
+    });
+
+    console.log('Notification created successfully:', notification);
 
     res.json({
       success: true,
-      message: 'Member removed successfully'
+      message: 'Member removed successfully and notified'
     });
   } catch (error) {
     console.error('Remove member error:', error);

@@ -241,7 +241,7 @@ const communityCircleSchema = new mongoose.Schema({
     type: Number,
     default: 10,
     min: 2,
-    max: 50
+    max: 100
   },
   isPrivate: {
     type: Boolean,
@@ -255,7 +255,7 @@ const communityCircleSchema = new mongoose.Schema({
   moderationSettings: {
     maxMessagesPerDay: {
       type: Number,
-      default: 10
+      default: 100
     },
     profanityFilterEnabled: {
       type: Boolean,

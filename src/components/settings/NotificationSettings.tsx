@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Mail, Smartphone, Clock, Volume2, VolumeX, Save, CheckCircle, AlertCircle } from 'lucide-react';
+import { Bell, Mail, Smartphone, Clock, Save, CheckCircle, AlertCircle } from 'lucide-react';
 import { Card, Button } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
@@ -33,8 +33,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
       enabled: true,
       start: '22:00',
       end: '08:00'
-    },
-    soundEnabled: true
+    }
   });
 
   // Load user notification preferences
@@ -60,8 +59,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
           enabled: true,
           start: '22:00',
           end: '08:00'
-        },
-        soundEnabled: prefs.soundEnabled ?? true
+        }
       });
     }
   }, [user]);
@@ -94,8 +92,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
           communityActivity: preferences.communityActivity,
           systemUpdates: preferences.systemUpdates,
           tipsAndTricks: preferences.tipsAndTricks,
-          quietHours: globalSettings.quietHours,
-          soundEnabled: globalSettings.soundEnabled
+          quietHours: globalSettings.quietHours
         }
       });
 
@@ -190,99 +187,202 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
 
       {/* Global Settings */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-          <Bell className="h-5 w-5" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <Bell className="h-5 w-5 text-primary-600" />
           Notification Channels
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {/* Push Notifications */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Smartphone className="h-5 w-5 text-blue-500" />
-              <div>
-                <div className="font-medium text-gray-900 dark:text-white">
-                  Push Notifications
+          <div className={cn(
+            "relative p-5 rounded-xl border-2 transition-all cursor-pointer group",
+            globalSettings.pushEnabled
+              ? "bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-600"
+              : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+          )}
+          onClick={() => updateGlobalSetting('pushEnabled', !globalSettings.pushEnabled)}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3 flex-1">
+                <div className={cn(
+                  "p-2.5 rounded-lg",
+                  globalSettings.pushEnabled
+                    ? "bg-blue-100 dark:bg-blue-800/50"
+                    : "bg-gray-100 dark:bg-gray-700"
+                )}>
+                  <Smartphone className={cn(
+                    "h-5 w-5",
+                    globalSettings.pushEnabled
+                      ? "text-blue-600 dark:text-blue-400"
+                      : "text-gray-500 dark:text-gray-400"
+                  )} />
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Mobile & desktop alerts
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900 dark:text-white mb-1">
+                    Push Notifications
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Mobile & desktop alerts
+                  </div>
                 </div>
               </div>
+              <div className={cn(
+                "flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all",
+                globalSettings.pushEnabled
+                  ? "bg-blue-500 border-blue-500"
+                  : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+              )}>
+                {globalSettings.pushEnabled && (
+                  <CheckCircle className="h-3 w-3 text-white" />
+                )}
+              </div>
             </div>
-            <input
-              type="checkbox"
-              checked={globalSettings.pushEnabled}
-              onChange={(e) => updateGlobalSetting('pushEnabled', e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-            />
           </div>
 
           {/* Email Notifications */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Mail className="h-5 w-5 text-green-500" />
-              <div>
-                <div className="font-medium text-gray-900 dark:text-white">
-                  Email Notifications
+          <div className={cn(
+            "relative p-5 rounded-xl border-2 transition-all cursor-pointer group",
+            globalSettings.emailEnabled
+              ? "bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-600"
+              : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+          )}
+          onClick={() => updateGlobalSetting('emailEnabled', !globalSettings.emailEnabled)}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3 flex-1">
+                <div className={cn(
+                  "p-2.5 rounded-lg",
+                  globalSettings.emailEnabled
+                    ? "bg-green-100 dark:bg-green-800/50"
+                    : "bg-gray-100 dark:bg-gray-700"
+                )}>
+                  <Mail className={cn(
+                    "h-5 w-5",
+                    globalSettings.emailEnabled
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-gray-500 dark:text-gray-400"
+                  )} />
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Email summaries & alerts
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900 dark:text-white mb-1">
+                    Email Notifications
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Email summaries & alerts
+                  </div>
                 </div>
               </div>
+              <div className={cn(
+                "flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all",
+                globalSettings.emailEnabled
+                  ? "bg-green-500 border-green-500"
+                  : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+              )}>
+                {globalSettings.emailEnabled && (
+                  <CheckCircle className="h-3 w-3 text-white" />
+                )}
+              </div>
             </div>
-            <input
-              type="checkbox"
-              checked={globalSettings.emailEnabled}
-              onChange={(e) => updateGlobalSetting('emailEnabled', e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-            />
           </div>
 
           {/* In-App Notifications */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Bell className="h-5 w-5 text-purple-500" />
-              <div>
-                <div className="font-medium text-gray-900 dark:text-white">
-                  In-App Notifications
+          <div className={cn(
+            "relative p-5 rounded-xl border-2 transition-all cursor-pointer group",
+            globalSettings.inAppEnabled
+              ? "bg-purple-50 dark:bg-purple-900/20 border-purple-500 dark:border-purple-600"
+              : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+          )}
+          onClick={() => updateGlobalSetting('inAppEnabled', !globalSettings.inAppEnabled)}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3 flex-1">
+                <div className={cn(
+                  "p-2.5 rounded-lg",
+                  globalSettings.inAppEnabled
+                    ? "bg-purple-100 dark:bg-purple-800/50"
+                    : "bg-gray-100 dark:bg-gray-700"
+                )}>
+                  <Bell className={cn(
+                    "h-5 w-5",
+                    globalSettings.inAppEnabled
+                      ? "text-purple-600 dark:text-purple-400"
+                      : "text-gray-500 dark:text-gray-400"
+                  )} />
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Notifications within app
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900 dark:text-white mb-1">
+                    In-App Notifications
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Notifications within app
+                  </div>
                 </div>
               </div>
+              <div className={cn(
+                "flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all",
+                globalSettings.inAppEnabled
+                  ? "bg-purple-500 border-purple-500"
+                  : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+              )}>
+                {globalSettings.inAppEnabled && (
+                  <CheckCircle className="h-3 w-3 text-white" />
+                )}
+              </div>
             </div>
-            <input
-              type="checkbox"
-              checked={globalSettings.inAppEnabled}
-              onChange={(e) => updateGlobalSetting('inAppEnabled', e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-            />
           </div>
         </div>
 
-        {/* Additional Settings */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Quiet Hours */}
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-indigo-500" />
-                <span className="font-medium text-gray-900 dark:text-white">
-                  Quiet Hours
-                </span>
+        {/* Quiet Hours */}
+        <div className={cn(
+          "p-5 rounded-xl border-2 transition-all",
+          globalSettings.quietHours.enabled
+            ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 dark:border-indigo-600"
+            : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+        )}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "p-2.5 rounded-lg",
+                globalSettings.quietHours.enabled
+                  ? "bg-indigo-100 dark:bg-indigo-800/50"
+                  : "bg-gray-100 dark:bg-gray-700"
+              )}>
+                <Clock className={cn(
+                  "h-5 w-5",
+                  globalSettings.quietHours.enabled
+                    ? "text-indigo-600 dark:text-indigo-400"
+                    : "text-gray-500 dark:text-gray-400"
+                )} />
               </div>
-              <input
-                type="checkbox"
-                checked={globalSettings.quietHours.enabled}
-                onChange={(e) => updateGlobalSetting('quietHours', {
-                  ...globalSettings.quietHours,
-                  enabled: e.target.checked
-                })}
-                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-              />
+              <div>
+                <div className="font-semibold text-gray-900 dark:text-white">
+                  Quiet Hours
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Pause notifications during specific hours
+                </div>
+              </div>
             </div>
-            {globalSettings.quietHours.enabled && (
-              <div className="flex items-center gap-2 text-sm">
+            <div className={cn(
+              "flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all cursor-pointer",
+              globalSettings.quietHours.enabled
+                ? "bg-indigo-500 border-indigo-500"
+                : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+            )}
+            onClick={() => updateGlobalSetting('quietHours', {
+              ...globalSettings.quietHours,
+              enabled: !globalSettings.quietHours.enabled
+            })}
+            >
+              {globalSettings.quietHours.enabled && (
+                <CheckCircle className="h-3 w-3 text-white" />
+              )}
+            </div>
+          </div>
+          {globalSettings.quietHours.enabled && (
+            <div className="flex items-center gap-3 pt-2">
+              <div className="flex items-center gap-2 flex-1">
+                <Clock className="h-4 w-4 text-indigo-500" />
                 <input
                   type="time"
                   value={globalSettings.quietHours.start}
@@ -290,9 +390,12 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
                     ...globalSettings.quietHours,
                     start: e.target.value
                   })}
-                  className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="px-3 py-2 border-2 border-indigo-200 dark:border-indigo-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all"
                 />
-                <span className="text-gray-600 dark:text-gray-400">to</span>
+              </div>
+              <span className="text-gray-500 dark:text-gray-400 font-medium">to</span>
+              <div className="flex items-center gap-2 flex-1">
+                <Clock className="h-4 w-4 text-indigo-500" />
                 <input
                   type="time"
                   value={globalSettings.quietHours.end}
@@ -300,36 +403,11 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
                     ...globalSettings.quietHours,
                     end: e.target.value
                   })}
-                  className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="px-3 py-2 border-2 border-indigo-200 dark:border-indigo-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all"
                 />
               </div>
-            )}
-          </div>
-
-          {/* Sound Settings */}
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {globalSettings.soundEnabled ? (
-                  <Volume2 className="h-5 w-5 text-yellow-500" />
-                ) : (
-                  <VolumeX className="h-5 w-5 text-gray-400" />
-                )}
-                <span className="font-medium text-gray-900 dark:text-white">
-                  Notification Sounds
-                </span>
-              </div>
-              <input
-                type="checkbox"
-                checked={globalSettings.soundEnabled}
-                onChange={(e) => updateGlobalSetting('soundEnabled', e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-              />
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Play sounds with notifications
-            </div>
-          </div>
+          )}
         </div>
       </Card>
 
