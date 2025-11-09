@@ -17,7 +17,21 @@ export const getNotifications = async (req, res) => {
     // Build filter
     const filter = { userId };
     if (type && type !== 'all') {
-      filter.type = type;
+      // Map category to specific notification types
+      const typeMapping = {
+        habit: ['habit', 'habit_reminder', 'streak_milestone', 'daily_summary', 'weekly_insights'],
+        achievement: ['achievement'],
+        challenge: ['challenge', 'challenge_update'],
+        community: ['community', 'community_activity'],
+        system: ['system', 'system_update', 'tips_tricks']
+      };
+      
+      if (typeMapping[type]) {
+        filter.type = { $in: typeMapping[type] };
+      } else {
+        // If it's a specific type, use exact match
+        filter.type = type;
+      }
     }
     if (read !== undefined) {
       filter.read = read === 'true';

@@ -109,15 +109,15 @@ export const useAnalytics = () => {
     }
   }, []);
 
-  const exportData = useCallback(async (format: 'csv' | 'json' = 'csv') => {
+  const exportData = useCallback(async (exportType: string, dateRange: string = 'all_time') => {
     try {
       setIsLoading(true);
       setError(null);
-      const result = await analyticsService.exportData(format);
+      const result = await analyticsService.exportData(exportType, dateRange);
       
       // Create and trigger download
       const blob = new Blob([result.data], { 
-        type: format === 'csv' ? 'text/csv' : 'application/json' 
+        type: 'text/csv;charset=utf-8;'
       });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, CheckCircle, AlertCircle, FileText, BarChart3, Heart, Target } from 'lucide-react';
+import { Download, CheckCircle, AlertCircle, BarChart3, Heart, Target } from 'lucide-react';
 import { Card, Badge, Button, Select } from '@/components/ui';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { cn } from '@/utils/cn';
@@ -21,10 +21,9 @@ interface DataExportProps {
 
 export const DataExport: React.FC<DataExportProps> = ({ className }) => {
   const { exportData } = useAnalytics();
-  const [selectedExport, setSelectedExport] = useState<string>('');
   const [dateRange, setDateRange] = useState<string>('30_days');
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportStatus, setExportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [exportingId, setExportingId] = useState<string | null>(null);
+  const [exportStatus, setExportStatus] = useState<Record<string, 'success' | 'error'>>({});
 
   const exportOptions: ExportOption[] = [
     {
@@ -48,11 +47,11 @@ export const DataExport: React.FC<DataExportProps> = ({ className }) => {
     {
       id: 'analytics_summary',
       name: 'Analytics Summary',
-      description: 'Aggregated statistics and trend data',
+      description: 'Comprehensive analytics including trends, weekly stats, and per-habit breakdown',
       format: 'csv',
       icon: BarChart3,
-      estimatedSize: '100 KB',
-      includesTimezone: false
+      estimatedSize: '200 KB',
+      includesTimezone: true
     },
     {
       id: 'wellbeing_data',
@@ -73,47 +72,31 @@ export const DataExport: React.FC<DataExportProps> = ({ className }) => {
     { value: 'all_time', label: 'All time' }
   ];
 
-  const handleExport = async () => {
-    if (!selectedExport) return;
-    
-    setIsExporting(true);
-    setExportStatus('idle');
+  const handleExport = async (exportId: string) => {
+    setExportingId(exportId);
+    setExportStatus(prev => {
+      const newStatus = { ...prev };
+      delete newStatus[exportId];
+      return newStatus;
+    });
     
     try {
-      // Use real export functionality
-      await exportData('csv');
-      setExportStatus('success');
+      await exportData(exportId, dateRange);
+      setExportStatus(prev => ({ ...prev, [exportId]: 'success' }));
+      
+      // Clear success status after 3 seconds
+      setTimeout(() => {
+        setExportStatus(prev => {
+          const newStatus = { ...prev };
+          delete newStatus[exportId];
+          return newStatus;
+        });
+      }, 3000);
     } catch (error) {
       console.error('Export failed:', error);
-      setExportStatus('error');
+      setExportStatus(prev => ({ ...prev, [exportId]: 'error' }));
     } finally {
-      setIsExporting(false);
-    }
-  };
-
-
-
-
-
-  const getStatusIcon = () => {
-    switch (exportStatus) {
-      case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusMessage = () => {
-    switch (exportStatus) {
-      case 'success':
-        return 'Export completed successfully!';
-      case 'error':
-        return 'Export failed. Please try again.';
-      default:
-        return '';
+      setExportingId(null);
     }
   };
 
@@ -130,30 +113,36 @@ export const DataExport: React.FC<DataExportProps> = ({ className }) => {
         </Badge>
       </div>
 
+      {/* Date Range Selection */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Date Range for All Exports
+          </label>
+          <Select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+            options={dateRangeOptions}
+            className="w-48"
+          />
+        </div>
+      </Card>
+
       {/* Export Options */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {exportOptions.map((option) => {
           const Icon = option.icon;
-          const isSelected = selectedExport === option.id;
+          const isExporting = exportingId === option.id;
+          const status = exportStatus[option.id];
           
           return (
             <Card 
               key={option.id}
-              className={cn(
-                'p-4 cursor-pointer transition-all hover:shadow-md',
-                isSelected ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
-              )}
-              onClick={() => setSelectedExport(option.id)}
+              className="p-4 transition-all hover:shadow-md"
             >
-              <div className="flex items-start gap-3">
-                <div className={cn(
-                  'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
-                  isSelected ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-800'
-                )}>
-                  <Icon className={cn(
-                    'h-5 w-5',
-                    isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'
-                  )} />
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-gray-100 dark:bg-gray-800">
+                  <Icon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                 </div>
                 
                 <div className="flex-1 min-w-0">
@@ -170,7 +159,7 @@ export const DataExport: React.FC<DataExportProps> = ({ className }) => {
                     {option.description}
                   </p>
                   
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-xs mb-3">
                     <span className="text-gray-500 dark:text-gray-500">
                       Est. size: {option.estimatedSize}
                     </span>
@@ -182,73 +171,40 @@ export const DataExport: React.FC<DataExportProps> = ({ className }) => {
                   </div>
                 </div>
               </div>
+
+              {/* Status Message */}
+              {status && (
+                <div className={cn(
+                  'flex items-center gap-2 mb-3 p-2 rounded text-sm',
+                  status === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                )}>
+                  {status === 'success' ? (
+                    <>
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Downloaded successfully!</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-4 w-4" />
+                      <span>Export failed. Please try again.</span>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Download Button */}
+              <Button
+                onClick={() => handleExport(option.id)}
+                disabled={isExporting}
+                className="w-full"
+                size="sm"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExporting ? 'Downloading...' : 'Download CSV'}
+              </Button>
             </Card>
           );
         })}
-      </div>
-
-      {/* Export Configuration */}
-      {selectedExport && (
-        <Card className="p-6">
-          <h4 className="font-medium text-gray-900 dark:text-white mb-4">
-            Export Configuration
-          </h4>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Date Range
-              </label>
-              <Select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                options={dateRangeOptions}
-              />
-            </div>
-            
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-              <div className="flex items-start gap-3">
-                <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                <div>
-                  <h5 className="font-medium text-gray-900 dark:text-white mb-1">
-                    Export Details
-                  </h5>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    Your export will include:
-                  </p>
-                  <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                    <li>• All timestamps are provided in UTC</li>
-                    <li>• Personal identifiers are anonymized</li>
-                    <li>• Data is formatted for easy analysis</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Export Status */}
-      {exportStatus !== 'idle' && (
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            {getStatusIcon()}
-            <span className="text-sm font-medium">
-              {getStatusMessage()}
-            </span>
-          </div>
-        </Card>
-      )}
-
-      {/* Export Button */}
-      <div className="flex justify-end">
-        <Button
-          onClick={handleExport}
-          disabled={!selectedExport || isExporting}
-          className="min-w-32"
-        >
-          {isExporting ? 'Exporting...' : `Export ${selectedExport ? exportOptions.find(opt => opt.id === selectedExport)?.name : ''}`}
-        </Button>
       </div>
 
       {/* Privacy Notice */}

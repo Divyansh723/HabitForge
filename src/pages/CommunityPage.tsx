@@ -6,6 +6,14 @@ export const CommunityPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedCircle, setSelectedCircle] = useState<CommunityCircle | null>(null);
 
+  // Debug logging
+  React.useEffect(() => {
+    if (selectedCircle) {
+      console.log('CommunityPage: Selected circle:', selectedCircle);
+      console.log('CommunityPage: Circle ID:', selectedCircle._id);
+    }
+  }, [selectedCircle]);
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Page Header */}

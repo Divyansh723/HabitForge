@@ -6,3 +6,4 @@ export { default as XPTransaction } from './XPTransaction.js';
 export { default as MoodEntry } from './MoodEntry.js';
 export { default as AIInteractionLog } from './AIInteractionLog.js';
 export { default as CommunityCircle } from './CommunityCircle.js';
+export { default as Notification } from './Notification.js';

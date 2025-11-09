@@ -185,13 +185,13 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ className }) =
           </div>
 
           {/* Profile Info */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-4">
-              <div>
+              <div className="flex-1 min-w-0 mr-4">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {user?.name || 'User'}
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-gray-600 dark:text-gray-400 break-all overflow-wrap-anywhere">
                   {user?.email}
                 </p>
               </div>
@@ -297,10 +297,10 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ className }) =
               Email Address
             </label>
             <div className="flex items-center gap-2">
-              <div className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-900 dark:text-white">
-                {formData.email || 'Not set'}
+              <div className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-900 dark:text-white break-words overflow-hidden">
+                <span className="block break-all">{formData.email || 'Not set'}</span>
               </div>
-              <Badge variant="outline" size="sm" className="text-green-600 border-green-600">
+              <Badge variant="outline" size="sm" className="text-green-600 border-green-600 flex-shrink-0">
                 Verified
               </Badge>
             </div>

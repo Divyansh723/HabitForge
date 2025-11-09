@@ -165,6 +165,8 @@ export const CircleList: React.FC<CircleListProps> = ({
                       className="w-full group-hover:bg-primary-600 group-hover:text-white transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
+                        console.log('CircleList: Selecting circle:', circle);
+                        console.log('CircleList: Circle ID:', circle._id);
                         onSelectCircle?.(circle);
                       }}
                     >
@@ -177,6 +179,8 @@ export const CircleList: React.FC<CircleListProps> = ({
                       className="w-full"
                       onClick={(e) => {
                         e.stopPropagation();
+                        console.log('CircleList: Selecting circle:', circle);
+                        console.log('CircleList: Circle ID:', circle._id);
                         onSelectCircle?.(circle);
                       }}
                       disabled={circle.availableSpots === 0}

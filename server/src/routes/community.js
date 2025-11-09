@@ -3,6 +3,8 @@ import {
   createCircle,
   getCircles,
   getCircleById,
+  updateCircle,
+  deleteCircle,
   joinCircle,
   leaveCircle,
   postMessage,
@@ -47,6 +49,11 @@ router.post('/', [
 
 router.get('/', getCircles);
 router.get('/:circleId', getCircleById);
+router.put('/:circleId', [
+  body('name').optional().trim().isLength({ min: 3, max: 50 }).withMessage('Name must be 3-50 characters'),
+  body('description').optional().trim().isLength({ max: 200 }).withMessage('Description must be less than 200 characters')
+], updateCircle);
+router.delete('/:circleId', deleteCircle);
 
 // Membership
 router.post('/:circleId/join', [

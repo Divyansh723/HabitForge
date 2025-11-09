@@ -303,3 +303,209 @@ export const getConsistencyData = async (req, res) => {
     });
   }
 };
+
+
+// Export user data
+export const exportData = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { exportType, dateRange } = req.query;
+    
+    // Calculate date range
+    let startDate = null;
+    if (dateRange && dateRange !== 'all_time') {
+      startDate = new Date();
+      switch (dateRange) {
+        case '7_days':
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case '30_days':
+          startDate.setDate(startDate.getDate() - 30);
+          break;
+        case '90_days':
+          startDate.setDate(startDate.getDate() - 90);
+          break;
+        case '1_year':
+          startDate.setFullYear(startDate.getFullYear() - 1);
+          break;
+      }
+    }
+
+    let csvData = '';
+    let filename = '';
+    const timestamp = new Date().toISOString().split('T')[0];
+
+    switch (exportType) {
+      case 'habits_complete': {
+        // Get all habits and completions
+        const habits = await Habit.find({ userId }).lean();
+        const completionsQuery = startDate 
+          ? { userId, completedAt: { $gte: startDate } }
+          : { userId };
+        const completions = await Completion.find(completionsQuery).lean();
+
+        // Build CSV
+        csvData = 'Type,ID,Name,Description,Category,Frequency,CurrentStreak,LongestStreak,TotalCompletions,Active,HabitID,HabitName,CompletedAt,CompletedAtUTC,DeviceTimezone,XPEarned,Edited,CreatedAt,CreatedAtUTC,Timezone\n';
+        
+        // Add habits
+        habits.forEach(habit => {
+          const habitCompletions = completions.filter(c => c.habitId.toString() === habit._id.toString());
+          csvData += `Habit,"${habit._id}","${habit.name}","${habit.description || ''}","${habit.category}","${habit.frequency}",${habit.currentStreak || 0},${habit.longestStreak || 0},${habitCompletions.length},${habit.active},,,,,,,,${new Date(habit.createdAt).toISOString()},"${Intl.DateTimeFormat().resolvedOptions().timeZone}"\n`;
+        });
+        
+        // Add completions
+        completions.forEach(completion => {
+          const habit = habits.find(h => h._id.toString() === completion.habitId.toString());
+          csvData += `Completion,"${completion._id}",,,,,,,,"${completion.habitId}","${habit?.name || 'Unknown'}","${new Date(completion.completedAt).toLocaleString()}","${new Date(completion.completedAt).toISOString()}","${completion.deviceTimezone}",${completion.xpEarned},${completion.editedFlag},"${new Date(completion.createdAt).toLocaleString()}","${new Date(completion.createdAt).toISOString()}","${Intl.DateTimeFormat().resolvedOptions().timeZone}"\n`;
+        });
+        
+        filename = `habitforge-complete-export-${timestamp}.csv`;
+        break;
+      }
+
+      case 'completions_only': {
+        const habits = await Habit.find({ userId }).lean();
+        const completionsQuery = startDate 
+          ? { userId, completedAt: { $gte: startDate } }
+          : { userId };
+        const completions = await Completion.find(completionsQuery).lean();
+
+        csvData = 'HabitID,HabitName,HabitCategory,CompletedAt,CompletedAtUTC,DeviceTimezone,XPEarned,WasEdited,CreatedAt,CreatedAtUTC\n';
+        
+        completions.forEach(completion => {
+          const habit = habits.find(h => h._id.toString() === completion.habitId.toString());
+          csvData += `"${completion.habitId}","${habit?.name || 'Unknown'}","${habit?.category || ''}","${new Date(completion.completedAt).toLocaleString()}","${new Date(completion.completedAt).toISOString()}","${completion.deviceTimezone}",${completion.xpEarned},${completion.editedFlag},"${new Date(completion.createdAt).toLocaleString()}","${new Date(completion.createdAt).toISOString()}"\n`;
+        });
+        
+        filename = `habitforge-completions-${timestamp}.csv`;
+        break;
+      }
+
+      case 'analytics_summary': {
+        const habits = await Habit.find({ userId, active: true }).lean();
+        const completionsQuery = startDate 
+          ? { userId, completedAt: { $gte: startDate } }
+          : { userId };
+        const completions = await Completion.find(completionsQuery).lean();
+
+        // Basic stats
+        const totalHabits = habits.length;
+        const totalCompletions = completions.length;
+        const uniqueDays = new Set(completions.map(c => new Date(c.completedAt).toDateString())).size;
+        const longestStreak = Math.max(...habits.map(h => h.longestStreak || 0), 0);
+        const currentStreaks = habits.reduce((sum, h) => sum + (h.currentStreak || 0), 0);
+        const totalXP = completions.reduce((sum, c) => sum + (c.xpEarned || 0), 0);
+
+        // Calculate daily trends
+        const dailyCompletions = {};
+        completions.forEach(c => {
+          const date = new Date(c.completedAt).toISOString().split('T')[0];
+          dailyCompletions[date] = (dailyCompletions[date] || 0) + 1;
+        });
+
+        // Calculate weekly stats
+        const last7Days = completions.filter(c => {
+          const completionDate = new Date(c.completedAt);
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+          return completionDate >= sevenDaysAgo;
+        });
+
+        const weeklyCompletions = last7Days.length;
+        const weeklyXP = last7Days.reduce((sum, c) => sum + (c.xpEarned || 0), 0);
+        const weeklyAvgPerDay = (weeklyCompletions / 7).toFixed(2);
+
+        // Calculate completion rate
+        const daysInRange = startDate 
+          ? Math.ceil((new Date() - startDate) / (1000 * 60 * 60 * 24))
+          : uniqueDays;
+        const completionRate = totalHabits > 0 && daysInRange > 0
+          ? ((totalCompletions / (totalHabits * daysInRange)) * 100).toFixed(2)
+          : 0;
+
+        // Per-habit breakdown
+        const habitStats = habits.map(h => {
+          const habitCompletions = completions.filter(c => c.habitId.toString() === h._id.toString());
+          return {
+            habitName: h.name,
+            category: h.category,
+            completions: habitCompletions.length,
+            currentStreak: h.currentStreak || 0,
+            longestStreak: h.longestStreak || 0,
+            completionRate: daysInRange > 0 ? ((habitCompletions.length / daysInRange) * 100).toFixed(2) : 0
+          };
+        });
+
+        // Build comprehensive CSV
+        csvData = 'Section,Metric,Value,Details\n';
+        csvData += `"Overview","Total Habits",${totalHabits},"Active habits"\n`;
+        csvData += `"Overview","Total Completions",${totalCompletions},"All time completions"\n`;
+        csvData += `"Overview","Unique Days Active",${uniqueDays},"Days with at least one completion"\n`;
+        csvData += `"Overview","Total XP Earned",${totalXP},"Experience points"\n`;
+        csvData += `"Overview","Completion Rate",${completionRate}%,"Overall completion percentage"\n`;
+        csvData += `"Streaks","Longest Streak",${longestStreak},"Best streak across all habits"\n`;
+        csvData += `"Streaks","Current Streaks Total",${currentStreaks},"Sum of all current streaks"\n`;
+        csvData += `"Weekly","Last 7 Days Completions",${weeklyCompletions},"Completions in past week"\n`;
+        csvData += `"Weekly","Last 7 Days XP",${weeklyXP},"XP earned in past week"\n`;
+        csvData += `"Weekly","Daily Average",${weeklyAvgPerDay},"Average completions per day"\n`;
+        csvData += `"Export","Exported At","${new Date().toLocaleString()}","Local time"\n`;
+        csvData += `"Export","Exported At UTC","${new Date().toISOString()}","UTC time"\n`;
+        csvData += `"Export","Timezone","${Intl.DateTimeFormat().resolvedOptions().timeZone}","User timezone"\n`;
+        csvData += '\n';
+        
+        // Add per-habit breakdown
+        csvData += 'HabitName,Category,Completions,CurrentStreak,LongestStreak,CompletionRate\n';
+        habitStats.forEach(stat => {
+          csvData += `"${stat.habitName}","${stat.category}",${stat.completions},${stat.currentStreak},${stat.longestStreak},${stat.completionRate}%\n`;
+        });
+        csvData += '\n';
+
+        // Add daily trend data
+        csvData += 'Date,Completions\n';
+        Object.keys(dailyCompletions).sort().forEach(date => {
+          csvData += `"${date}",${dailyCompletions[date]}\n`;
+        });
+        
+        filename = `habitforge-analytics-${timestamp}.csv`;
+        break;
+      }
+
+      case 'wellbeing_data': {
+        const MoodEntry = mongoose.model('MoodEntry');
+        const moodQuery = startDate 
+          ? { userId, createdAt: { $gte: startDate } }
+          : { userId };
+        const moodEntries = await MoodEntry.find(moodQuery).lean();
+
+        csvData = 'ID,Mood,Energy,Stress,Notes,RecordedAt,RecordedAtUTC,Timezone\n';
+        
+        moodEntries.forEach(entry => {
+          csvData += `"${entry._id}","${entry.mood}","${entry.energy || ''}","${entry.stress || ''}","${(entry.notes || '').replace(/"/g, '""')}","${new Date(entry.createdAt).toLocaleString()}","${new Date(entry.createdAt).toISOString()}","${Intl.DateTimeFormat().resolvedOptions().timeZone}"\n`;
+        });
+        
+        filename = `habitforge-wellbeing-${timestamp}.csv`;
+        break;
+      }
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid export type'
+        });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        data: csvData,
+        filename
+      }
+    });
+  } catch (error) {
+    console.error('Export data error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export data'
+    });
+  }
+};

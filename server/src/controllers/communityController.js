@@ -79,11 +79,19 @@ export const getCircles = async (req, res) => {
 
     const total = await CommunityCircle.countDocuments(query);
 
-    // Add user membership info
+    // Add user membership info and clean up deleted users
     const circlesWithMembership = circles.map(circle => {
       const circleObj = circle.toObject({ virtuals: true });
       circleObj.userIsMember = circle.isMember(userId);
       circleObj.userIsAdmin = circle.isAdmin(userId);
+      
+      // Filter out members with deleted accounts
+      circleObj.members = circleObj.members.filter(member => member.userId != null);
+      
+      // Recalculate member count after filtering
+      circleObj.memberCount = circleObj.members.length;
+      circleObj.availableSpots = circleObj.maxMembers - circleObj.memberCount;
+      
       return circleObj;
     });
 
@@ -115,7 +123,8 @@ export const getCircleById = async (req, res) => {
     const circle = await CommunityCircle.findById(circleId)
       .populate('createdBy', 'name')
       .populate('members.userId', 'name')
-      .populate('messages.userId', 'name');
+      .populate('messages.userId', 'name')
+      .populate('announcements.createdBy', 'name');
 
     if (!circle) {
       return res.status(404).json({
@@ -136,10 +145,28 @@ export const getCircleById = async (req, res) => {
     circleObj.userIsMember = circle.isMember(userId);
     circleObj.userIsAdmin = circle.isAdmin(userId);
 
-    // Anonymize users who opted out of leaderboard (privacy setting)
-    circleObj.messages = circleObj.messages.map(msg => {
+    // Clean up members with deleted user accounts
+    circleObj.members = circleObj.members.filter(member => {
+      if (!member.userId) {
+        console.log('Removing member with deleted user account');
+        return false;
+      }
+      return true;
+    }).map(member => ({
+      ...member,
+      name: member.userId?.name || 'Deleted User'
+    }));
+
+    // Clean up messages from deleted users
+    circleObj.messages = circleObj.messages.filter(msg => {
+      if (!msg.userId) {
+        console.log('Removing message from deleted user');
+        return false;
+      }
+      return true;
+    }).map(msg => {
       const member = circle.members.find(m => 
-        m.userId._id.toString() === (msg.userId._id || msg.userId).toString()
+        m.userId && m.userId._id && m.userId._id.toString() === (msg.userId._id || msg.userId).toString()
       );
       
       // If user opted out of leaderboard, show as Anonymous
@@ -153,8 +180,35 @@ export const getCircleById = async (req, res) => {
         };
       }
       
+      // Handle deleted users
+      if (!msg.userId || !msg.userId.name) {
+        return {
+          ...msg,
+          userId: {
+            _id: msg.userId?._id || msg.userId || 'deleted',
+            name: 'Deleted User'
+          }
+        };
+      }
+      
       return msg;
     });
+
+    // Clean up announcements from deleted users
+    if (circleObj.announcements) {
+      circleObj.announcements = circleObj.announcements.map(announcement => ({
+        ...announcement,
+        createdBy: announcement.createdBy || { _id: 'deleted', name: 'Deleted User' }
+      }));
+    }
+
+    // Clean up challenges - filter out participants with deleted accounts
+    if (circleObj.challenges) {
+      circleObj.challenges = circleObj.challenges.map(challenge => ({
+        ...challenge,
+        participants: challenge.participants.filter(p => p.userId)
+      }));
+    }
 
     res.json({
       success: true,
@@ -212,6 +266,54 @@ export const joinCircle = async (req, res) => {
   }
 };
 
+// Update circle details (admin only)
+export const updateCircle = async (req, res) => {
+  try {
+    const { circleId } = req.params;
+    const { name, description } = req.body;
+    const userId = req.user._id;
+
+    const circle = await CommunityCircle.findById(circleId);
+
+    if (!circle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Circle not found'
+      });
+    }
+
+    // Check if user is admin
+    if (!circle.isAdmin(userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admins can update circle details'
+      });
+    }
+
+    // Update fields if provided
+    if (name !== undefined) circle.name = name;
+    if (description !== undefined) circle.description = description;
+
+    await circle.save();
+
+    const circleObj = circle.toObject({ virtuals: true });
+    circleObj.userIsMember = circle.isMember(userId);
+    circleObj.userIsAdmin = circle.isAdmin(userId);
+
+    res.json({
+      success: true,
+      message: 'Circle updated successfully',
+      data: circleObj
+    });
+  } catch (error) {
+    console.error('Update circle error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to update circle'
+    });
+  }
+};
+
 // Leave a circle
 export const leaveCircle = async (req, res) => {
   try {
@@ -251,6 +353,65 @@ export const leaveCircle = async (req, res) => {
     res.status(400).json({
       success: false,
       message: error.message || 'Failed to leave circle'
+    });
+  }
+};
+
+// Delete a circle (admin only)
+export const deleteCircle = async (req, res) => {
+  try {
+    const { circleId } = req.params;
+    const userId = req.user._id;
+    const Notification = (await import('../models/Notification.js')).default;
+
+    const circle = await CommunityCircle.findById(circleId);
+
+    if (!circle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Circle not found'
+      });
+    }
+
+    // Check if user is admin
+    if (!circle.isAdmin(userId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admins can delete the circle'
+      });
+    }
+
+    const circleName = circle.name;
+    const memberIds = circle.members
+      .map(m => m.userId)
+      .filter(id => id && id.toString() !== userId.toString()); // Exclude the admin who deleted it
+
+    // Delete the circle
+    await CommunityCircle.findByIdAndDelete(circleId);
+
+    // Send notifications to all members
+    if (memberIds.length > 0) {
+      const notifications = memberIds.map(memberId => ({
+        userId: memberId,
+        type: 'community',
+        title: 'Community Circle Deleted',
+        message: `The community circle "${circleName}" has been deleted by an admin.`,
+        read: false
+      }));
+
+      await Notification.insertMany(notifications);
+      console.log(`Sent deletion notifications to ${memberIds.length} members`);
+    }
+
+    res.json({
+      success: true,
+      message: 'Circle deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete circle error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to delete circle'
     });
   }
 };

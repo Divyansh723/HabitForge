@@ -83,8 +83,8 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
   };
 
   const handleDataExport = () => {
-    // This would trigger the data export process
-    console.log('Exporting user data...');
+    // Navigate to the Analytics page Export Data tab
+    window.location.href = '/analytics?tab=export';
   };
 
   const handleAccountDeletion = async () => {
@@ -92,14 +92,27 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
     
     setIsDeleting(true);
     try {
-      // Simulate account deletion process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Account deletion initiated...');
-      setShowDeleteModal(false);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'}/auth/delete-account`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('habitforge-auth') ? JSON.parse(localStorage.getItem('habitforge-auth')!).state.token : ''}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete account');
+      }
+
+      // Clear local storage and redirect to landing page
+      localStorage.clear();
+      window.location.href = '/';
     } catch (error) {
       console.error('Failed to delete account:', error);
+      setSaveError('Failed to delete account. Please try again.');
     } finally {
       setIsDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 

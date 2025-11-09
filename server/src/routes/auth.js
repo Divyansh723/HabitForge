@@ -9,7 +9,8 @@ import {
   updateProfile,
   changePassword,
   requestPasswordReset,
-  resetPassword
+  resetPassword,
+  deleteAccount
 } from '../controllers/authController.js';
 import { authenticate } from '../middleware/auth.js';
 import {
@@ -35,5 +36,6 @@ router.patch('/profile', updateProfile);
 router.post('/change-password', validatePasswordChange, changePassword);
 router.post('/logout', logout);
 router.post('/logout-all', logoutAll);
+router.delete('/delete-account', deleteAccount);
 
 export default router;

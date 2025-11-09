@@ -345,3 +345,93 @@ export const resetPassword = async (req, res) => {
     });
   }
 };
+
+// Delete user account
+export const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+
+    console.log('Deleting account for user:', userId);
+
+    // Import models dynamically
+    const Habit = (await import('../models/Habit.js')).default;
+    const Completion = (await import('../models/Completion.js')).default;
+    const MoodEntry = (await import('../models/MoodEntry.js')).default;
+    const XPTransaction = (await import('../models/XPTransaction.js')).default;
+    const Notification = (await import('../models/Notification.js')).default;
+    const CommunityCircle = (await import('../models/CommunityCircle.js')).default;
+
+    // Find circles where user is admin
+    const adminCircles = await CommunityCircle.find({
+      'members': {
+        $elemMatch: {
+          userId: userId,
+          role: 'admin'
+        }
+      }
+    });
+
+    console.log(`Found ${adminCircles.length} circles where user is admin`);
+
+    // Delete circles and notify members
+    for (const circle of adminCircles) {
+      const circleName = circle.name;
+      const memberIds = circle.members
+        .map(m => m.userId)
+        .filter(id => id && id.toString() !== userId.toString());
+
+      // Delete the circle
+      await CommunityCircle.findByIdAndDelete(circle._id);
+      console.log(`Deleted circle: ${circleName}`);
+
+      // Send notifications to all members
+      if (memberIds.length > 0) {
+        const notifications = memberIds.map(memberId => ({
+          userId: memberId,
+          type: 'community',
+          title: 'Community Circle Deleted',
+          message: `The community circle "${circleName}" has been deleted because the admin deleted their account.`,
+          read: false
+        }));
+
+        await Notification.insertMany(notifications);
+        console.log(`Sent deletion notifications to ${memberIds.length} members of ${circleName}`);
+      }
+    }
+
+    // Delete all user data
+    const deletionResults = await Promise.allSettled([
+      Habit.deleteMany({ userId }),
+      Completion.deleteMany({ userId }),
+      MoodEntry.deleteMany({ userId }),
+      XPTransaction.deleteMany({ userId }),
+      Notification.deleteMany({ userId }),
+      // Remove user from community circles (non-admin circles)
+      CommunityCircle.updateMany(
+        { 'members.userId': userId },
+        { $pull: { members: { userId } } }
+      ),
+      // Clear all refresh tokens
+      clearAllRefreshTokens(userId)
+    ]);
+
+    console.log('Deletion results:', deletionResults);
+
+    // Delete the user account
+    await User.findByIdAndDelete(userId);
+
+    console.log('User account deleted successfully');
+
+    res.json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete account',
+      error: error.message
+    });
+  }
+};

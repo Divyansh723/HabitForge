@@ -10,6 +10,7 @@ import connectDB from './config/database.js';
 import apiRoutes from './routes/index.js';
 import { logServerStart } from './utils/logger.js';
 import { startChallengeCleanupJob } from './jobs/challengeCleanup.js';
+import { initializeNotificationScheduler } from './jobs/notificationScheduler.js';
 
 // Load environment variables
 dotenv.config();
@@ -171,6 +172,9 @@ app.listen(PORT, () => {
   
   // Start background jobs
   startChallengeCleanupJob();
+  initializeNotificationScheduler();
+  
+  console.log('✅ All background jobs initialized');
 });
 
 // Graceful shutdown

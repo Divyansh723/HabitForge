@@ -567,6 +567,61 @@ communityCircleSchema.statics.cleanupEndedChallenges = async function() {
   }
 };
 
+// Method to clean up deleted user references
+communityCircleSchema.methods.cleanupDeletedUsers = async function() {
+  const User = mongoose.model('User');
+  let modified = false;
+  
+  // Check and remove members with deleted accounts
+  const validMembers = [];
+  for (const member of this.members) {
+    const userExists = await User.exists({ _id: member.userId });
+    if (userExists) {
+      validMembers.push(member);
+    } else {
+      console.log(`Removing deleted user ${member.userId} from circle ${this.name}`);
+      modified = true;
+    }
+  }
+  
+  if (modified) {
+    this.members = validMembers;
+    
+    // Remove messages from deleted users
+    this.messages = this.messages.filter(msg => {
+      const memberExists = validMembers.some(m => m.userId.toString() === msg.userId.toString());
+      return memberExists;
+    });
+    
+    // Remove challenge participants with deleted accounts
+    this.challenges.forEach(challenge => {
+      challenge.participants = challenge.participants.filter(p => {
+        const memberExists = validMembers.some(m => m.userId.toString() === p.userId.toString());
+        return memberExists;
+      });
+    });
+    
+    await this.save();
+    console.log(`Cleaned up circle ${this.name}: removed deleted user references`);
+  }
+  
+  return modified;
+};
+
+// Static method to cleanup all circles
+communityCircleSchema.statics.cleanupAllDeletedUsers = async function() {
+  const circles = await this.find({});
+  let totalCleaned = 0;
+  
+  for (const circle of circles) {
+    const cleaned = await circle.cleanupDeletedUsers();
+    if (cleaned) totalCleaned++;
+  }
+  
+  console.log(`Cleaned up ${totalCleaned} circles with deleted user references`);
+  return totalCleaned;
+};
+
 const CommunityCircle = mongoose.model('CommunityCircle', communityCircleSchema);
 
 export default CommunityCircle;

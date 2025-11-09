@@ -48,7 +48,7 @@ export const useNotifications = (): UseNotificationsReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setUnreadCount]);
 
   // Fetch recent notifications for dropdown
   const fetchRecentNotifications = useCallback(async (limit: number = 5): Promise<Notification[]> => {
@@ -60,7 +60,7 @@ export const useNotifications = (): UseNotificationsReturn => {
       console.error('Error fetching recent notifications:', err);
       return [];
     }
-  }, []);
+  }, [setUnreadCount]);
 
   // Mark notifications as read
   const markAsRead = useCallback(async (notificationIds: string[]) => {
@@ -70,7 +70,7 @@ export const useNotifications = (): UseNotificationsReturn => {
       console.log('useNotifications.markAsRead: Response:', response);
       setUnreadCount(response.unreadCount);
       
-      // Update local state
+      // Update local state immediately for instant UI feedback
       setNotifications(prev => {
         const updated = prev.map(notification => 
           notificationIds.includes(notification.id)
@@ -85,8 +85,10 @@ export const useNotifications = (): UseNotificationsReturn => {
       const message = err instanceof Error ? err.message : 'Failed to mark notifications as read';
       setError(message);
       console.error('useNotifications.markAsRead: Error:', err);
+      // Revert the optimistic update on error
+      throw err;
     }
-  }, []);
+  }, [setUnreadCount]);
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
@@ -103,7 +105,7 @@ export const useNotifications = (): UseNotificationsReturn => {
       setError(message);
       console.error('Error marking all notifications as read:', err);
     }
-  }, []);
+  }, [setUnreadCount]);
 
   // Delete notification
   const deleteNotification = useCallback(async (notificationId: string) => {
@@ -120,7 +122,7 @@ export const useNotifications = (): UseNotificationsReturn => {
       setError(message);
       console.error('Error deleting notification:', err);
     }
-  }, []);
+  }, [setUnreadCount]);
 
   // Delete all read notifications
   const deleteAllRead = useCallback(async () => {
@@ -137,7 +139,7 @@ export const useNotifications = (): UseNotificationsReturn => {
       setError(message);
       console.error('Error deleting read notifications:', err);
     }
-  }, []);
+  }, [setUnreadCount]);
 
   // Refresh unread count
   const refreshUnreadCount = useCallback(async () => {
@@ -147,7 +149,7 @@ export const useNotifications = (): UseNotificationsReturn => {
     } catch (err) {
       console.error('Error refreshing unread count:', err);
     }
-  }, []);
+  }, [setUnreadCount]);
 
   // Initial load of unread count
   useEffect(() => {

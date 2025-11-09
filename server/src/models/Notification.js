@@ -10,7 +10,21 @@ const notificationSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['habit', 'achievement', 'challenge', 'community', 'system'],
+    enum: [
+      'habit',
+      'achievement',
+      'challenge',
+      'community',
+      'system',
+      'habit_reminder',
+      'streak_milestone',
+      'daily_summary',
+      'weekly_insights',
+      'challenge_update',
+      'community_activity',
+      'system_update',
+      'tips_tricks'
+    ],
     index: true
   },
   title: {

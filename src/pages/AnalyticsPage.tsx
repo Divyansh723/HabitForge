@@ -39,7 +39,11 @@ const AnalyticsPage: React.FC = () => {
   const fetchConsistencyData = analyticsHook?.fetchConsistencyData || (() => Promise.resolve());
   const fetchHabitPerformance = analyticsHook?.fetchHabitPerformance || (() => Promise.resolve());
   
-  const [activeView, setActiveView] = useState<ViewType>('overview');
+  // Check URL params for tab
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab') as ViewType | null;
+  
+  const [activeView, setActiveView] = useState<ViewType>(tabParam || 'overview');
   const [timeRange, setTimeRange] = useState('30');
   const [selectedHabit, setSelectedHabit] = useState('all');
   const [allCompletions, setAllCompletions] = useState<Completion[]>([]);

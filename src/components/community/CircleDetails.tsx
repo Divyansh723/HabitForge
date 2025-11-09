@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Trophy, Flag, Eye, EyeOff, Users, UserMinus, Shield, Crown } from 'lucide-react';
+import { ArrowLeft, Send, Trophy, Flag, Eye, EyeOff, Users, UserMinus, Shield, Crown, Edit } from 'lucide-react';
 import { Button, Input, Card } from '@/components/ui';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useCircleDetails } from '@/hooks/useCommunity';
 import { useAuth } from '@/hooks/useAuth';
 import communityService from '@/services/communityService';
 import { CreateAnnouncementModal } from './CreateAnnouncementModal';
 import { CreateChallengeModal } from './CreateChallengeModal';
 import { RemoveMemberModal } from './RemoveMemberModal';
+import { EditCircleModal } from './EditCircleModal';
 import { cn } from '@/utils/cn';
 
 interface CircleDetailsProps {
@@ -43,6 +45,11 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
   const [editingAnnouncement, setEditingAnnouncement] = useState<any>(null);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [editingChallenge, setEditingChallenge] = useState<any>(null);
+  const [showEditCircleModal, setShowEditCircleModal] = useState(false);
+  const [showDeleteCircleConfirm, setShowDeleteCircleConfirm] = useState(false);
+  const [showReportMessageConfirm, setShowReportMessageConfirm] = useState<string | null>(null);
+  const [showDeleteAnnouncementConfirm, setShowDeleteAnnouncementConfirm] = useState<string | null>(null);
+  const [showDeleteChallengeConfirm, setShowDeleteChallengeConfirm] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Clear justJoined flag once circle data confirms membership
@@ -100,12 +107,10 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
   };
 
   const handleReportMessage = async (messageId: string) => {
-    if (window.confirm('Report this message as inappropriate?')) {
-      try {
-        await reportMessage(messageId);
-      } catch (err) {
-        // Error is handled by the hook
-      }
+    try {
+      await reportMessage(messageId);
+    } catch (err) {
+      // Error is handled by the hook
     }
   };
 
@@ -188,6 +193,21 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
     }
   };
 
+  // Handle delete circle (admin only)
+  const handleDeleteCircle = async () => {
+    try {
+      await communityService.deleteCircle(circleId);
+      console.log('Circle deleted successfully');
+      // Navigate back to circle list
+      if (onBack) {
+        onBack();
+      }
+    } catch (err) {
+      console.error('Failed to delete circle:', err);
+      alert('Failed to delete circle. Please try again.');
+    }
+  };
+
   return (
     <div className={cn('space-y-4 sm:space-y-6', className)}>
       {/* Header Card */}
@@ -237,6 +257,56 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
           </div>
         </div>
       </Card>
+
+      {/* Admin Controls - Outside Header */}
+      {circle.userIsAdmin && isMember && (
+        <Card className="p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-orange-200 dark:border-orange-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Shield className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                Admin Controls
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Manage your community circle settings
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowEditCircleModal(true)}
+                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white border-blue-600 dark:border-blue-500"
+              >
+                <Edit className="w-4 h-4 mr-1" />
+                Edit Circle
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowDeleteCircleConfirm(true)}
+                className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white border-red-600 dark:border-red-500"
+              >
+                🗑️ Delete Circle
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Edit Circle Modal */}
+      {showEditCircleModal && (
+        <EditCircleModal
+          isOpen={showEditCircleModal}
+          onClose={() => setShowEditCircleModal(false)}
+          circleId={circleId}
+          currentName={circle.name}
+          currentDescription={circle.description}
+          onSuccess={() => {
+            refreshCircle();
+          }}
+        />
+      )}
 
       {/* Error */}
       {error && (
@@ -473,7 +543,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
                         </span>
                         {!isOwnMessage && (
                           <button
-                            onClick={() => handleReportMessage(message._id)}
+                            onClick={() => setShowReportMessageConfirm(message._id)}
                             className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-opacity"
                             title="Report message"
                           >
@@ -788,17 +858,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
                                 </svg>
                               </button>
                               <button
-                                onClick={async () => {
-                                  if (confirm('Are you sure you want to delete this challenge?')) {
-                                    try {
-                                      await communityService.deleteChallenge(circleId, challenge._id);
-                                      refreshCircle();
-                                    } catch (error) {
-                                      console.error('Failed to delete challenge:', error);
-                                      alert('Failed to delete challenge');
-                                    }
-                                  }
-                                }}
+                                onClick={() => setShowDeleteChallengeConfirm(challenge._id)}
                                 className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                                 title="Delete challenge"
                               >
@@ -916,17 +976,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
                               </svg>
                             </button>
                             <button
-                              onClick={async () => {
-                                if (confirm('Are you sure you want to delete this announcement?')) {
-                                  try {
-                                    await communityService.deleteAnnouncement(circleId, announcement._id);
-                                    refreshCircle();
-                                  } catch (error) {
-                                    console.error('Failed to delete announcement:', error);
-                                    alert('Failed to delete announcement');
-                                  }
-                                }
-                              }}
+                              onClick={() => setShowDeleteAnnouncementConfirm(announcement._id)}
                               className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                               title="Delete announcement"
                             >
@@ -1087,6 +1137,80 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
           }}
         />
       )}
+
+      {/* Delete Circle Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteCircleConfirm}
+        onClose={() => setShowDeleteCircleConfirm(false)}
+        onConfirm={() => {
+          setShowDeleteCircleConfirm(false);
+          handleDeleteCircle();
+        }}
+        title="Delete Circle"
+        message={`Are you sure you want to delete "${circle.name}"? This action cannot be undone and all members will be notified.`}
+        confirmText="Delete Circle"
+        variant="danger"
+      />
+
+      {/* Report Message Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!showReportMessageConfirm}
+        onClose={() => setShowReportMessageConfirm(null)}
+        onConfirm={() => {
+          if (showReportMessageConfirm) {
+            handleReportMessage(showReportMessageConfirm);
+            setShowReportMessageConfirm(null);
+          }
+        }}
+        title="Report Message"
+        message="Report this message as inappropriate? Admins will be notified."
+        confirmText="Report"
+        variant="danger"
+      />
+
+      {/* Delete Announcement Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!showDeleteAnnouncementConfirm}
+        onClose={() => setShowDeleteAnnouncementConfirm(null)}
+        onConfirm={async () => {
+          if (showDeleteAnnouncementConfirm) {
+            try {
+              await communityService.deleteAnnouncement(circleId, showDeleteAnnouncementConfirm);
+              refreshCircle();
+            } catch (error) {
+              console.error('Failed to delete announcement:', error);
+              alert('Failed to delete announcement');
+            }
+            setShowDeleteAnnouncementConfirm(null);
+          }
+        }}
+        title="Delete Announcement"
+        message="Are you sure you want to delete this announcement? This action cannot be undone."
+        confirmText="Delete"
+        variant="danger"
+      />
+
+      {/* Delete Challenge Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!showDeleteChallengeConfirm}
+        onClose={() => setShowDeleteChallengeConfirm(null)}
+        onConfirm={async () => {
+          if (showDeleteChallengeConfirm) {
+            try {
+              await communityService.deleteChallenge(circleId, showDeleteChallengeConfirm);
+              refreshCircle();
+            } catch (error) {
+              console.error('Failed to delete challenge:', error);
+              alert('Failed to delete challenge');
+            }
+            setShowDeleteChallengeConfirm(null);
+          }
+        }}
+        title="Delete Challenge"
+        message="Are you sure you want to delete this challenge? This action cannot be undone."
+        confirmText="Delete"
+        variant="danger"
+      />
     </div>
   );
 };

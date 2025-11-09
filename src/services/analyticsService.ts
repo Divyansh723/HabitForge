@@ -274,35 +274,10 @@ class AnalyticsService {
     }
   }
 
-  async exportData(format: 'csv' | 'json' = 'csv') {
-    if (USE_MOCK_API) {
-      await this.delay(800);
-      
-      const mockData = {
-        habits: [
-          { name: 'Morning Exercise', category: 'fitness', totalCompletions: 45, currentStreak: 12 },
-          { name: 'Reading', category: 'learning', totalCompletions: 28, currentStreak: 8 },
-          { name: 'Meditation', category: 'mindfulness', totalCompletions: 15, currentStreak: 5 },
-        ],
-        completions: [
-          { habitName: 'Morning Exercise', date: '2024-01-15', xpEarned: 10 },
-          { habitName: 'Reading', date: '2024-01-15', xpEarned: 10 },
-        ],
-        exportedAt: new Date().toISOString()
-      };
-
-      if (format === 'csv') {
-        // Convert to CSV format
-        const csvContent = this.convertToCSV(mockData);
-        return { data: csvContent, filename: `habitforge-export-${new Date().toISOString().split('T')[0]}.csv` };
-      }
-
-      return { data: JSON.stringify(mockData, null, 2), filename: `habitforge-export-${new Date().toISOString().split('T')[0]}.json` };
-    }
-
+  async exportData(exportType: string, dateRange: string = 'all_time') {
     try {
       const response = await this.api.get('/analytics/export', {
-        params: { format }
+        params: { exportType, dateRange }
       });
       return response.data.success ? response.data.data : response.data;
     } catch (error) {
@@ -311,23 +286,6 @@ class AnalyticsService {
       }
       throw new Error('An unexpected error occurred');
     }
-  }
-
-  private convertToCSV(data: any): string {
-    const habits = data.habits;
-    const completions = data.completions;
-    
-    let csv = 'Type,Name,Category,Total Completions,Current Streak,Date,XP Earned\n';
-    
-    habits.forEach((habit: any) => {
-      csv += `Habit,"${habit.name}","${habit.category}",${habit.totalCompletions},${habit.currentStreak},,\n`;
-    });
-    
-    completions.forEach((completion: any) => {
-      csv += `Completion,"${completion.habitName}",,,,${completion.date},${completion.xpEarned}\n`;
-    });
-    
-    return csv;
   }
 }
 

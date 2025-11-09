@@ -317,6 +317,30 @@ class CommunityService {
       throw new Error('An unexpected error occurred');
     }
   }
+
+  // Update circle (admin only)
+  async updateCircle(circleId: string, data: { name?: string; description?: string }): Promise<void> {
+    try {
+      await this.api.put(`/${circleId}`, data);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to update circle');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  // Delete circle (admin only)
+  async deleteCircle(circleId: string): Promise<void> {
+    try {
+      await this.api.delete(`/${circleId}`);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to delete circle');
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
 }
 
 export const communityService = new CommunityService();

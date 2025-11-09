@@ -115,56 +115,64 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
       title: 'Habit Reminders',
       description: 'Get notified when it\'s time to complete your habits',
       category: 'habits',
-      icon: '🎯'
+      icon: '🎯',
+      color: 'pink'
     },
     {
       id: 'streakMilestones',
       title: 'Streak Milestones',
       description: 'Celebrate when you reach streak milestones (7, 14, 30 days)',
       category: 'habits',
-      icon: '🔥'
+      icon: '🔥',
+      color: 'orange'
     },
     {
       id: 'dailySummary',
       title: 'Daily Summary',
       description: 'End-of-day summary of your habit completions and progress',
       category: 'habits',
-      icon: '📊'
+      icon: '📊',
+      color: 'blue'
     },
     {
       id: 'weeklyInsights',
       title: 'Weekly Insights',
       description: 'Weekly analytics and insights about your habit patterns',
       category: 'habits',
-      icon: '📈'
+      icon: '📈',
+      color: 'gray'
     },
     {
       id: 'challengeUpdates',
       title: 'Challenge Updates',
       description: 'Updates about challenges you\'re participating in',
       category: 'social',
-      icon: '🏆'
+      icon: '🏆',
+      color: 'orange'
     },
     {
       id: 'communityActivity',
       title: 'Community Activity',
       description: 'Activity from your community circles and friends',
       category: 'social',
-      icon: '👥'
+      icon: '👥',
+      color: 'purple'
     },
     {
       id: 'systemUpdates',
       title: 'System Updates',
       description: 'Important updates about HabitForge features and maintenance',
       category: 'system',
-      icon: '⚙️'
+      icon: '⚙️',
+      color: 'gray'
     },
     {
       id: 'tipsAndTricks',
       title: 'Tips & Tricks',
       description: 'Helpful tips to improve your habit-building journey',
       category: 'marketing',
-      icon: '💡'
+      icon: '💡',
+      color: 'yellow'
     }
   ];
 
@@ -380,9 +388,9 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
             </div>
           </div>
           {globalSettings.quietHours.enabled && (
-            <div className="flex items-center gap-3 pt-2">
-              <div className="flex items-center gap-2 flex-1">
-                <Clock className="h-4 w-4 text-indigo-500" />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Clock className="h-4 w-4 text-indigo-500 flex-shrink-0" />
                 <input
                   type="time"
                   value={globalSettings.quietHours.start}
@@ -390,12 +398,12 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
                     ...globalSettings.quietHours,
                     start: e.target.value
                   })}
-                  className="px-3 py-2 border-2 border-indigo-200 dark:border-indigo-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all"
+                  className="w-full px-3 py-2 border-2 border-indigo-200 dark:border-indigo-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all"
                 />
               </div>
-              <span className="text-gray-500 dark:text-gray-400 font-medium">to</span>
-              <div className="flex items-center gap-2 flex-1">
-                <Clock className="h-4 w-4 text-indigo-500" />
+              <span className="text-gray-500 dark:text-gray-400 font-medium text-center sm:text-left flex-shrink-0">to</span>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Clock className="h-4 w-4 text-indigo-500 flex-shrink-0" />
                 <input
                   type="time"
                   value={globalSettings.quietHours.end}
@@ -403,7 +411,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
                     ...globalSettings.quietHours,
                     end: e.target.value
                   })}
-                  className="px-3 py-2 border-2 border-indigo-200 dark:border-indigo-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all"
+                  className="w-full px-3 py-2 border-2 border-indigo-200 dark:border-indigo-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all"
                 />
               </div>
             </div>
@@ -417,28 +425,53 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
           Notification Preferences
         </h3>
 
-        <div className="space-y-4">
-          {notificationTypes.map((type) => (
-            <div key={type.id} className="flex items-start justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <div className="flex items-start gap-3 flex-1">
-                <span className="text-2xl">{type.icon}</span>
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-1">
-                    {type.title}
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {type.description}
-                  </p>
+        <div className="space-y-3">
+          {notificationTypes.map((type) => {
+            const isEnabled = preferences[type.id as keyof typeof preferences];
+            return (
+              <div 
+                key={type.id} 
+                className={cn(
+                  "flex items-start justify-between p-4 rounded-lg border-2 transition-all cursor-pointer hover:shadow-sm",
+                  isEnabled 
+                    ? "bg-gray-50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600" 
+                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                )}
+                onClick={() => updatePreference(type.id, !isEnabled)}
+              >
+                <div className="flex items-start gap-3 flex-1">
+                  <div className={cn(
+                    "flex items-center justify-center w-10 h-10 rounded-lg text-xl",
+                    isEnabled 
+                      ? "bg-white dark:bg-gray-700 shadow-sm" 
+                      : "bg-gray-100 dark:bg-gray-700/50"
+                  )}>
+                    {type.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                      {type.title}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {type.description}
+                    </p>
+                  </div>
+                </div>
+                <div className={cn(
+                  "flex items-center justify-center w-5 h-5 rounded border-2 transition-all flex-shrink-0 mt-1",
+                  isEnabled
+                    ? "bg-primary-600 border-primary-600"
+                    : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+                )}>
+                  {isEnabled && (
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
                 </div>
               </div>
-              <input
-                type="checkbox"
-                checked={preferences[type.id as keyof typeof preferences]}
-                onChange={(e) => updatePreference(type.id, e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 mt-1"
-              />
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
 

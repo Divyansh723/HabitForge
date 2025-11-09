@@ -237,21 +237,6 @@ const SettingsPage: React.FC = () => {
                 </h3>
 
                 <div className="space-y-6">
-                  {/* Language */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Language
-                    </label>
-                    <select className="w-full md:w-64 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
-                      <option value="en">English</option>
-                      <option value="es">Español</option>
-                      <option value="fr">Français</option>
-                      <option value="de">Deutsch</option>
-                      <option value="it">Italiano</option>
-                      <option value="pt">Português</option>
-                    </select>
-                  </div>
-
                   {/* Week Start */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

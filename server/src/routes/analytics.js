@@ -4,7 +4,8 @@ import {
   getTrendData, 
   getWeeklySummary,
   getHabitPerformance,
-  getConsistencyData
+  getConsistencyData,
+  exportData
 } from '../controllers/analyticsController.js';
 import { authenticate } from '../middleware/auth.js';
 
@@ -19,5 +20,6 @@ router.get('/trends', getTrendData);
 router.get('/weekly-summary', getWeeklySummary);
 router.get('/habit-performance', getHabitPerformance);
 router.get('/consistency', getConsistencyData);
+router.get('/export', exportData);
 
 export default router;

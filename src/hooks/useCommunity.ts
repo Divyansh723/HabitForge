@@ -73,6 +73,21 @@ export const useCommunity = () => {
     }
   }, [fetchCircles]);
 
+  const deleteCircle = useCallback(async (circleId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await communityService.deleteCircle(circleId);
+      await fetchCircles();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete circle';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCircles]);
+
   return {
     circles,
     loading,
@@ -80,7 +95,8 @@ export const useCommunity = () => {
     fetchCircles,
     createCircle,
     joinCircle,
-    leaveCircle
+    leaveCircle,
+    deleteCircle
   };
 };
 
@@ -91,14 +107,20 @@ export const useCircleDetails = (circleId: string | null) => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchCircle = useCallback(async () => {
-    if (!circleId) return;
+    if (!circleId || circleId.trim() === '') {
+      console.log('useCircleDetails: No circleId provided or empty string');
+      return;
+    }
     
+    console.log('useCircleDetails: Fetching circle with ID:', circleId);
     setLoading(true);
     setError(null);
     try {
       const fetchedCircle = await communityService.getCircleById(circleId);
+      console.log('useCircleDetails: Fetched circle:', fetchedCircle);
       setCircle(fetchedCircle);
     } catch (err) {
+      console.error('useCircleDetails: Error fetching circle:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch circle');
     } finally {
       setLoading(false);
