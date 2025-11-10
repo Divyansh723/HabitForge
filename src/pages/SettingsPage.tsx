@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Settings, User, Bell, Shield, Palette, Globe, Save } from 'lucide-react';
 import { Card, Button, ThemeToggle } from '@/components/ui';
-import { ProfileSettings, NotificationSettings, PrivacySettings } from '@/components/settings';
+import { ProfileSettings, NotificationSettings, PrivacySettings, AccentColorPicker } from '@/components/settings';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
@@ -93,14 +93,22 @@ const SettingsPage: React.FC = () => {
                       className={cn(
                         'w-full flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg text-left transition-all',
                         isActive
-                          ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800'
+                          ? 'border'
                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                       )}
+                      style={isActive ? {
+                        backgroundColor: 'var(--color-primary-900)',
+                        borderColor: 'var(--color-primary-700)',
+                        color: 'var(--color-primary-300)'
+                      } : undefined}
                     >
-                      <Icon className={cn(
-                        'h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5',
-                        isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500'
-                      )} />
+                      <Icon 
+                        className={cn(
+                          'h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5',
+                          !isActive && 'text-gray-500'
+                        )}
+                        style={isActive ? { color: 'var(--color-primary-600)' } : undefined}
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm sm:text-base font-medium">
                           {tab.label}
@@ -148,85 +156,32 @@ const SettingsPage: React.FC = () => {
             )}
 
             {activeTab === 'appearance' && (
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                  <Palette className="h-5 w-5" />
-                  Appearance Settings
-                </h3>
+              <div className="space-y-6">
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                    <Palette className="h-5 w-5" />
+                    Appearance Settings
+                  </h3>
 
-                <div className="space-y-6">
-                  {/* Theme Selection */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Theme
-                    </label>
-                    <div className="flex items-center gap-4">
-                      <ThemeToggle variant="dropdown" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Choose between light or dark theme
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Color Scheme (Future Feature) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Accent Color
-                    </label>
-                    <div className="flex items-center gap-3">
-                      {['blue', 'green', 'purple', 'orange', 'pink'].map((color) => (
-                        <button
-                          key={color}
-                          className={cn(
-                            'w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 shadow-sm',
-                            color === 'blue' && 'bg-blue-500',
-                            color === 'green' && 'bg-green-500',
-                            color === 'purple' && 'bg-purple-500',
-                            color === 'orange' && 'bg-orange-500',
-                            color === 'pink' && 'bg-pink-500'
-                          )}
-                          title={`${color} theme`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                      Custom color themes coming soon
-                    </p>
-                  </div>
-
-                  {/* Compact Mode */}
-                  <div className="flex items-center justify-between">
+                  <div className="space-y-6">
+                    {/* Theme Selection */}
                     <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        Compact Mode
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Use a more condensed layout to fit more content
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        Theme
+                      </label>
+                      <div className="flex items-center gap-4">
+                        <ThemeToggle variant="dropdown" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          Choose between light or dark theme
+                        </span>
                       </div>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                    </label>
                   </div>
+                </Card>
 
-                  {/* Animation Settings */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        Reduce Animations
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Minimize motion for better performance or accessibility
-                      </div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                    </label>
-                  </div>
-                </div>
-              </Card>
+                {/* Accent Color Picker */}
+                <AccentColorPicker />
+              </div>
             )}
 
             {activeTab === 'preferences' && (

@@ -154,34 +154,45 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ className }) =
         </h3>
 
         <div className="space-y-4">
-          {visibilityOptions.map((option) => (
-            <label
-              key={option.value}
-              className={cn(
-                'flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-all',
-                privacySettings.profileVisibility === option.value
-                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-              )}
-            >
-              <input
-                type="radio"
-                name="profileVisibility"
-                value={option.value}
-                checked={privacySettings.profileVisibility === option.value}
-                onChange={(e) => updateSetting('profileVisibility', e.target.value)}
-                className="mt-1"
-              />
-              <div className="flex-1">
-                <div className="font-medium text-gray-900 dark:text-white">
-                  {option.label}
+          {visibilityOptions.map((option) => {
+            const isSelected = privacySettings.profileVisibility === option.value;
+            return (
+              <label
+                key={option.value}
+                className={cn(
+                  'flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-all',
+                  !isSelected && 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                )}
+                style={isSelected ? {
+                  backgroundColor: 'var(--color-primary-900)',
+                  borderColor: 'var(--color-primary-700)'
+                } : undefined}
+              >
+                <input
+                  type="radio"
+                  name="profileVisibility"
+                  value={option.value}
+                  checked={isSelected}
+                  onChange={(e) => updateSetting('profileVisibility', e.target.value)}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <div 
+                    className="font-medium"
+                    style={isSelected ? { color: 'var(--color-primary-300)' } : undefined}
+                  >
+                    {option.label}
+                  </div>
+                  <div 
+                    className="text-sm"
+                    style={isSelected ? { color: 'var(--color-primary-400)' } : undefined}
+                  >
+                    {option.description}
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {option.description}
-                </div>
-              </div>
-            </label>
-          ))}
+              </label>
+            );
+          })}
         </div>
       </Card>
 

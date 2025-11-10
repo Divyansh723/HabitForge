@@ -8,7 +8,8 @@ export interface User {
   totalXP: number;
   forgivenessTokens: number;
   aiOptOut: boolean;
-  theme: 'light' | 'dark';
+  theme: 'light' | 'dark' | 'system';
+  accentColor?: 'blue' | 'purple' | 'green' | 'orange' | 'pink' | 'red' | 'teal' | 'indigo';
   notificationPreferences: NotificationPreferences;
   privacySettings: PrivacySettings;
   createdAt: Date;

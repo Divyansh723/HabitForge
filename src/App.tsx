@@ -1,13 +1,22 @@
-import { StrictMode } from 'react';
+import { StrictMode, useEffect } from 'react';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PageLayout } from './components/layout';
 import { useAuth } from './hooks/useAuth';
+import { useAccentColorStore } from './stores/accentColorStore';
 import AppRoutes from './routes/AppRoutes';
 
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const location = useLocation();
+  const { setAccentColor } = useAccentColorStore();
+  
+  // Apply user's accent color preference
+  useEffect(() => {
+    if (user?.accentColor) {
+      setAccentColor(user.accentColor);
+    }
+  }, [user?.accentColor, setAccentColor]);
   
   // Routes that should not have the sidebar layout
   const publicRoutes = ['/', '/test-auth', '/test-login'];

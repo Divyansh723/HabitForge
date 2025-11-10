@@ -86,6 +86,11 @@ const userSchema = new mongoose.Schema({
     enum: ['light', 'dark', 'system'],
     default: 'system'
   },
+  accentColor: {
+    type: String,
+    enum: ['blue', 'purple', 'green', 'orange', 'pink', 'red', 'teal', 'indigo'],
+    default: 'blue'
+  },
   notificationPreferences: {
     push: {
       type: Boolean,
