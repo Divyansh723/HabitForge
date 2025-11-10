@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal } from '@/components/ui';
 import { LoginForm } from './LoginForm';
@@ -22,6 +22,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const { login, register, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Sync mode with initialMode when it changes
+  useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+    }
+  }, [initialMode, isOpen]);
 
   const handleLogin = async (data: UserLoginData) => {
     try {
