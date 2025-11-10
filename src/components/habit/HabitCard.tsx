@@ -7,7 +7,7 @@ import {
   MoreVertical,
   Calendar
 } from 'lucide-react';
-import { Button, Card, Badge } from '@/components/ui';
+import { Button, Card, Badge, ConfirmDialog } from '@/components/ui';
 import { CompletionButton } from './CompletionButton';
 import { type Habit } from '@/types/habit';
 import { cn } from '@/utils/cn';
@@ -44,6 +44,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
   showStreakAnimation = false,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const timezone = userTimezone || getUserTimezone();
 
   const handleComplete = (habitId?: string) => {
@@ -61,15 +62,14 @@ export const HabitCard: React.FC<HabitCardProps> = ({
   const handleDelete = () => {
     setShowMenu(false);
     if (!onDelete) return;
-    
-    let confirmMessage = 'Are you sure you want to delete this habit?';
-    if (habit.isChallengeHabit) {
-      confirmMessage = '⚠️ This habit is linked to a community challenge. Deleting it will remove you from the challenge. Are you sure you want to continue?';
-    }
-    
-    if (window.confirm(confirmMessage)) {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    if (onDelete) {
       onDelete(habit.id);
     }
+    setShowDeleteConfirm(false);
   };
 
   const getCategoryColor = (category: string) => {
@@ -296,6 +296,22 @@ export const HabitCard: React.FC<HabitCardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDelete}
+        title="Delete Habit"
+        message={
+          habit.isChallengeHabit
+            ? '⚠️ This habit is linked to a community challenge. Deleting it will remove you from the challenge. Are you sure you want to continue?'
+            : 'Are you sure you want to delete this habit? This action cannot be undone.'
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </Card>
   );
 };
