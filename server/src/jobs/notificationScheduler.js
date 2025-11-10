@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { User, Habit, Completion, Notification, CommunityCircle } from '../models/index.js';
 import { startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, format } from 'date-fns';
 import { utcToZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { autoUseForgivenessTokens } from './autoForgivenessToken.js';
 
 /**
  * Notification Scheduler
@@ -602,7 +603,17 @@ export const initializeNotificationScheduler = () => {
   // Tips & Tricks - Run at 9 AM and 9 PM
   cron.schedule('0 9,21 * * *', sendTipsAndTricks);
 
-  console.log('Notification scheduler initialized successfully');
+  // Auto-use forgiveness tokens - Run at 11:50 PM every day
+  cron.schedule('50 23 * * *', async () => {
+    try {
+      console.log('Running automatic forgiveness token job...');
+      await autoUseForgivenessTokens();
+    } catch (error) {
+      console.error('Error in automatic forgiveness token job:', error);
+    }
+  });
+
+  console.log('Notification scheduler initialized successfully (including auto-forgiveness at 11:50 PM)');
 };
 
 export default {

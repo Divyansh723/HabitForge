@@ -30,6 +30,7 @@ export interface NotificationPreferences {
   communityActivity?: boolean;
   systemUpdates?: boolean;
   tipsAndTricks?: boolean;
+  autoForgiveness?: boolean;
   quietHours?: {
     enabled: boolean;
     start: string;

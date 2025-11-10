@@ -22,7 +22,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
     challengeUpdates: true,
     communityActivity: false,
     systemUpdates: true,
-    tipsAndTricks: false
+    tipsAndTricks: false,
+    autoForgiveness: true
   });
 
   const [globalSettings, setGlobalSettings] = useState({
@@ -48,7 +49,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
         challengeUpdates: prefs.challengeUpdates ?? true,
         communityActivity: prefs.communityActivity ?? false,
         systemUpdates: prefs.systemUpdates ?? true,
-        tipsAndTricks: prefs.tipsAndTricks ?? false
+        tipsAndTricks: prefs.tipsAndTricks ?? false,
+        autoForgiveness: prefs.autoForgiveness ?? true
       });
 
       setGlobalSettings({
@@ -92,6 +94,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
           communityActivity: preferences.communityActivity,
           systemUpdates: preferences.systemUpdates,
           tipsAndTricks: preferences.tipsAndTricks,
+          autoForgiveness: preferences.autoForgiveness,
           quietHours: globalSettings.quietHours
         }
       });
@@ -172,6 +175,14 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
       description: 'Helpful tips to improve your habit-building journey',
       category: 'marketing',
       icon: '💡',
+      color: 'yellow'
+    },
+    {
+      id: 'autoForgiveness',
+      title: 'Auto-Forgiveness Tokens',
+      description: 'Automatically use forgiveness tokens at end of day to protect your streaks',
+      category: 'habits',
+      icon: '🛡️',
       color: 'yellow'
     }
   ];

@@ -38,9 +38,9 @@ const userSchema = new mongoose.Schema({
   },
   forgivenessTokens: {
     type: Number,
-    default: 2,
+    default: 3,
     min: 0,
-    max: 2
+    max: 3
   },
   challengeParticipations: [{
     challengeId: {
@@ -134,6 +134,10 @@ const userSchema = new mongoose.Schema({
     tipsAndTricks: {
       type: Boolean,
       default: false
+    },
+    autoForgiveness: {
+      type: Boolean,
+      default: true
     },
     quietHours: {
       enabled: {

@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Plus, Target, Search, Star, Flame } from 'lucide-react';
 import { Card, Button, Badge, Input, Select } from '@/components/ui';
 import { HabitForm, HabitCard } from '@/components/habit';
-import { AchievementGrid } from '@/components/gamification';
+import { AchievementGrid, ForgivenessToken } from '@/components/gamification';
 import { ChallengeCard } from '@/components/challenges/ChallengeCard';
 import { ChallengeDetailsModal } from '@/components/challenges/ChallengeDetailsModal';
 import { ChallengeProgressBar } from '@/components/challenges/ChallengeProgressBar';
 import { useHabits } from '@/hooks/useHabits';
 import { useGamification } from '@/hooks/useGamification';
 import { useChallenges } from '@/hooks/useChallenges';
+import { useForgivenessTokens } from '@/hooks/useForgivenessTokens';
 import { PersonalChallenge } from '@/services/challengeService';
 
 import { cn } from '@/utils/cn';
@@ -34,6 +35,8 @@ const GoalsPage: React.FC = () => {
     joinError,
     clearJoinError
   } = useChallenges();
+
+  const { tokens, useToken } = useForgivenessTokens();
 
   const [activeTab, setActiveTab] = useState<TabType>('habits');
   const [showHabitForm, setShowHabitForm] = useState(false);
@@ -238,8 +241,8 @@ const GoalsPage: React.FC = () => {
 
             {/* Quick Stats */}
             {habits.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Card className="text-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Card className="p-4 text-center">
                   <div className="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-1">
                     {habits.filter((h: Habit) => h.active).length}
                   </div>
@@ -247,7 +250,7 @@ const GoalsPage: React.FC = () => {
                     Active Habits
                   </div>
                 </Card>
-                <Card className="text-center">
+                <Card className="p-4 text-center">
                   <div className="text-2xl font-bold text-success-600 dark:text-success-400 mb-1">
                     {Math.round(habits.reduce((acc: number, h: Habit) => acc + h.consistencyRate, 0) / habits.length)}%
                   </div>
@@ -255,7 +258,7 @@ const GoalsPage: React.FC = () => {
                     Average Consistency
                   </div>
                 </Card>
-                <Card className="text-center">
+                <Card className="p-4 text-center">
                   <div className="text-2xl font-bold text-warning-600 dark:text-warning-400 mb-1">
                     {Math.max(...habits.map((h: Habit) => h.currentStreak), 0)}
                   </div>
@@ -264,6 +267,14 @@ const GoalsPage: React.FC = () => {
                   </div>
                 </Card>
               </div>
+            )}
+
+            {/* Forgiveness Tokens */}
+            {habits.length > 0 && (
+              <ForgivenessToken
+                available={tokens}
+                onUse={useToken}
+              />
             )}
           </div>
         )}

@@ -6,7 +6,7 @@ import { cn } from '@/utils/cn';
 
 interface ForgivenessTokenProps {
   available: number;
-  onUse: (habitId: string, date: Date) => Promise<void>;
+  onUse?: (habitId: string, date: Date) => Promise<any>;
   className?: string;
 }
 
@@ -92,7 +92,7 @@ export const ForgivenessToken: React.FC<ForgivenessTokenProps> = ({
   } | null>(null);
 
   const handleUseToken = async () => {
-    if (!selectedHabit) return;
+    if (!selectedHabit || !onUse) return;
     
     setIsLoading(true);
     try {
