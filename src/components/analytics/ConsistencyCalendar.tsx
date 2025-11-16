@@ -1,5 +1,5 @@
 import React from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isFuture } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isFuture } from 'date-fns';
 import { CheckCircle, Circle, X } from 'lucide-react';
 import { Card, Badge } from '@/components/ui';
 import { type Completion } from '@/types/habit';
@@ -80,7 +80,7 @@ export const ConsistencyCalendar: React.FC<ConsistencyCalendarProps> = ({
     }
   };
 
-  const getDayClasses = (day: Date, status: string) => {
+  const getDayClasses = (_day: Date, status: string) => {
     const baseClasses = cn(
       'flex items-center justify-center rounded-lg transition-all duration-200 border',
       compact ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm'

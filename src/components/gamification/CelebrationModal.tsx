@@ -133,18 +133,21 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
 
             {/* XP gained */}
             <div className="mb-6">
-              <Badge 
-                variant="outline" 
-                className="text-lg px-4 py-2 font-bold"
+              <div
                 style={{ 
                   borderColor: levelColors.primary, 
                   color: levelColors.primary,
                   backgroundColor: `${levelColors.primary}10`
                 }}
               >
-                <Zap className="h-4 w-4 mr-2" />
-                {levelUpData.newTotalXP} Total XP
-              </Badge>
+                <Badge 
+                  variant="outline" 
+                  className="text-lg px-4 py-2 font-bold"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  {levelUpData.newTotalXP} Total XP
+                </Badge>
+              </div>
             </div>
 
             {/* Rewards section */}
@@ -187,7 +190,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
             )}
 
             {/* Multiple levels gained */}
-            {levelUpData.levelsGained > 1 && (
+            {levelUpData.levelsGained && levelUpData.levelsGained > 1 && (
               <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Trophy className="h-5 w-5 text-purple-600 dark:text-purple-400" />

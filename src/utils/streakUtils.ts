@@ -52,7 +52,7 @@ export const calculateStreak = (
     .sort((a, b) => b.localDate.getTime() - a.localDate.getTime());
 
   const today = startOfDay(utcToZonedTime(new Date(), timezone));
-  const yesterday = subDays(today, 1);
+  // const yesterday = subDays(today, 1);
 
   let currentStreak = 0;
   let longestStreak = 0;
@@ -169,7 +169,7 @@ export const canUseForgivenessToken = (
  * Apply forgiveness token to maintain streak
  */
 export const applyForgivenessToken = (
-  completions: Completion[],
+  _completions: Completion[],
   forgivenessDate: Date,
   habitId: string,
   userId: string,

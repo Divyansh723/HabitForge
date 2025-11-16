@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RefreshCw, Target, Gift, Clock, CheckCircle } from 'lucide-react';
-import { Button, Card, Modal, ModalHeader, ModalContent, ModalFooter, Badge } from '@/components/ui';
+import { Button, Card, Modal, ModalContent, ModalFooter, Badge } from '@/components/ui';
 import { generateRecoveryChallenge } from '@/utils/streakUtils';
 import { cn } from '@/utils/cn';
 

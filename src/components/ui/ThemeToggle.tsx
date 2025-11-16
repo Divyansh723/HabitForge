@@ -13,7 +13,7 @@ interface ThemeToggleProps {
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   size = 'md',
   showLabel = false,
-  position = 'header',
+  position: _position = 'header',
   variant = 'button',
 }) => {
   const { theme, setTheme, toggleTheme } = useTheme();

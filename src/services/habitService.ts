@@ -25,7 +25,7 @@ const getStoredHabits = (): Habit[] => {
   } catch (error) {
     console.warn('Failed to load stored habits:', error);
   }
-  
+
   // Return default habits if none stored
   return [
     {
@@ -172,13 +172,13 @@ class HabitService {
 
     try {
       const response = await this.api.get('/habits');
-      
+
       // Backend returns { success: true, data: { habits } }
       // Frontend expects array of habits
       if (response.data.success && response.data.data) {
         return response.data.data.habits || [];
       }
-      
+
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -191,10 +191,10 @@ class HabitService {
   async createHabit(habitData: Partial<Habit>): Promise<Habit> {
     console.log('HabitService: Creating habit with USE_MOCK_API =', USE_MOCK_API);
     console.log('HabitService: Habit data received:', habitData);
-    
+
     if (USE_MOCK_API) {
       await this.delay(800);
-      
+
       const newHabit: Habit = {
         id: Date.now().toString(),
         userId: '1',
@@ -236,7 +236,7 @@ class HabitService {
   async updateHabit(habitId: string, updates: Partial<Habit>): Promise<Habit> {
     if (USE_MOCK_API) {
       await this.delay(600);
-      
+
       const habitIndex = mockHabits.findIndex(h => h.id === habitId);
       if (habitIndex === -1) {
         throw new Error('Habit not found');
@@ -267,7 +267,7 @@ class HabitService {
   async deleteHabit(habitId: string): Promise<void> {
     if (USE_MOCK_API) {
       await this.delay(400);
-      
+
       const habitIndex = mockHabits.findIndex(h => h.id === habitId);
       if (habitIndex === -1) {
         throw new Error('Habit not found');
@@ -291,7 +291,7 @@ class HabitService {
   async markHabitComplete(habitId: string, date?: Date, timezone?: string): Promise<any> {
     if (USE_MOCK_API) {
       await this.delay(300);
-      
+
       const habit = mockHabits.find(h => h.id === habitId);
       if (!habit) {
         throw new Error('Habit not found');
@@ -300,7 +300,7 @@ class HabitService {
       // Check if already completed today
       const userTimezone = timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
       const completionDate = date || new Date();
-      
+
       // Check for existing completion on the same day
       const existingCompletion = mockCompletions.find(c => {
         if (c.habitId !== habitId) return false;
@@ -335,7 +335,7 @@ class HabitService {
       }
       habit.consistencyRate = Math.min(95, habit.consistencyRate + 2);
       habit.updatedAt = new Date();
-      
+
       // Save updated habits
       saveHabitsToStorage(mockHabits);
 
@@ -350,12 +350,12 @@ class HabitService {
         date: date?.toISOString(),
         timezone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
-      
+
       // Server returns { success: true, data: { completion, xpEarned, leveledUp, ... } }
       if (response.data.success && response.data.data) {
         return response.data.data;
       }
-      
+
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -368,7 +368,7 @@ class HabitService {
   async getHabitStats(habitId: string, period: 'week' | 'month' | 'year' = 'month'): Promise<HabitStats> {
     if (USE_MOCK_API) {
       await this.delay(400);
-      
+
       const habit = mockHabits.find(h => h.id === habitId);
       if (!habit) {
         throw new Error('Habit not found');
@@ -406,13 +406,13 @@ class HabitService {
 
     try {
       const response = await this.api.get('/habits/completions/today');
-      
+
       // Backend returns { success: true, data: [...] }
       // Frontend expects array of habit IDs
       if (response.data.success && response.data.data) {
         return response.data.data;
       }
-      
+
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -425,7 +425,7 @@ class HabitService {
   async useForgivenessToken(habitId: string, forgivenessDate: Date, timezone?: string): Promise<Completion> {
     if (USE_MOCK_API) {
       await this.delay(400);
-      
+
       const habit = mockHabits.find(h => h.id === habitId);
       if (!habit) {
         throw new Error('Habit not found');
@@ -464,7 +464,7 @@ class HabitService {
   async getHabitCompletions(habitId: string, days: number = 30): Promise<Completion[]> {
     if (USE_MOCK_API) {
       await this.delay(300);
-      
+
       // Return mock completions for the habit
       return mockCompletions.filter(c => c.habitId === habitId).slice(0, days);
     }
@@ -485,18 +485,18 @@ class HabitService {
   async recalculateHabitStats(): Promise<{ habitsUpdated: number }> {
     if (USE_MOCK_API) {
       await this.delay(1000);
-      
+
       // Mock recalculation - just return the number of habits
       return { habitsUpdated: mockHabits.length };
     }
 
     try {
       const response = await this.api.post('/habits/recalculate-stats');
-      
+
       if (response.data.success && response.data.data) {
         return response.data.data;
       }
-      
+
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -512,12 +512,12 @@ class HabitService {
       if (!stored) return;
 
       const participations = JSON.parse(stored);
-      const today = new Date().toDateString();
-      
-      // Get today's completions
-      const todayCompletions = mockCompletions.filter(c => 
-        new Date(c.completedAt).toDateString() === today
-      );
+      // const today = new Date().toDateString();
+
+      // Get today's completions (not currently used but kept for future reference)
+      // const todayCompletions = mockCompletions.filter(c =>
+      //   new Date(c.completedAt).toDateString() === today
+      // );
 
       // Update each active participation
       const updated = participations.map((p: any) => {
@@ -529,7 +529,7 @@ class HabitService {
 
         // Calculate days elapsed
         const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const daysElapsed = Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        // const daysElapsed = Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
 
         // Get completions since challenge started
         const challengeCompletions = mockCompletions.filter(c => {

@@ -181,7 +181,7 @@ export const MoodHabitCorrelation: React.FC<MoodHabitCorrelationProps> = ({
               Best Mood Days
             </h4>
             <div className="space-y-2">
-              {correlation.moodPatterns.bestMoodDays.map((day, index) => (
+              {correlation.moodPatterns.bestMoodDays.map((day, _index) => (
                 <div key={day} className="flex items-center justify-between">
                   <span className="text-gray-700 dark:text-gray-300">{day}</span>
                   <Badge 
@@ -200,7 +200,7 @@ export const MoodHabitCorrelation: React.FC<MoodHabitCorrelationProps> = ({
               Challenging Days
             </h4>
             <div className="space-y-2">
-              {correlation.moodPatterns.challengingDays.map((day, index) => (
+              {correlation.moodPatterns.challengingDays.map((day, _index) => (
                 <div key={day} className="flex items-center justify-between">
                   <span className="text-gray-700 dark:text-gray-300">{day}</span>
                   <Badge 
