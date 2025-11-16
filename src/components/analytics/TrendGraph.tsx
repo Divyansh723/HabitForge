@@ -44,10 +44,13 @@ export const TrendGraph: React.FC<TrendGraphProps> = ({
   }
 
   // Calculate dimensions and scales
-  const padding = 40;
-  const width = 400; // Will be responsive via CSS
-  const chartWidth = width - (padding * 2);
-  const chartHeight = height - (padding * 2);
+  const paddingTop = 20;
+  const paddingBottom = 40;
+  const paddingLeft = 50;
+  const paddingRight = 20;
+  const width = 600; // Will be responsive via CSS
+  const chartWidth = width - paddingLeft - paddingRight;
+  const chartHeight = height - paddingTop - paddingBottom;
 
   const minValue = Math.min(...data.map(d => d.value));
   const maxValue = Math.max(...data.map(d => d.value));
@@ -57,25 +60,28 @@ export const TrendGraph: React.FC<TrendGraphProps> = ({
   const createPath = (points: DataPoint[]) => {
     return points
       .map((point, index) => {
-        const x = padding + (index / (points.length - 1)) * chartWidth;
-        const y = padding + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
+        const x = paddingLeft + (index / (points.length - 1)) * chartWidth;
+        const y = paddingTop + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
         return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
       })
       .join(' ');
   };
 
-  // Create area path for gradient fill
-  const createAreaPath = (points: DataPoint[]) => {
-    const linePath = createPath(points);
-    const lastPoint = points[points.length - 1];
-    const firstPoint = points[0];
+  // Format date for X-axis labels
+  const formatDateLabel = (dateStr: string, index: number) => {
+    const date = new Date(dateStr);
+    const day = date.getDate();
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
     
-    const lastX = padding + ((points.length - 1) / (points.length - 1)) * chartWidth;
-    const firstX = padding;
-    const bottomY = padding + chartHeight;
-    
-    return `${linePath} L ${lastX} ${bottomY} L ${firstX} ${bottomY} Z`;
+    // Show every nth label to avoid crowding
+    const showEvery = Math.ceil(data.length / 7);
+    if (index % showEvery === 0 || index === data.length - 1) {
+      return `${month} ${day}`;
+    }
+    return '';
   };
+
+
 
   // Calculate trend
   const calculateTrend = () => {
@@ -120,18 +126,18 @@ export const TrendGraph: React.FC<TrendGraphProps> = ({
   const gridLines = [];
   if (showGrid) {
     for (let i = 0; i <= 4; i++) {
-      const y = padding + (i / 4) * chartHeight;
+      const y = paddingTop + (i / 4) * chartHeight;
       gridLines.push(
         <line
           key={`grid-${i}`}
-          x1={padding}
+          x1={paddingLeft}
           y1={y}
-          x2={padding + chartWidth}
+          x2={paddingLeft + chartWidth}
           y2={y}
           stroke="currentColor"
           strokeWidth="1"
           className="text-gray-200 dark:text-gray-700"
-          opacity="0.5"
+          opacity="0.3"
         />
       );
     }
@@ -176,20 +182,7 @@ export const TrendGraph: React.FC<TrendGraphProps> = ({
           {/* Grid lines */}
           {gridLines}
           
-          {/* Area gradient */}
-          <defs>
-            <linearGradient id={`gradient-${title}`} x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-              <stop offset="100%" stopColor={color} stopOpacity="0.05" />
-            </linearGradient>
-          </defs>
-          
-          {/* Area fill */}
-          <path
-            d={createAreaPath(data)}
-            fill={`url(#gradient-${title})`}
-            className="transition-all duration-1000 ease-out"
-          />
+
           
           {/* Line */}
           <path
@@ -204,8 +197,8 @@ export const TrendGraph: React.FC<TrendGraphProps> = ({
           
           {/* Data points */}
           {data.map((point, index) => {
-            const x = padding + (index / (data.length - 1)) * chartWidth;
-            const y = padding + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
+            const x = paddingLeft + (index / (data.length - 1)) * chartWidth;
+            const y = paddingTop + chartHeight - ((point.value - minValue) / valueRange) * chartHeight;
             
             return (
               <g key={index}>
@@ -230,20 +223,61 @@ export const TrendGraph: React.FC<TrendGraphProps> = ({
           {/* Y-axis labels */}
           {[0, 1, 2, 3, 4].map(i => {
             const value = minValue + (i / 4) * valueRange;
-            const y = padding + chartHeight - (i / 4) * chartHeight;
+            const y = paddingTop + chartHeight - (i / 4) * chartHeight;
             
             return (
               <text
                 key={`y-label-${i}`}
-                x={padding - 10}
+                x={paddingLeft - 10}
                 y={y + 4}
                 textAnchor="end"
-                className="text-xs fill-gray-500 dark:fill-gray-400"
+                className="text-xs fill-gray-600 dark:fill-gray-400 font-medium"
               >
-                {valueFormatter(value)}
+                {Math.round(value)}
               </text>
             );
           })}
+
+          {/* X-axis labels (Days) */}
+          {data.map((point, index) => {
+            const x = paddingLeft + (index / (data.length - 1)) * chartWidth;
+            const y = paddingTop + chartHeight + 20;
+            const label = formatDateLabel(point.date, index);
+            
+            if (!label) return null;
+            
+            return (
+              <text
+                key={`x-label-${index}`}
+                x={x}
+                y={y}
+                textAnchor="middle"
+                className="text-xs fill-gray-600 dark:fill-gray-400 font-medium"
+              >
+                {label}
+              </text>
+            );
+          })}
+
+          {/* Axis lines */}
+          <line
+            x1={paddingLeft}
+            y1={paddingTop + chartHeight}
+            x2={paddingLeft + chartWidth}
+            y2={paddingTop + chartHeight}
+            stroke="currentColor"
+            strokeWidth="2"
+            className="text-gray-300 dark:text-gray-600"
+          />
+          <line
+            x1={paddingLeft}
+            y1={paddingTop}
+            x2={paddingLeft}
+            y2={paddingTop + chartHeight}
+            stroke="currentColor"
+            strokeWidth="2"
+            className="text-gray-300 dark:text-gray-600"
+          />
         </svg>
       </div>
 
@@ -253,10 +287,7 @@ export const TrendGraph: React.FC<TrendGraphProps> = ({
           {data.length} data points
         </span>
         <span>
-          Range: {valueFormatter(minValue)} - {valueFormatter(maxValue)}
-        </span>
-        <span>
-          Latest: {valueFormatter(data[data.length - 1]?.value || 0)}
+          Latest: {Math.round(data[data.length - 1]?.value || 0)} habits
         </span>
       </div>
     </Card>
