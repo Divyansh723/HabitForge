@@ -17,6 +17,11 @@ export interface Habit {
   longestStreak: number;
   totalCompletions: number;
   consistencyRate: number;
+  // Custom frequency settings
+  customFrequency?: {
+    daysOfWeek: number[];
+    timesPerWeek?: number;
+  };
   // Challenge linking
   isChallengeHabit?: boolean;
   challengeId?: string;

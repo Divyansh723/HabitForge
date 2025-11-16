@@ -2,6 +2,7 @@ import { Habit, Completion } from '../models/index.js';
 import XPTransaction from '../models/XPTransaction.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
+import { canCompleteHabit } from '../utils/completionValidation.js';
 
 // Get all habits for the authenticated user
 export const getHabits = async (req, res) => {
@@ -333,8 +334,15 @@ export const markComplete = async (req, res) => {
         throw new Error('Habit not found');
       }
 
+      // Always use UTC time for database storage to ensure consistency
       const completionDate = date ? new Date(date) : new Date();
       const userTimezone = timezone || req.user.timezone || 'UTC';
+
+      // Validate if habit can be completed based on frequency rules
+      const validation = await canCompleteHabit(habit, userId, completionDate, userTimezone);
+      if (!validation.canComplete) {
+        throw new Error(validation.reason);
+      }
 
       // Check if already completed on this date
       const startOfDay = new Date(completionDate);
@@ -492,6 +500,11 @@ export const markComplete = async (req, res) => {
             completedAt: { $gte: participation.startDate }
           }).session(session);
           participation.progress.current = Math.round((completionsSinceStart / daysSinceStart) * 100);
+        } else if (challenge.requirements.type === 'perfect_days') {
+          // For perfect day challenges, count days where ALL relevant habits were completed
+          const { calculatePerfectDays } = await import('../utils/habitFiltering.js');
+          const perfectDaysCount = await calculatePerfectDays(userId, participation.startDate, new Date(), session);
+          participation.progress.current = perfectDaysCount;
         }
 
         // Check if challenge is completed

@@ -253,28 +253,62 @@ export const useHabits = () => {
     return habits.filter(habit => habit.active);
   }, [habits]);
 
+  // Get habits that should be displayed today (filters custom habits by selected days)
+  const getDisplayableHabits = useCallback((date: Date = new Date()) => {
+    const dayOfWeek = date.getDay(); // 0-6 (Sunday-Saturday)
+    
+    return habits.filter(habit => {
+      if (!habit.active) return false;
+      
+      // Always show daily and weekly habits
+      if (habit.frequency === 'daily' || habit.frequency === 'weekly') {
+        return true;
+      }
+      
+      // For custom habits, only show if today is a selected day
+      if (habit.frequency === 'custom') {
+        const selectedDays = habit.customFrequency?.daysOfWeek || [];
+        return selectedDays.includes(dayOfWeek);
+      }
+      
+      return true; // Default: show the habit
+    });
+  }, [habits]);
+
+  // Check if a custom habit should be visible today
+  const isHabitVisibleToday = useCallback((habit: any, date: Date = new Date()) => {
+    if (habit.frequency !== 'custom') return true;
+    
+    const dayOfWeek = date.getDay();
+    const selectedDays = habit.customFrequency?.daysOfWeek || [];
+    return selectedDays.includes(dayOfWeek);
+  }, []);
+
   // Calculate total stats (using local data for immediate display)
   const getTotalStats = useCallback(() => {
     const activeHabits = getActiveHabits();
-    const totalHabits = activeHabits.length;
-    const completedToday = todayCompletions.length;
+    const displayableToday = getDisplayableHabits(); // Only habits relevant for today
+    const totalHabits = displayableToday.length; // Count only today's habits
+    const completedToday = todayCompletions.filter(id => 
+      displayableToday.some(h => h.id === id)
+    ).length; // Count only completed habits that are relevant today
     const totalCompletions = activeHabits.reduce((sum, habit) => sum + habit.totalCompletions, 0);
-    const averageConsistency = totalHabits > 0 
-      ? activeHabits.reduce((sum, habit) => sum + habit.consistencyRate, 0) / totalHabits 
+    const averageConsistency = activeHabits.length > 0 
+      ? activeHabits.reduce((sum, habit) => sum + habit.consistencyRate, 0) / activeHabits.length 
       : 0;
     const longestStreak = Math.max(...activeHabits.map(habit => habit.longestStreak), 0);
     const currentStreaks = activeHabits.reduce((sum, habit) => sum + habit.currentStreak, 0);
 
     return {
-      totalHabits,
-      completedToday,
+      totalHabits, // Today's relevant habits count
+      completedToday, // Today's relevant completed habits
       totalCompletions,
       averageConsistency: Math.round(averageConsistency),
       longestStreak,
       currentStreaks,
       completionRate: totalHabits > 0 ? Math.round((completedToday / totalHabits) * 100) : 0,
     };
-  }, [habits, todayCompletions, getActiveHabits]);
+  }, [habits, todayCompletions, getActiveHabits, getDisplayableHabits]);
 
   // Get analytics overview from server
   const getAnalyticsOverview = useCallback(async (days: number = 30) => {
@@ -313,6 +347,8 @@ export const useHabits = () => {
     isHabitCompletedToday,
     getHabitsByCategory,
     getActiveHabits,
+    getDisplayableHabits,
+    isHabitVisibleToday,
     getTotalStats,
     getAnalyticsOverview,
     

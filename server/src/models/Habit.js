@@ -197,23 +197,26 @@ habitSchema.methods.recalculateStats = async function() {
   // Calculate streak
   await this.calculateStreak();
   
-  // Calculate consistency rate (last 30 days)
+  // Calculate consistency rate (last 30 days) - frequency-aware
+  const { calculateConsistencyRate } = await import('../utils/streakCalculation.js');
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   
-  const recentCompletions = await Completion.countDocuments({
+  const recentCompletions = await Completion.find({
     habitId: this._id,
     completedAt: { $gte: thirtyDaysAgo }
   });
   
-  this.consistencyRate = Math.round((recentCompletions / 30) * 100);
+  const timezone = 'UTC'; // TODO: Get from user preferences
+  this.consistencyRate = calculateConsistencyRate(this, recentCompletions, 30, timezone);
   
   return this.save();
 };
 
-// Instance method to calculate streak
+// Instance method to calculate streak (frequency-aware)
 habitSchema.methods.calculateStreak = async function(session = null) {
   const Completion = mongoose.model('Completion');
+  const { calculateHabitStreak } = await import('../utils/streakCalculation.js');
   
   // Get completions for this habit, sorted by date descending
   // Use session if provided to see uncommitted changes in transaction
@@ -232,60 +235,14 @@ habitSchema.methods.calculateStreak = async function(session = null) {
     return 0;
   }
 
-  // Get unique completion dates (remove duplicates from same day)
-  const uniqueDates = [];
-  const seenDates = new Set();
+  // Use frequency-aware streak calculation
+  const timezone = 'UTC'; // TODO: Get from user preferences
+  const { currentStreak, longestStreak } = calculateHabitStreak(this, completions, timezone);
   
-  for (const completion of completions) {
-    const dateStr = completion.completedAt.toISOString().split('T')[0];
-    if (!seenDates.has(dateStr)) {
-      seenDates.add(dateStr);
-      uniqueDates.push(new Date(completion.completedAt));
-    }
-  }
-
-  // Sort dates descending
-  uniqueDates.sort((a, b) => b - a);
-
-  let streak = 0;
-  let expectedDate = new Date();
-  expectedDate.setHours(0, 0, 0, 0);
-
-  // Check if the most recent completion is today or yesterday
-  const mostRecentDate = new Date(uniqueDates[0]);
-  mostRecentDate.setHours(0, 0, 0, 0);
+  this.currentStreak = currentStreak;
+  this.longestStreak = Math.max(this.longestStreak, longestStreak);
   
-  const daysDiff = Math.floor((expectedDate - mostRecentDate) / (1000 * 60 * 60 * 24));
-  
-  if (daysDiff > 1) {
-    // Streak is broken if more than 1 day gap
-    this.currentStreak = 0;
-    return 0;
-  }
-
-  // Start from today or yesterday
-  if (daysDiff === 1) {
-    // Most recent completion was yesterday, start counting from yesterday
-    expectedDate.setDate(expectedDate.getDate() - 1);
-  }
-
-  // Count consecutive days
-  for (const completionDate of uniqueDates) {
-    const compDate = new Date(completionDate);
-    compDate.setHours(0, 0, 0, 0);
-    
-    if (compDate.getTime() === expectedDate.getTime()) {
-      streak++;
-      expectedDate.setDate(expectedDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-
-  this.currentStreak = streak;
-  this.longestStreak = Math.max(this.longestStreak, streak);
-  
-  return streak;
+  return currentStreak;
 };
 
 // Transform output to match frontend expectations

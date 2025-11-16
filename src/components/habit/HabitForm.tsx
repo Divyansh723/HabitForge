@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
@@ -25,6 +25,7 @@ import {
 import { habitSchema, type HabitFormData } from '@/utils/validationUtils';
 import { type Habit, type HabitCategory } from '@/types/habit';
 import { COMMON_TIMEZONES } from '@/utils/timezoneUtils';
+import DaySelector from './DaySelector';
 
 interface HabitFormProps {
   isOpen: boolean;
@@ -126,15 +127,34 @@ export const HabitForm: React.FC<HabitFormProps> = ({
       reminderEnabled: habit.reminderEnabled,
       color: habit.color,
       icon: habit.icon,
+      customFrequency: habit.customFrequency || { daysOfWeek: [], timesPerWeek: 3 },
     } : {
       frequency: 'daily',
       reminderEnabled: true,
       color: HABIT_COLORS[0],
       icon: HABIT_ICONS[0],
+      customFrequency: { daysOfWeek: [], timesPerWeek: 3 },
     },
   });
 
   const watchedValues = watch();
+
+  // Reset form when habit prop changes (for editing)
+  useEffect(() => {
+    if (habit) {
+      reset({
+        name: habit.name,
+        description: habit.description || '',
+        category: habit.category,
+        frequency: habit.frequency,
+        reminderTime: habit.reminderTime || '',
+        reminderEnabled: habit.reminderEnabled,
+        color: habit.color,
+        icon: habit.icon,
+        customFrequency: habit.customFrequency || { daysOfWeek: [], timesPerWeek: 3 },
+      });
+    }
+  }, [habit, reset]);
 
   const handleFormSubmit = async (data: HabitFormData) => {
     try {
@@ -285,6 +305,24 @@ export const HabitForm: React.FC<HabitFormProps> = ({
             error={errors.frequency?.message}
             {...register('frequency')}
           />
+
+          {/* Custom Frequency - Day Selection */}
+          {watchedValues.frequency === 'custom' && (
+            <div className="space-y-2">
+              <DaySelector
+                selectedDays={watchedValues.customFrequency?.daysOfWeek || []}
+                onChange={(days) => setValue('customFrequency', {
+                  ...watchedValues.customFrequency,
+                  daysOfWeek: days
+                })}
+              />
+              {errors.customFrequency?.daysOfWeek && (
+                <p className="text-sm text-error-600 dark:text-error-400">
+                  {errors.customFrequency.daysOfWeek.message}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center gap-3">
             <input

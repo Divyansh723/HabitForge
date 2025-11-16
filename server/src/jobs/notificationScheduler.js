@@ -15,9 +15,10 @@ const isWithinQuietHours = (user) => {
     return false;
   }
 
-  const now = new Date();
+  // Always use UTC time to ensure consistency regardless of server location
+  const nowUTC = new Date();
   const userTimezone = user.timezone || 'UTC';
-  const zonedNow = utcToZonedTime(now, userTimezone);
+  const zonedNow = utcToZonedTime(nowUTC, userTimezone);
   const currentHour = zonedNow.getHours();
   const currentMinute = zonedNow.getMinutes();
   const currentTime = currentHour * 60 + currentMinute;
@@ -71,20 +72,24 @@ export const sendHabitReminders = async () => {
 
   try {
     const users = await User.find({ isActive: true, softDeleted: false });
+    console.log(`Found ${users.length} active users`);
 
     for (const user of users) {
       // Check if user has habit reminders enabled
       if (!hasNotificationEnabled(user, 'habitReminders')) {
+        console.log(`User ${user.email}: habit reminders disabled`);
         continue;
       }
 
       // Check quiet hours
       if (isWithinQuietHours(user)) {
+        console.log(`User ${user.email}: in quiet hours`);
         continue;
       }
 
       // Get user's habits
-      const habits = await Habit.find({ userId: user._id, isActive: true });
+      const habits = await Habit.find({ userId: user._id, active: true });
+      console.log(`User ${user.email}: found ${habits.length} active habits`);
 
       for (const habit of habits) {
         // Skip if habit doesn't have a reminder time
@@ -93,13 +98,19 @@ export const sendHabitReminders = async () => {
         }
 
         // Check if it's time for this habit's reminder
-        const now = new Date();
+        // Always use UTC time to ensure consistency regardless of server location
+        const nowUTC = new Date();
         const userTimezone = user.timezone || 'UTC';
-        const currentTime = formatInTimeZone(now, userTimezone, 'HH:mm');
+        const zonedNow = utcToZonedTime(nowUTC, userTimezone);
+        const currentTime = formatInTimeZone(nowUTC, userTimezone, 'HH:mm');
+
+        console.log(`Habit "${habit.name}": reminderTime=${habit.reminderTime}, currentTime=${currentTime}`);
 
         if (habit.reminderTime !== currentTime) {
           continue;
         }
+
+        console.log(`✅ TIME MATCH for habit "${habit.name}"!`);
 
         // Check if habit is already completed today
         const todayStart = startOfDay(zonedNow);
@@ -113,8 +124,11 @@ export const sendHabitReminders = async () => {
           }
         });
 
+        console.log(`Habit "${habit.name}": completed today? ${!!completion}`);
+
         // Only send reminder if habit is not completed
         if (!completion) {
+          console.log(`📬 Creating notification for habit "${habit.name}"...`);
           await createNotification(
             user._id,
             'habit_reminder',
@@ -204,8 +218,9 @@ export const sendDailySummary = async () => {
       }
 
       const userTimezone = user.timezone || 'UTC';
-      const now = new Date();
-      const zonedNow = utcToZonedTime(now, userTimezone);
+      // Always use UTC time to ensure consistency regardless of server location
+      const nowUTC = new Date();
+      const zonedNow = utcToZonedTime(nowUTC, userTimezone);
       const todayStart = startOfDay(zonedNow);
       const todayEnd = endOfDay(zonedNow);
 
@@ -270,8 +285,9 @@ export const sendWeeklyInsights = async () => {
       }
 
       const userTimezone = user.timezone || 'UTC';
-      const now = new Date();
-      const zonedNow = utcToZonedTime(now, userTimezone);
+      // Always use UTC time to ensure consistency regardless of server location
+      const nowUTC = new Date();
+      const zonedNow = utcToZonedTime(nowUTC, userTimezone);
       const weekStart = startOfWeek(zonedNow, { weekStartsOn: 1 }); // Monday
       const weekEnd = endOfWeek(zonedNow, { weekStartsOn: 1 });
 
@@ -348,23 +364,23 @@ export const sendChallengeUpdates = async () => {
       }
 
       // Check for active personal challenges
+      // Always use UTC time to ensure consistency regardless of server location
+      const nowUTC = new Date();
       const activeChallenges = user.challengeParticipations?.filter(cp => {
-        const now = new Date();
-        return !cp.completed && new Date(cp.startDate) <= now && new Date(cp.endDate) >= now;
+        return !cp.completed && new Date(cp.startDate) <= nowUTC && new Date(cp.endDate) >= nowUTC;
       }) || [];
 
       // Check for community challenges
       const circles = await CommunityCircle.find({
         'members.userId': user._id,
-        'challenges.endDate': { $gte: new Date() }
+        'challenges.endDate': { $gte: nowUTC }
       });
 
       let activeCommunityChallenges = 0;
       if (circles.length > 0) {
         circles.forEach(circle => {
           const active = circle.challenges?.filter(ch => {
-            const now = new Date();
-            return new Date(ch.startDate) <= now && new Date(ch.endDate) >= now;
+            return new Date(ch.startDate) <= nowUTC && new Date(ch.endDate) >= nowUTC;
           }) || [];
           activeCommunityChallenges += active.length;
         });

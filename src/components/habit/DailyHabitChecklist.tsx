@@ -43,6 +43,7 @@ export const DailyHabitChecklist: React.FC<DailyHabitChecklistProps> = ({
     completeHabit,
     isHabitCompletedToday,
     getActiveHabits,
+    isHabitVisibleToday,
     getTotalStats,
   } = useHabits();
 
@@ -55,7 +56,7 @@ export const DailyHabitChecklist: React.FC<DailyHabitChecklistProps> = ({
   const activeHabits = getActiveHabits();
   const totalStats = getTotalStats();
 
-  // Filter habits based on search and category
+  // Filter habits based on search and category (use all active habits, not just displayable)
   const filteredHabits = activeHabits.filter(habit => {
     const matchesSearch = habit.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          habit.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -239,35 +240,102 @@ export const DailyHabitChecklist: React.FC<DailyHabitChecklistProps> = ({
           )}
         </Card>
       ) : (
-        <div className="space-y-4">
-          {displayHabits.map((habit) => {
-            const streakData = {
-              currentStreak: habit.currentStreak,
-              longestStreak: habit.longestStreak,
-              canUseForgiveness: false,
-              daysSinceLastCompletion: 0,
-            };
+        <div className="space-y-6">
+          {/* Today's Habits Section */}
+          {(() => {
+            const todaysHabits = displayHabits.filter(habit => isHabitVisibleToday(habit));
+            const upcomingHabits = displayHabits.filter(habit => !isHabitVisibleToday(habit));
+            
             return (
-              <div key={habit.id} className="space-y-2">
-                <HabitCard
-                  habit={habit}
-                  onComplete={handleCompleteHabit}
-                  onEdit={handleEditHabit}
-                  onDelete={handleDeleteHabit}
-                  isCompletedToday={isHabitCompletedToday(habit.id)}
-                  canComplete={!isHabitCompletedToday(habit.id)}
-                  compact={compact}
-                />
-                {showStreaks && habit.currentStreak > 0 && (
-                  <StreakDisplay
-                    streakData={streakData}
-                    habitName={habit.name}
-                    compact
-                  />
+              <>
+                {/* Active Habits for Today */}
+                {todaysHabits.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-1 w-1 rounded-full bg-primary-500"></div>
+                      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                        Today's Habits ({todaysHabits.length})
+                      </h3>
+                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                    <div className="space-y-4">
+                      {todaysHabits.map((habit) => {
+                        const streakData = {
+                          currentStreak: habit.currentStreak,
+                          longestStreak: habit.longestStreak,
+                          canUseForgiveness: false,
+                          daysSinceLastCompletion: 0,
+                        };
+                        return (
+                          <div key={habit.id} className="space-y-2">
+                            <HabitCard
+                              habit={habit}
+                              onComplete={handleCompleteHabit}
+                              onEdit={handleEditHabit}
+                              onDelete={handleDeleteHabit}
+                              isCompletedToday={isHabitCompletedToday(habit.id)}
+                              canComplete={!isHabitCompletedToday(habit.id)}
+                              compact={compact}
+                            />
+                            {showStreaks && habit.currentStreak > 0 && (
+                              <StreakDisplay
+                                streakData={streakData}
+                                habitName={habit.name}
+                                compact
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
-              </div>
+
+                {/* Upcoming Habits Section */}
+                {upcomingHabits.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-1 w-1 rounded-full bg-gray-400"></div>
+                      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Upcoming Habits ({upcomingHabits.length})
+                      </h3>
+                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                    <div className="space-y-4 opacity-60">
+                      {upcomingHabits.map((habit) => {
+                        const streakData = {
+                          currentStreak: habit.currentStreak,
+                          longestStreak: habit.longestStreak,
+                          canUseForgiveness: false,
+                          daysSinceLastCompletion: 0,
+                        };
+                        return (
+                          <div key={habit.id} className="space-y-2">
+                            <HabitCard
+                              habit={habit}
+                              onComplete={handleCompleteHabit}
+                              onEdit={handleEditHabit}
+                              onDelete={handleDeleteHabit}
+                              isCompletedToday={isHabitCompletedToday(habit.id)}
+                              canComplete={false}
+                              compact={compact}
+                            />
+                            {showStreaks && habit.currentStreak > 0 && (
+                              <StreakDisplay
+                                streakData={streakData}
+                                habitName={habit.name}
+                                compact
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
             );
-          })}
+          })()}
 
           {/* Show more button if items are limited */}
           {maxItems && filteredHabits.length > maxItems && (

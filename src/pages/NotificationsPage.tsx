@@ -276,7 +276,7 @@ const NotificationsPage: React.FC = () => {
                                     className={cn(
                                         'p-4 cursor-pointer transition-all hover:shadow-md',
                                         !notification.read
-                                            ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800'
+                                            ? 'bg-blue-50 dark:bg-blue-950/50 border-2 border-blue-300 dark:border-blue-700'
                                             : 'bg-white dark:bg-gray-800',
                                         isExpanded && 'shadow-lg'
                                     )}
@@ -291,7 +291,12 @@ const NotificationsPage: React.FC = () => {
                                         {/* Content */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2 mb-1">
-                                                <h3 className="font-semibold text-gray-900 dark:text-white break-words">
+                                                <h3 className={cn(
+                                                    "font-semibold break-words",
+                                                    !notification.read
+                                                        ? "text-gray-900 dark:text-white"
+                                                        : "text-gray-700 dark:text-gray-300"
+                                                )}>
                                                     {notification.title}
                                                 </h3>
                                                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -310,7 +315,10 @@ const NotificationsPage: React.FC = () => {
 
                                             {/* Message with proper wrapping */}
                                             <p className={cn(
-                                                "text-sm text-gray-600 dark:text-gray-400 mb-2 break-words whitespace-pre-wrap",
+                                                "text-sm mb-2 break-words whitespace-pre-wrap",
+                                                !notification.read
+                                                    ? "text-gray-800 dark:text-gray-200 font-medium"
+                                                    : "text-gray-600 dark:text-gray-400",
                                                 !isExpanded && "line-clamp-2"
                                             )}>
                                                 {isExpanded ? notification.message : messagePreview}
@@ -332,15 +340,19 @@ const NotificationsPage: React.FC = () => {
                                                 </div>
                                             )}
 
-                                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-500 mt-2">
-                                                <span>
+                                            <div className="flex items-center gap-4 text-xs mt-2">
+                                                <span className={cn(
+                                                    !notification.read
+                                                        ? "text-gray-700 dark:text-gray-300 font-medium"
+                                                        : "text-gray-500 dark:text-gray-500"
+                                                )}>
                                                     {formatDistanceToNow(new Date(notification.createdAt), {
                                                         addSuffix: true,
                                                     })}
                                                 </span>
                                                 {!notification.read && (
-                                                    <span className="flex items-center gap-1 text-primary-600 dark:text-primary-400">
-                                                        <div className="w-2 h-2 bg-primary-600 rounded-full" />
+                                                    <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-semibold">
+                                                        <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full animate-pulse" />
                                                         Unread
                                                     </span>
                                                 )}

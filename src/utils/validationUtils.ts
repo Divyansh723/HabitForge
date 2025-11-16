@@ -9,6 +9,19 @@ export const habitSchema = z.object({
   reminderEnabled: z.boolean(),
   color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format'),
   icon: z.string().min(1, 'Icon is required'),
+  customFrequency: z.object({
+    daysOfWeek: z.array(z.number().min(0).max(6)),
+    timesPerWeek: z.number().min(1).max(7).optional(),
+  }).optional(),
+}).refine((data) => {
+  // If frequency is custom, daysOfWeek must have at least one day
+  if (data.frequency === 'custom') {
+    return data.customFrequency && data.customFrequency.daysOfWeek.length > 0;
+  }
+  return true;
+}, {
+  message: 'Please select at least one day for custom frequency',
+  path: ['customFrequency', 'daysOfWeek'],
 });
 
 export const userRegistrationSchema = z.object({
