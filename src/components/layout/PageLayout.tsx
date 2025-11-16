@@ -12,7 +12,7 @@ interface PageLayoutProps {
 export const PageLayout: React.FC<PageLayoutProps> = ({
   children,
   showFooter = true,
-  footerVariant = 'minimal',
+  footerVariant = 'default',
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 

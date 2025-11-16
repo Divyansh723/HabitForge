@@ -88,7 +88,7 @@ export const sendHabitReminders = async () => {
       }
 
       // Get user's habits
-      const habits = await Habit.find({ userId: user._id, active: true });
+      const habits = await Habit.find({ userId: user._id, softDeleted: false });
       console.log(`User ${user.email}: found ${habits.length} active habits`);
 
       for (const habit of habits) {
@@ -166,7 +166,7 @@ export const checkStreakMilestones = async () => {
         continue;
       }
 
-      const habits = await Habit.find({ userId: user._id, isActive: true });
+      const habits = await Habit.find({ userId: user._id, softDeleted: false });
 
       for (const habit of habits) {
         if (milestones.includes(habit.currentStreak)) {
@@ -225,7 +225,7 @@ export const sendDailySummary = async () => {
       const todayEnd = endOfDay(zonedNow);
 
       // Get today's completions
-      const habits = await Habit.find({ userId: user._id, isActive: true });
+      const habits = await Habit.find({ userId: user._id, softDeleted: false });
       
       // Only send if user has habits
       if (habits.length === 0) {
@@ -292,7 +292,7 @@ export const sendWeeklyInsights = async () => {
       const weekEnd = endOfWeek(zonedNow, { weekStartsOn: 1 });
 
       // Get this week's data
-      const habits = await Habit.find({ userId: user._id, isActive: true });
+      const habits = await Habit.find({ userId: user._id, softDeleted: false });
       
       // Only send if user has habits
       if (habits.length === 0) {
@@ -572,7 +572,7 @@ export const sendTipsAndTricks = async () => {
       }
 
       // Only send tips to users who have habits (tips are about habit-building)
-      const habits = await Habit.find({ userId: user._id, isActive: true });
+      const habits = await Habit.find({ userId: user._id, softDeleted: false });
       if (habits.length === 0) {
         continue;
       }

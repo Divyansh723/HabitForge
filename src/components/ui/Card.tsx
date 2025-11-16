@@ -9,6 +9,7 @@ interface CardProps {
   hover?: boolean;
   clickable?: boolean;
   onClick?: () => void;
+  style?: React.CSSProperties;
 }
 
 interface CardHeaderProps {
@@ -34,6 +35,7 @@ export const Card: React.FC<CardProps> = ({
   hover = false,
   clickable = false,
   onClick,
+  style,
 }) => {
   const paddingClasses = {
     none: '',
@@ -63,6 +65,7 @@ export const Card: React.FC<CardProps> = ({
         interactionClasses,
         className
       )}
+      style={style}
       onClick={clickable ? onClick : undefined}
       role={clickable ? 'button' : undefined}
       tabIndex={clickable ? 0 : undefined}

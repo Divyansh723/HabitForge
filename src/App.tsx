@@ -19,7 +19,17 @@ function AppContent() {
   }, [user?.accentColor, setAccentColor]);
   
   // Routes that should not have the sidebar layout
-  const publicRoutes = ['/', '/test-auth', '/test-login'];
+  const publicRoutes = [
+    '/', 
+    '/test-auth', 
+    '/test-login',
+    '/features',
+    '/about',
+    '/blog',
+    '/contact',
+    '/privacy',
+    '/terms'
+  ];
   const isPublicRoute = publicRoutes.includes(location.pathname);
   
   // Show PageLayout (with sidebar) only for authenticated users on protected routes

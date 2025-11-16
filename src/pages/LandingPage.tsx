@@ -21,6 +21,7 @@ import {
 import { Button, Card, Badge } from '@/components/ui';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/hooks/useAuth';
 
 const LandingPage: React.FC = () => {
@@ -508,6 +509,9 @@ const LandingPage: React.FC = () => {
       </section>
 
       </div>
+
+      {/* Footer */}
+      <Footer />
 
       {/* Auth Modal */}
       <AuthModal

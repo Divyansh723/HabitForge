@@ -116,11 +116,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-full w-64 transform bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto',
+          'fixed top-0 left-0 z-50 h-screen w-64 transform bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:h-screen',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col overflow-y-auto">
           {/* Header with Logo and Close Button */}
           <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200 dark:border-gray-700">
             <Link 
