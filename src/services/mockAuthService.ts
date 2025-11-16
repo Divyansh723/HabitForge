@@ -105,7 +105,7 @@ class MockAuthService {
     // In a real implementation, this would invalidate the token on the server
   }
 
-  async refreshToken(refreshToken: string): Promise<{ token: string; refreshToken: string }> {
+  async refreshToken(_refreshToken: string): Promise<{ token: string; refreshToken: string }> {
     await this.delay(500);
     
     return {
@@ -114,7 +114,7 @@ class MockAuthService {
     };
   }
 
-  async getCurrentUser(token: string): Promise<User> {
+  async getCurrentUser(_token: string): Promise<User> {
     await this.delay(300);
     
     // In a real implementation, this would decode the JWT and fetch user data

@@ -81,11 +81,12 @@ class NotificationService {
       const response = await api.patch('/notifications/mark-read', { notificationIds });
       console.log('NotificationService.markAsRead: Response:', response.data);
       return response.data.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('NotificationService.markAsRead: Error:', error);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-        console.error('Response status:', error.response.status);
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: unknown; status?: number } };
+        console.error('Response data:', axiosError.response?.data);
+        console.error('Response status:', axiosError.response?.status);
       }
       throw new Error('Failed to mark notifications as read');
     }

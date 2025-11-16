@@ -4,9 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { 
   Target, 
   Clock, 
-  Bell, 
+ 
   Palette, 
-  Tag,
+
   Calendar,
   AlertCircle
 } from 'lucide-react';
@@ -18,13 +18,12 @@ import {
   Card, 
   Badge,
   Modal,
-  ModalHeader,
-  ModalContent,
+
   ModalFooter
 } from '@/components/ui';
 import { habitSchema, type HabitFormData } from '@/utils/validationUtils';
 import { type Habit, type HabitCategory } from '@/types/habit';
-import { COMMON_TIMEZONES } from '@/utils/timezoneUtils';
+// import { COMMON_TIMEZONES } from '@/utils/timezoneUtils';
 import DaySelector from './DaySelector';
 
 interface HabitFormProps {
@@ -103,7 +102,7 @@ export const HabitForm: React.FC<HabitFormProps> = ({
   habit,
   isLoading = false,
 }) => {
-  const [selectedTemplate, setSelectedTemplate] = useState<typeof HABIT_TEMPLATES[0] | null>(null);
+  const [_selectedTemplate, setSelectedTemplate] = useState<typeof HABIT_TEMPLATES[0] | null>(null);
   const [showTemplates, setShowTemplates] = useState(!habit);
   const [submitError, setSubmitError] = useState<string | null>(null);
 

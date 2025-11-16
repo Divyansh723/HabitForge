@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Heart, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
-import { Button, Card, Modal, ModalHeader, ModalContent, ModalFooter, Badge } from '@/components/ui';
+import { Heart, Clock, AlertTriangle } from 'lucide-react';
+import { Button, Card, Modal, ModalContent, ModalFooter, Badge } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
@@ -82,7 +82,7 @@ export const ForgivenessToken: React.FC<ForgivenessTokenProps> = ({
   onUse,
   className,
 }) => {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedHabit, setSelectedHabit] = useState<{
@@ -106,10 +106,11 @@ export const ForgivenessToken: React.FC<ForgivenessTokenProps> = ({
     }
   };
 
-  const openTokenModal = (habitId: string, habitName: string, date: Date) => {
-    setSelectedHabit({ id: habitId, name: habitName, date });
-    setShowModal(true);
-  };
+  // Utility function for opening token modal (kept for future use)
+  // const openTokenModal = (habitId: string, habitName: string, date: Date) => {
+  //   setSelectedHabit({ id: habitId, name: habitName, date });
+  //   setShowModal(true);
+  // };
 
   return (
     <>

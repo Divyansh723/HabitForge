@@ -5,12 +5,16 @@ export interface LevelInfo {
   xpForNextLevel: number;
   xpProgress: number;
   progressPercentage: number;
+  progressToNextLevel?: number;
 }
 
 export interface LevelUpResult {
   newLevel: number;
   xpGained: number;
   rewards: string[];
+  celebrationMessage?: string;
+  newTotalXP?: number;
+  levelsGained?: number;
 }
 
 export const XP_PER_LEVEL = 100;
@@ -51,7 +55,8 @@ export function calculateLevelInfo(totalXP: number): LevelInfo {
     xpForCurrentLevel,
     xpForNextLevel: xpForCurrentLevel + xpForNextLevel,
     xpProgress,
-    progressPercentage
+    progressPercentage,
+    progressToNextLevel: Math.round(progressPercentage)
   };
 }
 
@@ -61,6 +66,7 @@ export function calculateLevelUp(oldXP: number, newXP: number): LevelUpResult | 
   
   if (newLevel > oldLevel) {
     const rewards = [];
+    const levelsGained = newLevel - oldLevel;
     
     // Add rewards based on level milestones
     if (newLevel % 5 === 0) {
@@ -73,7 +79,10 @@ export function calculateLevelUp(oldXP: number, newXP: number): LevelUpResult | 
     return {
       newLevel,
       xpGained: newXP - oldXP,
-      rewards
+      rewards,
+      celebrationMessage: `Congratulations! You've reached Level ${newLevel}!`,
+      newTotalXP: newXP,
+      levelsGained
     };
   }
   
@@ -127,55 +136,62 @@ export function getLevelTitle(level: number): string {
   return 'Beginner';
 }
 
-export function getLevelColor(level: number): { bg: string; text: string; border: string; gradient: string; primary: string } {
+export function getLevelColor(level: number): { bg: string; text: string; border: string; gradient: string; primary: string; secondary: string } {
   if (level >= 100) return { 
     bg: 'bg-purple-500', 
     text: 'text-white', 
     border: 'border-purple-500',
     gradient: 'from-purple-500 to-purple-600',
-    primary: '#8B5CF6'
+    primary: '#8B5CF6',
+    secondary: '#7C3AED'
   };
   if (level >= 75) return { 
     bg: 'bg-yellow-500', 
     text: 'text-white', 
     border: 'border-yellow-500',
     gradient: 'from-yellow-500 to-yellow-600',
-    primary: '#F59E0B'
+    primary: '#F59E0B',
+    secondary: '#D97706'
   };
   if (level >= 50) return { 
     bg: 'bg-red-500', 
     text: 'text-white', 
     border: 'border-red-500',
     gradient: 'from-red-500 to-red-600',
-    primary: '#EF4444'
+    primary: '#EF4444',
+    secondary: '#DC2626'
   };
   if (level >= 25) return { 
     bg: 'bg-blue-500', 
     text: 'text-white', 
     border: 'border-blue-500',
     gradient: 'from-blue-500 to-blue-600',
-    primary: '#3B82F6'
+    primary: '#3B82F6',
+    secondary: '#2563EB'
   };
   if (level >= 10) return { 
     bg: 'bg-green-500', 
     text: 'text-white', 
     border: 'border-green-500',
     gradient: 'from-green-500 to-green-600',
-    primary: '#10B981'
+    primary: '#10B981',
+    secondary: '#059669'
   };
   if (level >= 5) return { 
     bg: 'bg-orange-500', 
     text: 'text-white', 
     border: 'border-orange-500',
     gradient: 'from-orange-500 to-orange-600',
-    primary: '#F97316'
+    primary: '#F97316',
+    secondary: '#EA580C'
   };
   return { 
     bg: 'bg-gray-500', 
     text: 'text-white', 
     border: 'border-gray-500',
     gradient: 'from-gray-500 to-gray-600',
-    primary: '#6B7280'
+    primary: '#6B7280',
+    secondary: '#4B5563'
   };
 }
 

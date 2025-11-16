@@ -35,7 +35,7 @@ export const convertToCSV = (data: any[], headers: string[]): string => {
       return `"${escaped}"`;
     });
     csvRows.push(values.join(','));
-  });
+  };
   
   return csvRows.join('\n');
 };

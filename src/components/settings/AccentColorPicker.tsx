@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Check, Save } from 'lucide-react';
-import { Card, Button } from '@/components/ui';
+import { Check } from 'lucide-react';
+import { Card } from '@/components/ui';
 import { useAccentColorStore, type AccentColor, accentColorPalettes } from '@/stores/accentColorStore';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';

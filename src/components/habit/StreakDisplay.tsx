@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Trophy, Target, TrendingUp } from 'lucide-react';
+import { Trophy, Target, TrendingUp } from 'lucide-react';
 import { Card, Badge } from '@/components/ui';
 import { 
   formatStreakText, 

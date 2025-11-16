@@ -41,22 +41,25 @@ export const LevelBadge: React.FC<LevelBadgeProps> = ({
 
   if (variant === 'minimal') {
     return (
-      <Badge 
-        variant="outline"
-        className={cn(
-          'flex items-center gap-1 font-semibold transition-all duration-200',
-          animated && 'hover:scale-105',
-          className
-        )}
+      <div
         style={{ 
           borderColor: levelColors.primary, 
           color: levelColors.primary,
           backgroundColor: `${levelColors.primary}10`
         }}
       >
-        <Icon className="h-3 w-3" />
-        <span>Lv. {levelInfo.currentLevel}</span>
-      </Badge>
+        <Badge 
+          variant="outline"
+          className={cn(
+            'flex items-center gap-1 font-semibold transition-all duration-200',
+            animated && 'hover:scale-105',
+            className
+          )}
+        >
+          <Icon className="h-3 w-3" />
+          <span>Lv. {levelInfo.currentLevel}</span>
+        </Badge>
+      </div>
     );
   }
 
@@ -127,7 +130,7 @@ export const LevelBadge: React.FC<LevelBadgeProps> = ({
                 'w-12 h-12 rounded-full flex items-center justify-center text-white bg-gradient-to-r shadow-lg',
                 animated && 'animate-pulse'
               )}
-              style={{ background: `linear-gradient(135deg, ${levelColors.primary}, ${levelColors.secondary})` }}
+              style={{ background: `linear-gradient(135deg, ${levelColors.primary}, ${levelColors.primary})` }}
             >
               <Icon className="h-6 w-6" />
             </div>
@@ -178,19 +181,19 @@ export const LevelBadge: React.FC<LevelBadgeProps> = ({
 
             <div className="flex justify-between text-xs text-gray-500 dark:text-gray-500">
               <span>{levelInfo.xpForCurrentLevel} XP</span>
-              <span>{levelInfo.xpToNextLevel} XP to go</span>
+              <span>{levelInfo.xpForNextLevel} XP to go</span>
               <span>{levelInfo.xpForNextLevel} XP</span>
             </div>
 
             {/* Next milestone */}
-            {nextMilestone > levelInfo.currentLevel && (
+            {typeof nextMilestone === 'number' && typeof levelInfo.currentLevel === 'number' && nextMilestone > levelInfo.currentLevel && (
               <div className="mt-3 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Next milestone: Level {nextMilestone}
+                    Next milestone: Level {typeof nextMilestone === 'number' ? nextMilestone : ''}
                   </span>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {nextMilestone - levelInfo.currentLevel} levels to go
+                    {typeof nextMilestone === 'number' && typeof levelInfo.currentLevel === 'number' ? nextMilestone - levelInfo.currentLevel : 0} levels to go
                   </span>
                 </div>
               </div>

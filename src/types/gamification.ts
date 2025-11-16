@@ -1,3 +1,5 @@
+import { Habit } from './habit';
+
 export interface Challenge {
   id: string;
   name: string;
