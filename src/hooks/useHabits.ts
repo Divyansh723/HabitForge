@@ -109,6 +109,9 @@ export const useHabits = () => {
       setHabits(prev => prev.filter(habit => habit.id !== habitId));
       setTodayCompletions(prev => prev.filter(id => id !== habitId));
       
+      // Refresh gamification data to sync XP refund
+      await fetchGamificationData();
+      
       // Emit event to notify other components
       eventBus.emit(EVENTS.HABIT_DELETED, { habitId });
       
@@ -117,7 +120,7 @@ export const useHabits = () => {
       setError(errorMessage);
       throw new Error(errorMessage);
     }
-  }, []);
+  }, [fetchGamificationData]);
 
   // Check if habit is completed today
   const isHabitCompletedToday = useCallback((habitId: string) => {
@@ -132,40 +135,63 @@ export const useHabits = () => {
         throw new Error('This habit has already been completed today');
       }
 
-      const response = await habitService.markHabitComplete(habitId, date, timezone);
-      
-      // The server now handles XP calculation and returns the results
-      if (response.xpEarned) {
-        // Update local gamification state with server response
-        if (response.leveledUp) {
-          // Handle level up
-          addHabitCompletionXP(0, false, false); // Trigger local level up animation
-        }
-        
-        // Refresh gamification data to sync with server
-        await fetchGamificationData();
-      }
-      
-      // Update local state
+      // Optimistically update UI immediately
       setTodayCompletions(prev => {
         if (prev.includes(habitId)) return prev;
         return [...prev, habitId];
       });
+
+      // Update the habit's streak in local state immediately for instant feedback
+      setHabits(prev => prev.map(habit => {
+        if (habit.id === habitId) {
+          return {
+            ...habit,
+            currentStreak: habit.currentStreak + 1,
+            totalCompletions: habit.totalCompletions + 1,
+            longestStreak: Math.max(habit.longestStreak, habit.currentStreak + 1)
+          };
+        }
+        return habit;
+      }));
+
+      const response = await habitService.markHabitComplete(habitId, date, timezone);
       
-      // Refresh habits to get updated stats from server
-      await fetchHabits();
+      // Always refresh gamification data to sync XP with server
+      await fetchGamificationData();
+      
+      // Handle level up if it occurred
+      if (response.leveledUp) {
+        // Trigger local level up animation
+        addHabitCompletionXP(0, false, false);
+      }
+      
+      // Refresh habits to get accurate stats from server (in background)
+      fetchHabits();
       
       // Emit event to notify other components
       eventBus.emit(EVENTS.HABIT_COMPLETED, {
         habitId,
-        xpEarned: response.xpEarned,
-        leveledUp: response.leveledUp,
+        xpEarned: response.xpEarned || 0,
+        leveledUp: response.leveledUp || false,
         newLevel: response.newLevel,
         streakUpdated: true
       });
       
       return response;
     } catch (err) {
+      // Revert optimistic update on error
+      setTodayCompletions(prev => prev.filter(id => id !== habitId));
+      setHabits(prev => prev.map(habit => {
+        if (habit.id === habitId) {
+          return {
+            ...habit,
+            currentStreak: Math.max(0, habit.currentStreak - 1),
+            totalCompletions: Math.max(0, habit.totalCompletions - 1)
+          };
+        }
+        return habit;
+      }));
+      
       const errorMessage = err instanceof Error ? err.message : 'Failed to complete habit';
       setError(errorMessage);
       throw new Error(errorMessage);

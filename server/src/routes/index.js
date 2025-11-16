@@ -7,6 +7,7 @@ import analyticsRoutes from './analytics.js';
 import aiRoutes from './ai.js';
 import communityRoutes from './community.js';
 import challengeRoutes from './challenges.js';
+import challengeRefreshRoutes from './challengeRefresh.js';
 import notificationRoutes from './notifications.js';
 
 const router = express.Router();
@@ -20,6 +21,7 @@ router.use('/analytics', analyticsRoutes);
 router.use('/ai', aiRoutes);
 router.use('/community', communityRoutes);
 router.use('/challenges', challengeRoutes);
+router.use('/challenge-refresh', challengeRefreshRoutes);
 router.use('/notifications', notificationRoutes);
 
 // API info endpoint
@@ -37,6 +39,7 @@ router.get('/', (req, res) => {
       ai: '/api/ai',
       community: '/api/community',
       challenges: '/api/challenges',
+      challengeRefresh: '/api/challenge-refresh',
       notifications: '/api/notifications'
     }
   });

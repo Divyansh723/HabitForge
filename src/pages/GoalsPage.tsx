@@ -260,7 +260,7 @@ const GoalsPage: React.FC = () => {
                 </Card>
                 <Card className="p-4 text-center">
                   <div className="text-2xl font-bold text-warning-600 dark:text-warning-400 mb-1">
-                    {Math.max(...habits.map((h: Habit) => h.currentStreak), 0)}
+                    {Math.max(...habits.map((h: Habit) => h.longestStreak), 0)}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     Longest Streak

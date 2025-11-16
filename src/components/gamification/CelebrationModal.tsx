@@ -7,6 +7,7 @@ import {
   type LevelUpResult 
 } from '@/utils/xpUtils';
 import { cn } from '@/utils/cn';
+import { celebrationPresets } from '@/utils/confetti';
 
 interface CelebrationModalProps {
   isOpen: boolean;
@@ -31,6 +32,11 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
     if (isOpen) {
       setShowConfetti(true);
       setCurrentRewardIndex(0);
+      
+      // Trigger confetti celebration
+      setTimeout(() => {
+        celebrationPresets.levelUp();
+      }, 100);
       
       // Auto-advance through rewards
       const interval = setInterval(() => {

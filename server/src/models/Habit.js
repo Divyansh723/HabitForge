@@ -212,13 +212,20 @@ habitSchema.methods.recalculateStats = async function() {
 };
 
 // Instance method to calculate streak
-habitSchema.methods.calculateStreak = async function() {
+habitSchema.methods.calculateStreak = async function(session = null) {
   const Completion = mongoose.model('Completion');
   
   // Get completions for this habit, sorted by date descending
-  const completions = await Completion.find({ 
+  // Use session if provided to see uncommitted changes in transaction
+  const query = Completion.find({ 
     habitId: this._id 
   }).sort({ completedAt: -1 });
+  
+  if (session) {
+    query.session(session);
+  }
+  
+  const completions = await query;
 
   if (completions.length === 0) {
     this.currentStreak = 0;

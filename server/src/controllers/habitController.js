@@ -169,32 +169,93 @@ export const updateHabit = async (req, res) => {
 
 // Delete a habit
 export const deleteHabit = async (req, res) => {
+  const session = await mongoose.startSession();
+  
   try {
-    const { habitId } = req.params;
-    const userId = req.user._id;
+    await session.withTransaction(async () => {
+      const { habitId } = req.params;
+      const userId = req.user._id;
 
-    const habit = await Habit.findOneAndDelete({ _id: habitId, userId });
+      const habit = await Habit.findOne({ _id: habitId, userId }).session(session);
 
-    if (!habit) {
-      return res.status(404).json({
-        success: false,
-        message: 'Habit not found'
+      if (!habit) {
+        throw new Error('Habit not found');
+      }
+
+      // Check if this is a challenge/community habit (exception - no XP refund)
+      const isChallengeHabit = habit.isChallengeHabit || false;
+
+      // Calculate days since habit creation
+      const createdDate = new Date(habit.createdAt);
+      const currentDate = new Date();
+      const daysSinceCreation = Math.floor((currentDate - createdDate) / (1000 * 60 * 60 * 24));
+
+      // If habit is less than 5 days old and NOT a challenge habit, refund XP
+      let xpRefunded = 0;
+      if (daysSinceCreation < 5 && !isChallengeHabit) {
+        // Get all completions for this habit
+        const completions = await Completion.find({ habitId }).session(session);
+        
+        // Calculate total XP earned from this habit
+        xpRefunded = completions.reduce((total, completion) => {
+          return total + (completion.xpEarned || 0);
+        }, 0);
+
+        if (xpRefunded > 0) {
+          // Deduct XP from user
+          const user = await User.findById(userId).session(session);
+          if (user) {
+            user.totalXP = Math.max(0, user.totalXP - xpRefunded);
+            await user.save({ session });
+
+            // Create negative XP transaction for audit trail
+            const xpTransaction = new XPTransaction({
+              userId,
+              amount: -xpRefunded,
+              source: 'habit_deletion_refund',
+              description: `XP refunded for deleting habit "${habit.name}" within 5 days`,
+              metadata: {
+                habitId: habit._id,
+                habitName: habit.name,
+                daysSinceCreation,
+                completionsCount: completions.length
+              }
+            });
+            await xpTransaction.save({ session });
+          }
+        }
+      }
+
+      // Delete all completions for this habit
+      await Completion.deleteMany({ habitId }).session(session);
+
+      // Delete the habit
+      await Habit.findByIdAndDelete(habitId).session(session);
+
+      res.json({
+        success: true,
+        message: 'Habit deleted successfully',
+        data: {
+          xpRefunded,
+          refundApplied: xpRefunded > 0,
+          reason: xpRefunded > 0 
+            ? `Refunded ${xpRefunded} XP (habit deleted within 5 days)` 
+            : isChallengeHabit 
+            ? 'No refund for challenge habits'
+            : daysSinceCreation >= 5
+            ? 'No refund (habit older than 5 days)'
+            : 'No XP to refund'
+        }
       });
-    }
-
-    // Also delete all completions for this habit
-    await Completion.deleteMany({ habitId });
-
-    res.json({
-      success: true,
-      message: 'Habit deleted successfully'
     });
   } catch (error) {
     console.error('Delete habit error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while deleting habit'
+      message: error.message || 'Internal server error while deleting habit'
     });
+  } finally {
+    session.endSession();
   }
 };
 
@@ -294,9 +355,26 @@ export const markComplete = async (req, res) => {
         throw new Error('Habit already completed for this date');
       }
 
-      // Update habit statistics first
+      // Update total completions count
       habit.totalCompletions += 1;
-      await habit.calculateStreak();
+
+      // Create completion FIRST so it's available for streak calculation
+      const completion = new Completion({
+        habitId,
+        userId,
+        completedAt: completionDate,
+        deviceTimezone: userTimezone,
+        xpEarned: 0, // Will be updated after streak calculation
+        notes,
+        mood,
+        difficulty,
+        duration
+      });
+      await completion.save({ session });
+
+      // NOW calculate streak with the new completion included
+      // Pass session so it can see the completion we just saved
+      await habit.calculateStreak(session);
       
       // Calculate consistency rate (last 30 days)
       const thirtyDaysAgo = new Date();
@@ -309,7 +387,6 @@ export const markComplete = async (req, res) => {
       }).session(session);
       
       habit.consistencyRate = Math.round((recentCompletions / 30) * 100);
-      await habit.save({ session });
 
       // Calculate XP with bonuses using the updated streak
       let baseXP = 10;
@@ -322,7 +399,7 @@ export const markComplete = async (req, res) => {
       if (habit.currentStreak >= 100) streakBonus += 20;
 
       // First completion bonus
-      if (habit.totalCompletions === 0) {
+      if (habit.totalCompletions === 1) {
         multiplier = 1.5;
       }
 
@@ -333,19 +410,12 @@ export const markComplete = async (req, res) => {
 
       const totalXP = Math.round((baseXP + streakBonus) * multiplier);
 
-      // Create completion
-      const completion = new Completion({
-        habitId,
-        userId,
-        completedAt: completionDate,
-        deviceTimezone: userTimezone,
-        xpEarned: totalXP,
-        notes,
-        mood,
-        difficulty,
-        duration
-      });
+      // Update completion with calculated XP
+      completion.xpEarned = totalXP;
       await completion.save({ session });
+
+      // Save habit with updated stats
+      await habit.save({ session });
 
       // Create XP transaction
       const xpTransaction = new XPTransaction({
@@ -387,6 +457,60 @@ export const markComplete = async (req, res) => {
       }
 
       await user.save({ session });
+
+      // Update personal challenge progress
+      const ChallengeParticipation = mongoose.model('ChallengeParticipation');
+      const PersonalChallenge = mongoose.model('PersonalChallenge');
+      
+      const activeParticipations = await ChallengeParticipation.find({
+        userId,
+        status: 'active'
+      }).session(session);
+
+      for (const participation of activeParticipations) {
+        const challenge = await PersonalChallenge.findById(participation.challengeId).session(session);
+        if (!challenge) continue;
+
+        // Update progress based on challenge type
+        if (challenge.requirements.type === 'streak') {
+          // For streak challenges, find the maximum streak among ALL user's habits
+          const allUserHabits = await Habit.find({ userId }).session(session);
+          const maxStreak = Math.max(...allUserHabits.map(h => h.currentStreak || 0));
+          participation.progress.current = maxStreak;
+        } else if (challenge.requirements.type === 'total_completions') {
+          // For completion challenges, count total completions since challenge start
+          const completionsSinceStart = await Completion.countDocuments({
+            userId,
+            completedAt: { $gte: participation.startDate }
+          }).session(session);
+          participation.progress.current = completionsSinceStart;
+        } else if (challenge.requirements.type === 'consistency') {
+          // For consistency challenges, calculate consistency percentage
+          const daysSinceStart = Math.ceil((new Date() - participation.startDate) / (1000 * 60 * 60 * 24));
+          const completionsSinceStart = await Completion.countDocuments({
+            userId,
+            completedAt: { $gte: participation.startDate }
+          }).session(session);
+          participation.progress.current = Math.round((completionsSinceStart / daysSinceStart) * 100);
+        }
+
+        // Check if challenge is completed
+        if (participation.progress.current >= participation.progress.target && participation.status === 'active') {
+          participation.status = 'completed';
+          participation.endDate = new Date();
+          participation.completionStats = {
+            daysToComplete: Math.ceil((new Date() - participation.startDate) / (1000 * 60 * 60 * 24)),
+            finalScore: participation.progress.current
+          };
+          participation.xpAwarded = challenge.xpReward;
+          
+          // Award XP for challenge completion
+          user.totalXP += challenge.xpReward;
+          await user.save({ session });
+        }
+
+        await participation.save({ session });
+      }
 
       // Update challenge progress if this is a challenge habit
       let challengeCompleted = false;

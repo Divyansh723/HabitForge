@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle, Circle, Zap } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { celebrationPresets } from '@/utils/confetti';
 
 interface CompletionButtonProps {
   habitId: string;
@@ -31,6 +32,11 @@ export const CompletionButton: React.FC<CompletionButtonProps> = ({
     if (showAnimation) {
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), 600);
+      
+      // Trigger confetti celebration
+      setTimeout(() => {
+        celebrationPresets.habitComplete();
+      }, 100);
     }
 
     onComplete(habitId);

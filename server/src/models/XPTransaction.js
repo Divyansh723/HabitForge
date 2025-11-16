@@ -24,7 +24,7 @@ const xpTransactionSchema = new mongoose.Schema({
   },
   source: {
     type: String,
-    enum: ['habit_completion', 'streak_bonus', 'achievement', 'challenge', 'level_bonus', 'daily_bonus', 'other'],
+    enum: ['habit_completion', 'streak_bonus', 'achievement', 'challenge', 'level_bonus', 'daily_bonus', 'habit_deletion_refund', 'other'],
     required: true
   },
   description: {

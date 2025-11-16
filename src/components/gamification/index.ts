@@ -8,3 +8,5 @@ export { Challenge } from './Challenge';
 export { Achievement } from './Achievement';
 export { ChallengeList } from './ChallengeList';
 export { AchievementGrid } from './AchievementGrid';
+export { HabitCompletionAnimation } from './HabitCompletionAnimation';
+export { ChallengeCompletionAnimation } from './ChallengeCompletionAnimation';

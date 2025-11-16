@@ -46,7 +46,7 @@ const calculateXPForLevel = (level) => {
 // Get user's gamification data
 export const getGamificationData = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     
     const user = await User.findById(userId).select('totalXP level forgivenessTokens');
     if (!user) {
@@ -98,7 +98,7 @@ export const addXP = async (req, res) => {
   
   try {
     await session.withTransaction(async () => {
-      const userId = req.user.id;
+      const userId = req.user._id;
       const { amount, source, description, habitId, metadata = {} } = req.body;
 
       if (!amount || amount <= 0) {
@@ -172,7 +172,7 @@ export const useForgivenessToken = async (req, res) => {
   
   try {
     await session.withTransaction(async () => {
-      const userId = req.user.id;
+      const userId = req.user._id;
       const { habitId, date, timezone = 'UTC' } = req.body;
 
       const user = await User.findById(userId).session(session);
@@ -231,7 +231,7 @@ export const useForgivenessToken = async (req, res) => {
 // Get XP transactions history
 export const getXPHistory = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     const { page = 1, limit = 20, source } = req.query;
     
     const query = { userId };
@@ -271,7 +271,7 @@ export const getXPHistory = async (req, res) => {
 // Get user achievements with progress
 export const getAchievements = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     
     // Get user data for progress calculation
     const [user, habits, completions] = await Promise.all([
@@ -536,7 +536,7 @@ export const getChallenges = async (req, res) => {
 // Get user's challenge participations
 export const getChallengeParticipations = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     
     // Get user's challenge participations from user document
     const user = await User.findById(userId).select('challengeParticipations');
@@ -561,7 +561,7 @@ export const joinChallenge = async (req, res) => {
   
   try {
     await session.withTransaction(async () => {
-      const userId = req.user.id;
+      const userId = req.user._id;
       const { challengeId } = req.body;
 
       if (!challengeId) {
@@ -632,7 +632,7 @@ export const leaveChallenge = async (req, res) => {
   
   try {
     await session.withTransaction(async () => {
-      const userId = req.user.id;
+      const userId = req.user._id;
       const { challengeId } = req.body;
 
       if (!challengeId) {
@@ -680,7 +680,7 @@ export const updateChallengeProgress = async (req, res) => {
   
   try {
     await session.withTransaction(async () => {
-      const userId = req.user.id;
+      const userId = req.user._id;
       const { challengeId, progress } = req.body;
 
       const user = await User.findById(userId).session(session);

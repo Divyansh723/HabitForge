@@ -143,6 +143,16 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
     }
   ];
 
+  // Calculate actual counts from recommendations that will be displayed
+  // Only count recommendations that have a matching type in recommendationTypes
+  const visibleRecommendations = recommendationTypes
+    .filter(type => groupedRecommendations[type.key] && groupedRecommendations[type.key].length > 0)
+    .flatMap(type => groupedRecommendations[type.key]);
+  
+  const totalCount = visibleRecommendations.length;
+  const highImpactCount = visibleRecommendations.filter(r => r.expectedImpact === 'high').length;
+  const easyCount = visibleRecommendations.filter(r => r.difficulty === 'easy').length;
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -164,7 +174,7 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-              {insights.habitRecommendations.length}
+              {totalCount}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
               Total Recommendations
@@ -172,7 +182,7 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
-              {insights.habitRecommendations.filter(r => r.expectedImpact === 'high').length}
+              {highImpactCount}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
               High Impact
@@ -180,7 +190,7 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-              {insights.habitRecommendations.filter(r => r.difficulty === 'easy').length}
+              {easyCount}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
               Easy to Implement
