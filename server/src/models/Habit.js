@@ -46,6 +46,14 @@ const habitSchema = new mongoose.Schema({
     type: String,
     match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format. Use HH:MM']
   },
+  reminderTimeUTC: {
+    type: String,
+    match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format. Use HH:MM']
+  },
+  reminderTimezone: {
+    type: String,
+    default: 'UTC'
+  },
   reminderEnabled: {
     type: Boolean,
     default: false

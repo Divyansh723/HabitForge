@@ -88,23 +88,24 @@ export const sendHabitReminders = async () => {
       }
 
       // Get user's habits
-      const habits = await Habit.find({ userId: user._id, softDeleted: false });
+      const habits = await Habit.find({ userId: user._id, active: true, archived: false });
       console.log(`User ${user.email}: found ${habits.length} active habits`);
 
       for (const habit of habits) {
-        // Skip if habit doesn't have a reminder time
-        if (!habit.reminderTime) {
+        // Skip if habit doesn't have reminders enabled or no reminder time
+        if (!habit.reminderEnabled || !habit.reminderTime) {
           continue;
         }
 
         // Check if it's time for this habit's reminder
-        // Always use UTC time to ensure consistency regardless of server location
+        // The reminder time is stored as local time and should trigger at that same local time
+        // regardless of the user's current timezone
         const nowUTC = new Date();
         const userTimezone = user.timezone || 'UTC';
         const zonedNow = utcToZonedTime(nowUTC, userTimezone);
         const currentTime = formatInTimeZone(nowUTC, userTimezone, 'HH:mm');
 
-        console.log(`Habit "${habit.name}": reminderTime=${habit.reminderTime}, currentTime=${currentTime}`);
+        console.log(`Habit "${habit.name}": reminderTime=${habit.reminderTime}, currentTime=${currentTime}, userTimezone=${userTimezone}`);
 
         if (habit.reminderTime !== currentTime) {
           continue;
@@ -166,7 +167,7 @@ export const checkStreakMilestones = async () => {
         continue;
       }
 
-      const habits = await Habit.find({ userId: user._id, softDeleted: false });
+      const habits = await Habit.find({ userId: user._id, active: true, archived: false });
 
       for (const habit of habits) {
         if (milestones.includes(habit.currentStreak)) {
@@ -225,8 +226,8 @@ export const sendDailySummary = async () => {
       const todayEnd = endOfDay(zonedNow);
 
       // Get today's completions
-      const habits = await Habit.find({ userId: user._id, softDeleted: false });
-      
+      const habits = await Habit.find({ userId: user._id, active: true, archived: false });
+
       // Only send if user has habits
       if (habits.length === 0) {
         continue;
@@ -292,8 +293,8 @@ export const sendWeeklyInsights = async () => {
       const weekEnd = endOfWeek(zonedNow, { weekStartsOn: 1 });
 
       // Get this week's data
-      const habits = await Habit.find({ userId: user._id, softDeleted: false });
-      
+      const habits = await Habit.find({ userId: user._id, active: true, archived: false });
+
       // Only send if user has habits
       if (habits.length === 0) {
         continue;
@@ -396,7 +397,7 @@ export const sendChallengeUpdates = async () => {
         // User has both personal and community challenges
         const challenge = activeChallenges[0];
         const daysLeft = Math.ceil((new Date(challenge.endDate) - new Date()) / (1000 * 60 * 60 * 24));
-        
+
         await createNotification(
           user._id,
           'challenge_update',
@@ -572,7 +573,7 @@ export const sendTipsAndTricks = async () => {
       }
 
       // Only send tips to users who have habits (tips are about habit-building)
-      const habits = await Habit.find({ userId: user._id, softDeleted: false });
+      const habits = await Habit.find({ userId: user._id, active: true, archived: false });
       if (habits.length === 0) {
         continue;
       }

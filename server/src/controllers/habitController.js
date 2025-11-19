@@ -82,6 +82,15 @@ export const createHabit = async (req, res) => {
       userId
     };
 
+    // Store reminder time fields for timezone-independent behavior
+    if (habitData.reminderTime && habitData.reminderEnabled) {
+      // reminderTime is the local time the user wants (e.g., "06:00")
+      // We store it as-is and also save it in reminderTimeUTC
+      // This allows the time to stay consistent across timezone changes
+      habitData.reminderTimeUTC = habitData.reminderTime;
+      habitData.reminderTimezone = req.user.timezone || 'UTC';
+    }
+
     const habit = new Habit(habitData);
     await habit.save();
 
@@ -126,6 +135,14 @@ export const updateHabit = async (req, res) => {
     delete updates.totalCompletions;
     delete updates.currentStreak;
     delete updates.longestStreak;
+
+    // Handle reminder time updates for timezone-independent behavior
+    if (updates.reminderTime && updates.reminderEnabled) {
+      // reminderTime is the local time the user wants (e.g., "06:00")
+      // We store it as-is and also save it in reminderTimeUTC
+      updates.reminderTimeUTC = updates.reminderTime;
+      updates.reminderTimezone = req.user.timezone || 'UTC';
+    }
 
     const habit = await Habit.findOneAndUpdate(
       { _id: habitId, userId },

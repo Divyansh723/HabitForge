@@ -4,11 +4,13 @@ import { Button, Input, Card } from '@/components/ui';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useCircleDetails } from '@/hooks/useCommunity';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserTimezone } from '@/hooks/useUserTimezone';
 import communityService from '@/services/communityService';
 import { CreateAnnouncementModal } from './CreateAnnouncementModal';
 import { CreateChallengeModal } from './CreateChallengeModal';
 import { RemoveMemberModal } from './RemoveMemberModal';
 import { EditCircleModal } from './EditCircleModal';
+import { formatInUserTimezone } from '@/utils/timezoneUtils';
 import { cn } from '@/utils/cn';
 
 interface CircleDetailsProps {
@@ -23,6 +25,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
   className
 }) => {
   const { user } = useAuth();
+  const userTimezone = useUserTimezone();
   const {
     circle,
     leaderboard,
@@ -469,7 +472,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
               </div>
             ) : (
               <div className="space-y-4">
-                {circle.messages.map((message) => {
+                {circle.messages.map((message, index) => {
                   // Get user name and ID from populated userId field or fallback
                   const userName = typeof message.userId === 'object' && message.userId?.name
                     ? message.userId.name
@@ -504,9 +507,39 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
                     ? null // Will use Tailwind classes for own messages
                     : getUserColor(messageUserId);
                   
+                  // Check if we need to show a date separator
+                  const currentMessageDate = new Date(message.createdAt);
+                  const previousMessage = index > 0 ? circle.messages[index - 1] : null;
+                  const previousMessageDate = previousMessage ? new Date(previousMessage.createdAt) : null;
+                  const showDateSeparator = !previousMessageDate || 
+                    currentMessageDate.toDateString() !== previousMessageDate.toDateString();
+                  
+                  const getDateSeparatorText = (date: Date) => {
+                    const today = new Date();
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    
+                    if (date.toDateString() === today.toDateString()) {
+                      return 'Today';
+                    } else if (date.toDateString() === yesterday.toDateString()) {
+                      return 'Yesterday';
+                    } else {
+                      return formatInUserTimezone(date, userTimezone, 'date');
+                    }
+                  };
+                  
                   return (
+                  <React.Fragment key={message._id}>
+                    {showDateSeparator && (
+                      <div className="flex items-center justify-center my-4">
+                        <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                        <span className="px-4 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-full py-1">
+                          {getDateSeparatorText(currentMessageDate)}
+                        </span>
+                        <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                      </div>
+                    )}
                   <div
-                    key={message._id}
                     className={cn(
                       "flex gap-3",
                       isOwnMessage ? "flex-row-reverse justify-start" : "flex-row justify-start"
@@ -539,7 +572,22 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
                           {isOwnMessage ? 'You' : userName}
                         </span>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {new Date(message.createdAt).toLocaleTimeString()}
+                          {(() => {
+                            const messageDate = new Date(message.createdAt);
+                            const today = new Date();
+                            const isToday = messageDate.toDateString() === today.toDateString();
+                            const yesterday = new Date(today);
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            const isYesterday = messageDate.toDateString() === yesterday.toDateString();
+                            
+                            if (isToday) {
+                              return formatInUserTimezone(message.createdAt, userTimezone, 'time');
+                            } else if (isYesterday) {
+                              return `Yesterday, ${formatInUserTimezone(message.createdAt, userTimezone, 'time')}`;
+                            } else {
+                              return formatInUserTimezone(message.createdAt, userTimezone, 'short');
+                            }
+                          })()}
                         </span>
                         {!isOwnMessage && (
                           <button
@@ -576,6 +624,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
                       )}
                     </div>
                   </div>
+                  </React.Fragment>
                   );
                 })}
                 <div ref={messagesEndRef} />
@@ -804,7 +853,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
 
                           {/* Dates */}
                           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                            <span>{startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}</span>
+                            <span>{formatInUserTimezone(startDate, userTimezone, 'date')} - {formatInUserTimezone(endDate, userTimezone, 'date')}</span>
                           </div>
 
                           {/* User Progress */}
@@ -956,7 +1005,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
                           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                             <span>Posted by {createdBy}</span>
                             <span>•</span>
-                            <span>{createdAt.toLocaleDateString()} at {createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span>{formatInUserTimezone(createdAt, userTimezone, 'short')}</span>
                           </div>
                         </div>
 
@@ -1059,7 +1108,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
                             )}
                           </div>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Joined {new Date(member.joinedAt).toLocaleDateString()}
+                            Joined {formatInUserTimezone(member.joinedAt, userTimezone, 'date')}
                           </p>
                         </div>
                       </div>

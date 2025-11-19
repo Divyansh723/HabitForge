@@ -11,8 +11,6 @@ import { Button, Card, Badge, ConfirmDialog } from '@/components/ui';
 import { CompletionButton } from './CompletionButton';
 import { type Habit } from '@/types/habit';
 import { cn } from '@/utils/cn';
-// import { getCurrentDateInTimezone } from '@/utils/dateUtils';
-// import { getUserTimezone } from '@/utils/timezoneUtils';
 
 interface HabitCardProps {
   habit: Habit;
@@ -45,7 +43,6 @@ export const HabitCard: React.FC<HabitCardProps> = ({
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  // const timezone = userTimezone || getUserTimezone();
 
   const handleComplete = (_habitId?: string) => {
     if (!canComplete || isCompletedToday || !onComplete) return;

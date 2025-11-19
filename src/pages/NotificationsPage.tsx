@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Bell, Check, CheckCheck, Trash2, Filter, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, Button, Badge, ConfirmDialog } from '@/components/ui';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useUserTimezone } from '@/hooks/useUserTimezone';
 import { Notification, NotificationFilters } from '@/types/notification';
-import { formatDistanceToNow } from 'date-fns';
+import { formatInUserTimezone } from '@/utils/timezoneUtils';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 
@@ -41,6 +42,7 @@ const notificationTypeIcons: Record<string, string> = {
 
 const NotificationsPage: React.FC = () => {
     const navigate = useNavigate();
+    const userTimezone = useUserTimezone();
     const {
         notifications,
         unreadCount,
@@ -346,9 +348,7 @@ const NotificationsPage: React.FC = () => {
                                                         ? "text-gray-700 dark:text-gray-300 font-medium"
                                                         : "text-gray-500 dark:text-gray-500"
                                                 )}>
-                                                    {formatDistanceToNow(new Date(notification.createdAt), {
-                                                        addSuffix: true,
-                                                    })}
+                                                    {formatInUserTimezone(notification.createdAt, userTimezone, 'relative')}
                                                 </span>
                                                 {!notification.read && (
                                                     <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-semibold">
