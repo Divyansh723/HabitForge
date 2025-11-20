@@ -58,10 +58,12 @@ export const autoUseForgivenessTokens = async () => {
       
       try {
         await session.withTransaction(async () => {
-          // Get user's active habits with streaks
+          // Get user's active DAILY habits with streaks
+          // Only daily habits can use forgiveness tokens
           const habits = await Habit.find({
             userId: user._id,
             active: true,
+            frequency: 'daily', // Only daily habits
             currentStreak: { $gt: 0 } // Only protect habits with active streaks
           }).session(session);
 
@@ -105,12 +107,27 @@ export const autoUseForgivenessTokens = async () => {
           // Sort by streak length (protect longest streaks first)
           habitsNeedingForgiveness.sort((a, b) => b.currentStreak - a.currentStreak);
 
+          // Find the longest streak
+          const longestStreak = habitsNeedingForgiveness[0].currentStreak;
+          
+          // Get all habits with the longest streak
+          const habitsWithLongestStreak = habitsNeedingForgiveness.filter(
+            habit => habit.currentStreak === longestStreak
+          );
+
+          // If multiple habits have the same longest streak, select one randomly
+          const selectedHabit = habitsWithLongestStreak.length > 1
+            ? habitsWithLongestStreak[Math.floor(Math.random() * habitsWithLongestStreak.length)]
+            : habitsWithLongestStreak[0];
+
+          logger.info(`Selected habit "${selectedHabit.name}" with ${selectedHabit.currentStreak}-day streak (${habitsWithLongestStreak.length} habits had longest streak)`);
+
           const protectedHabits = [];
           let tokensAvailable = user.forgivenessTokens;
 
-          // Use tokens for habits (prioritize longest streaks)
-          for (const habit of habitsNeedingForgiveness) {
-            if (tokensAvailable <= 0) break;
+          // Use only 1 token maximum per day for the selected habit
+          const habit = selectedHabit;
+          if (tokensAvailable > 0) {
 
             // Create forgiveness completion
             const completion = new Completion({
@@ -120,7 +137,13 @@ export const autoUseForgivenessTokens = async () => {
               deviceTimezone: user.timezone || 'UTC',
               xpEarned: 5, // Less XP for auto-forgiveness
               forgivenessUsed: true,
-              editedFlag: true
+              editedFlag: true,
+              metadata: {
+                forgivenessUsedAt: new Date(),
+                forgivenessTimezone: user.timezone || 'UTC',
+                daysLate: 0,
+                autoForgiveness: true
+              }
             });
             await completion.save({ session });
 
@@ -160,20 +183,18 @@ export const autoUseForgivenessTokens = async () => {
           user.forgivenessTokens = tokensAvailable;
           await user.save({ session });
 
-          // Send notification if any habits were protected
+          // Send notification if habit was protected
           if (protectedHabits.length > 0) {
-            const habitsList = protectedHabits
-              .map(h => `${h.name} (${h.streak}-day streak)`)
-              .join(', ');
+            const habit = protectedHabits[0];
 
             const notification = new Notification({
               userId: user._id,
               type: 'system',
-              title: '🛡️ Streaks Protected!',
-              message: `We automatically used ${protectedHabits.length} forgiveness token${protectedHabits.length > 1 ? 's' : ''} to protect your streaks: ${habitsList}`,
+              title: '🛡️ Streak Protected!',
+              message: `We automatically used 1 forgiveness token to protect your longest streak: ${habit.name} (${habit.streak}-day streak)`,
               metadata: {
-                tokensUsed: protectedHabits.length,
-                habitsProtected: protectedHabits,
+                tokensUsed: 1,
+                habitProtected: habit,
                 remainingTokens: tokensAvailable
               },
               priority: 'medium'
@@ -181,7 +202,7 @@ export const autoUseForgivenessTokens = async () => {
             await notification.save({ session });
             notificationsSent++;
 
-            logger.info(`Sent notification to user ${user._id} about ${protectedHabits.length} protected habits`);
+            logger.info(`Sent notification to user ${user._id} about protected habit: ${habit.name}`);
           }
         });
       } catch (error) {

@@ -30,6 +30,7 @@ const AnalyticsPage: React.FC = () => {
   const getHabitCompletions = habitsHook?.getHabitCompletions || (() => Promise.resolve([]));
   const gamification = useGamification();
   const totalXP = gamification?.totalXP || 0;
+  const forgivenessTokensFromStore = gamification?.forgivenessTokens || 0;
   const getLevelInfo = gamification?.getLevelInfo || (() => ({ currentLevel: 1, xpForCurrentLevel: 0, xpForNextLevel: 100, progressPercentage: 0 }));
   const analyticsHook = useAnalytics();
   const trendData = analyticsHook?.trendData || [];
@@ -47,9 +48,106 @@ const AnalyticsPage: React.FC = () => {
   const [timeRange, setTimeRange] = useState('30');
   const [selectedHabit, setSelectedHabit] = useState('all');
   const [allCompletions, setAllCompletions] = useState<Completion[]>([]);
+  
+  // Use forgiveness tokens from gamification store
+  const forgivenessTokens = forgivenessTokensFromStore;
 
-  const stats = getTotalStats();
+  // Get stats - filter by selected habit if not 'all'
+  const stats = selectedHabit === 'all' 
+    ? getTotalStats() 
+    : (() => {
+        const habit = habits.find(h => h.id === selectedHabit);
+        return habit ? {
+          averageConsistency: habit.consistencyRate,
+          longestStreak: habit.longestStreak,
+          totalCompletions: habit.totalCompletions
+        } : { averageConsistency: 0, longestStreak: 0, totalCompletions: 0 };
+      })();
+  
   const levelInfo = getLevelInfo();
+  
+  // Filter weekly summary by selected habit
+  const filteredWeeklySummary = selectedHabit === 'all' || !weeklySummary
+    ? weeklySummary
+    : {
+        ...weeklySummary,
+        completions: weeklySummary.completions.filter(c => c.habitId === selectedHabit),
+        totalHabits: 1 // Only counting the selected habit
+      };
+  
+  // Calculate filtered trend data for selected habit
+  const filteredTrendData = React.useMemo(() => {
+    if (selectedHabit === 'all' || !trendData || trendData.length === 0) {
+      return trendData;
+    }
+    
+    // Calculate completion rate for selected habit over the time range
+    const days = parseInt(timeRange);
+    const filteredCompletions = allCompletions.filter(c => c.habitId === selectedHabit);
+    
+    // Group completions by date
+    const completionsByDate = new Map<string, number>();
+    filteredCompletions.forEach(completion => {
+      const date = new Date(completion.completedAt).toISOString().split('T')[0];
+      completionsByDate.set(date, (completionsByDate.get(date) || 0) + 1);
+    });
+    
+    // Generate data points for each day
+    const result = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const completed = completionsByDate.get(dateStr) || 0;
+      
+      result.push({
+        date: dateStr,
+        value: completed > 0 ? 100 : 0, // 100% if completed, 0% if not
+        label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      });
+    }
+    
+    return result;
+  }, [selectedHabit, trendData, allCompletions, timeRange]);
+
+  // Handle forgiveness token usage
+  const handleForgivenessUsed = async () => {
+    try {
+      // Refresh habits data
+      if (habitsHook?.fetchHabits) {
+        await habitsHook.fetchHabits();
+      }
+      
+      // Refresh gamification data (XP, tokens, level)
+      // This will automatically update forgivenessTokens from the server
+      if (gamification?.fetchGamificationData) {
+        await gamification.fetchGamificationData();
+      }
+      
+      // Refresh completions
+      const fetchAllCompletions = async () => {
+        if (habits.length === 0) return;
+        
+        const completionsPromises = habits.map(habit => 
+          getHabitCompletions(habit.id, 60).catch(() => ({ data: { completions: [] } }))
+        );
+        
+        const completionsResponses = await Promise.all(completionsPromises);
+        const allCompletionsData = completionsResponses.flatMap(response => {
+          if (response && typeof response === 'object' && 'data' in response) {
+            return response.data?.completions || [];
+          }
+          return Array.isArray(response) ? response : [];
+        });
+        
+        setAllCompletions(allCompletionsData);
+      };
+      
+      await fetchAllCompletions();
+    } catch (error) {
+      console.error('Error refreshing data after forgiveness:', error);
+    }
+  };
 
   // Fetch data when component mounts or timeRange changes
   useEffect(() => {
@@ -313,10 +411,13 @@ const AnalyticsPage: React.FC = () => {
               <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-2 lg:order-1">
                 {/* Trend Graph */}
                 <TrendGraph
-                  data={trendData}
-                  title="Consistency Trend"
-                  subtitle={`Your completion rate over the last ${timeRange} days`}
-                  color="#3B82F6"
+                  data={filteredTrendData}
+                  title={selectedHabit === 'all' ? "Consistency Trend" : `${habits.find(h => h.id === selectedHabit)?.name || 'Habit'} - Consistency Trend`}
+                  subtitle={selectedHabit === 'all' 
+                    ? `Your completion rate over the last ${timeRange} days`
+                    : `Completion history over the last ${timeRange} days`
+                  }
+                  color={selectedHabit === 'all' ? '#3B82F6' : habits.find(h => h.id === selectedHabit)?.color || '#3B82F6'}
                   height={300}
                   showTrend
                   showGrid
@@ -324,12 +425,21 @@ const AnalyticsPage: React.FC = () => {
 
                 {/* Weekly Summary */}
                 <ErrorBoundary>
-                  {weeklySummary ? (
-                    <WeeklySummary
-                      completions={weeklySummary.completions || []}
-                      totalHabits={weeklySummary.totalHabits || 0}
-                      showInsights
-                    />
+                  {filteredWeeklySummary ? (
+                    <>
+                      {console.log('[AnalyticsPage] Passing to WeeklySummary:', {
+                        completions: filteredWeeklySummary.completions?.length,
+                        totalHabits: filteredWeeklySummary.totalHabits,
+                        dailyHabitCounts: filteredWeeklySummary.dailyHabitCounts,
+                        dailyHabitCountsKeys: Object.keys(filteredWeeklySummary.dailyHabitCounts || {})
+                      })}
+                      <WeeklySummary
+                        completions={filteredWeeklySummary.completions || []}
+                        totalHabits={filteredWeeklySummary.totalHabits || 0}
+                        dailyHabitCounts={filteredWeeklySummary.dailyHabitCounts}
+                        showInsights
+                      />
+                    </>
                   ) : (
                     <Card className="p-6">
                       <div className="animate-pulse space-y-4">
@@ -349,12 +459,25 @@ const AnalyticsPage: React.FC = () => {
                       : allCompletions.filter(c => c.habitId === selectedHabit)
                   }
                   month={new Date()}
+                  habitId={selectedHabit === 'all' ? undefined : selectedHabit}
                   habitName={selectedHabit === 'all' ? undefined : habits.find(h => h.id === selectedHabit)?.name}
                   habitColor={
                     selectedHabit === 'all' 
                       ? '#3B82F6' 
                       : habits.find(h => h.id === selectedHabit)?.color || '#3B82F6'
                   }
+                  habitFrequency={
+                    selectedHabit === 'all' 
+                      ? undefined 
+                      : habits.find(h => h.id === selectedHabit)?.frequency || 'daily'
+                  }
+                  currentStreak={
+                    selectedHabit === 'all' 
+                      ? 0 
+                      : habits.find(h => h.id === selectedHabit)?.currentStreak || 0
+                  }
+                  forgivenessTokens={forgivenessTokens}
+                  onForgivenessUsed={handleForgivenessUsed}
                   showLegend
                 />
               </div>
@@ -467,10 +590,13 @@ const AnalyticsPage: React.FC = () => {
         {activeView === 'trends' && (
           <div className="space-y-6">
             <TrendGraph
-              data={trendData}
-              title="Detailed Trend Analysis"
-              subtitle={`Comprehensive view of your habit completion trends over ${timeRange} days`}
-              color="#3B82F6"
+              data={filteredTrendData}
+              title={selectedHabit === 'all' ? "Detailed Trend Analysis" : `${habits.find(h => h.id === selectedHabit)?.name || 'Habit'} - Detailed Trend Analysis`}
+              subtitle={selectedHabit === 'all'
+                ? `Comprehensive view of your habit completion trends over ${timeRange} days`
+                : `Detailed completion history over ${timeRange} days`
+              }
+              color={selectedHabit === 'all' ? '#3B82F6' : habits.find(h => h.id === selectedHabit)?.color || '#3B82F6'}
               height={400}
               showTrend
               showGrid
@@ -478,10 +604,11 @@ const AnalyticsPage: React.FC = () => {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ErrorBoundary>
-                {weeklySummary ? (
+                {filteredWeeklySummary ? (
                   <WeeklySummary
-                    completions={weeklySummary.completions || []}
-                    totalHabits={weeklySummary.totalHabits || 0}
+                    completions={filteredWeeklySummary.completions || []}
+                    totalHabits={filteredWeeklySummary.totalHabits || 0}
+                    dailyHabitCounts={filteredWeeklySummary.dailyHabitCounts}
                     showInsights
                   />
                 ) : (
@@ -502,12 +629,25 @@ const AnalyticsPage: React.FC = () => {
                     : allCompletions.filter(c => c.habitId === selectedHabit)
                 }
                 month={new Date()}
+                habitId={selectedHabit === 'all' ? undefined : selectedHabit}
                 habitName={selectedHabit === 'all' ? undefined : habits.find(h => h.id === selectedHabit)?.name}
                 habitColor={
                   selectedHabit === 'all' 
                     ? '#3B82F6' 
                     : habits.find(h => h.id === selectedHabit)?.color || '#3B82F6'
                 }
+                habitFrequency={
+                  selectedHabit === 'all' 
+                    ? undefined 
+                    : habits.find(h => h.id === selectedHabit)?.frequency || 'daily'
+                }
+                currentStreak={
+                  selectedHabit === 'all' 
+                    ? 0 
+                    : habits.find(h => h.id === selectedHabit)?.currentStreak || 0
+                }
+                forgivenessTokens={forgivenessTokens}
+                onForgivenessUsed={handleForgivenessUsed}
                 showLegend
               />
             </div>

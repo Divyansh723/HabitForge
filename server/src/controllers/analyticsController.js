@@ -1,6 +1,7 @@
 import { Habit, Completion } from '../models/index.js';
 import XPTransaction from '../models/XPTransaction.js';
 import mongoose from 'mongoose';
+import { getDisplayableHabitsForDate } from '../utils/habitFiltering.js';
 
 // Get user analytics overview
 export const getAnalyticsOverview = async (req, res) => {
@@ -131,17 +132,107 @@ export const getWeeklySummary = async (req, res) => {
   try {
     const userId = req.user.id;
     
-    // Get last 7 days
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 7);
+    // Get current week (Monday to Sunday)
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday, go back 6 days; otherwise go back (dayOfWeek - 1) days
+    
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() - daysFromMonday);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6); // Sunday
+    endDate.setHours(23, 59, 59, 999);
 
-    // Get user's active habits count
+    // Get ALL user habits (not just active ones)
+    // We need to check which ones existed on each historical date
+    const allHabits = await Habit.find({ 
+      userId,
+      softDeleted: { $ne: true } // Exclude soft-deleted habits
+    });
+
+    // Build dailyHabitCounts for each day in the range
+    const dailyHabitCounts = {};
+    const currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate) {
+      const dateKey = currentDate.toISOString().split('T')[0];
+      
+      // Create a clean date for comparison (start of day)
+      const checkDate = new Date(currentDate);
+      checkDate.setHours(0, 0, 0, 0);
+      
+      // Count habits that existed on this specific date
+      const habitsOnThisDay = allHabits.filter(habit => {
+        // Get the date the habit was created (normalize to start of day in UTC)
+        const habitCreatedDate = new Date(habit.createdAt);
+        const habitCreatedDateOnly = new Date(Date.UTC(
+          habitCreatedDate.getUTCFullYear(),
+          habitCreatedDate.getUTCMonth(),
+          habitCreatedDate.getUTCDate()
+        ));
+        
+        // Get the check date (normalize to start of day in UTC)
+        const checkDateOnly = new Date(Date.UTC(
+          checkDate.getUTCFullYear(),
+          checkDate.getUTCMonth(),
+          checkDate.getUTCDate()
+        ));
+        
+        // Habit must have been created on or before this date
+        // Compare timestamps to avoid any date comparison issues
+        if (habitCreatedDateOnly.getTime() > checkDateOnly.getTime()) {
+          return false;
+        }
+        
+        // If habit is inactive, check if it was deactivated after this date
+        if (!habit.active) {
+          const habitUpdatedDate = new Date(habit.updatedAt);
+          const habitUpdatedDateOnly = new Date(Date.UTC(
+            habitUpdatedDate.getUTCFullYear(),
+            habitUpdatedDate.getUTCMonth(),
+            habitUpdatedDate.getUTCDate()
+          ));
+          
+          // If habit was deactivated before or on this date, don't count it
+          if (habitUpdatedDateOnly.getTime() <= checkDateOnly.getTime()) {
+            return false;
+          }
+        }
+        
+        return true;
+      });
+      
+      // Filter by frequency - only count DAILY habits for the weekly summary
+      // Weekly and custom habits are excluded from daily progress tracking
+      const relevantHabitsForDay = habitsOnThisDay.filter(habit => {
+        // Only count daily habits
+        return habit.frequency === 'daily';
+      });
+      
+      dailyHabitCounts[dateKey] = relevantHabitsForDay.length;
+      
+      // Always log for debugging (remove after fix is confirmed)
+      console.log(`[getWeeklySummary] Setting dailyHabitCounts['${dateKey}'] = ${relevantHabitsForDay.length}`);
+      relevantHabitsForDay.forEach(h => {
+        const createdDate = new Date(h.createdAt);
+        const dayOfWeek = checkDate.getDay();
+        const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayOfWeek];
+        const customDays = h.frequency === 'custom' ? (h.customFrequency?.daysOfWeek || []).map(d => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d]).join(',') : 'N/A';
+        console.log(`  - ${h.name} (freq: ${h.frequency}, customDays: [${customDays}], created: ${createdDate.toISOString().split('T')[0]}, checkDay: ${dayName})`);
+      });
+      
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Get current active habits count for reference
     const totalHabits = await Habit.countDocuments({ userId, active: true });
 
     // Get completions for the week
     const completions = await Completion.find({
       userId,
-      completedAt: { $gte: startDate }
+      completedAt: { $gte: startDate, $lte: endDate }
     }).populate('habitId', 'name category');
 
     // Transform completions to match frontend expectations
@@ -156,32 +247,68 @@ export const getWeeklySummary = async (req, res) => {
       createdAt: completion.createdAt
     }));
 
-    // Calculate weekly stats
-    const totalCompletions = completions.length;
-    const averageCompletionRate = totalHabits > 0 ? Math.round((totalCompletions / (totalHabits * 7)) * 100) : 0;
+    // Calculate weekly stats using historical counts
+    let totalCompletionsCount = 0;
+    let totalPossible = 0;
     
-    // Find best and worst days
+    Object.keys(dailyHabitCounts).forEach(dateKey => {
+      const habitsOnDay = dailyHabitCounts[dateKey];
+      totalPossible += habitsOnDay;
+      
+      const dayCompletions = completions.filter(c => {
+        const cDate = new Date(c.completedAt);
+        return cDate.toISOString().split('T')[0] === dateKey;
+      });
+      
+      const uniqueHabitsCompleted = new Set(dayCompletions.map(c => c.habitId.toString())).size;
+      totalCompletionsCount += uniqueHabitsCompleted;
+    });
+    
+    const averageCompletionRate = totalPossible > 0 
+      ? Math.round((totalCompletionsCount / totalPossible) * 100) 
+      : 0;
+    
+    // Find best and worst days using historical counts
     const dailyStats = {};
-    completions.forEach(completion => {
-      const day = completion.completedAt.toDateString();
-      dailyStats[day] = (dailyStats[day] || 0) + 1;
+    Object.keys(dailyHabitCounts).forEach(dateKey => {
+      const dayCompletions = completions.filter(c => {
+        const cDate = new Date(c.completedAt);
+        return cDate.toISOString().split('T')[0] === dateKey;
+      });
+      
+      const uniqueHabitsCompleted = new Set(dayCompletions.map(c => c.habitId.toString())).size;
+      const habitsOnDay = dailyHabitCounts[dateKey];
+      const percentage = habitsOnDay > 0 ? (uniqueHabitsCompleted / habitsOnDay) * 100 : 0;
+      
+      dailyStats[dateKey] = {
+        count: uniqueHabitsCompleted,
+        total: habitsOnDay,
+        percentage
+      };
     });
     
     const days = Object.keys(dailyStats);
     const bestDay = days.reduce((best, day) => 
-      dailyStats[day] > (dailyStats[best] || 0) ? day : best, 'Monday'
+      dailyStats[day].percentage > (dailyStats[best]?.percentage || 0) ? day : best, 
+      days[0] || 'Monday'
     );
     const worstDay = days.reduce((worst, day) => 
-      dailyStats[day] < (dailyStats[worst] || Infinity) ? day : worst, 'Sunday'
+      dailyStats[day].percentage < (dailyStats[worst]?.percentage || 100) ? day : worst, 
+      days[0] || 'Sunday'
     );
 
+    console.log('[getWeeklySummary] Sending response with dailyHabitCounts:', JSON.stringify(dailyHabitCounts));
+    console.log('[getWeeklySummary] Date range:', startDate.toISOString().split('T')[0], 'to', endDate.toISOString().split('T')[0]);
+    console.log('[getWeeklySummary] Keys in dailyHabitCounts:', Object.keys(dailyHabitCounts));
+    
     res.json({
       success: true,
       data: {
         completions: transformedCompletions,
-        totalHabits,
+        totalHabits, // Current active habits count
+        dailyHabitCounts, // Historical habit counts per day
         weeklyStats: {
-          totalCompletions,
+          totalCompletions: completions.length,
           averageCompletionRate,
           bestDay: new Date(bestDay).toLocaleDateString('en-US', { weekday: 'long' }),
           worstDay: new Date(worstDay).toLocaleDateString('en-US', { weekday: 'long' })
@@ -222,6 +349,29 @@ export const getHabitPerformance = async (req, res) => {
       const completionRate = Math.round((habitCompletions.length / totalPossibleDays) * 100);
       const totalXP = habitCompletions.reduce((sum, c) => sum + c.xpEarned, 0);
 
+      // Calculate this week's pattern (Monday to Sunday)
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+      const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - daysFromMonday);
+      weekStart.setHours(0, 0, 0, 0);
+      
+      const weeklyPattern = [0, 0, 0, 0, 0, 0, 0]; // Monday to Sunday
+      
+      habitCompletions.forEach(completion => {
+        const completionDate = new Date(completion.completedAt);
+        
+        // Check if completion is in current week
+        if (completionDate >= weekStart) {
+          const completionDay = completionDate.getDay();
+          // Convert Sunday (0) to index 6, Monday (1) to index 0, etc.
+          const weekIndex = completionDay === 0 ? 6 : completionDay - 1;
+          weeklyPattern[weekIndex] = 1;
+        }
+      });
+
       return {
         habitId: habit._id,
         name: habit.name,
@@ -233,7 +383,8 @@ export const getHabitPerformance = async (req, res) => {
         totalXP,
         currentStreak: habit.currentStreak,
         longestStreak: habit.longestStreak,
-        consistencyRate: habit.consistencyRate
+        consistencyRate: habit.consistencyRate,
+        weeklyPattern // Add weekly pattern to response
       };
     });
 
@@ -242,7 +393,10 @@ export const getHabitPerformance = async (req, res) => {
 
     res.json({
       success: true,
-      data: habitPerformance
+      data: {
+        habits: habitPerformance,
+        timeRange
+      }
     });
   } catch (error) {
     console.error('Error fetching habit performance:', error);

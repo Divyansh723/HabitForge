@@ -34,92 +34,46 @@ export const HabitPerformanceChart: React.FC<HabitPerformanceChartProps> = ({ cl
     fetchHabitPerformance(timeRange);
   }, [timeRange, fetchHabitPerformance]);
 
-  // Use real habit data or fallback to mock data
-  const habitPerformances: HabitPerformance[] = habitPerformance?.habits || habits.map(habit => ({
-    habitId: habit.id || '',
-    habitName: habit.name || 'Unnamed Habit',
-    category: habit.category || 'Other',
-    color: habit.color || '#6B7280',
-    completionRate: habit.consistencyRate || 0,
-    currentStreak: habit.currentStreak || 0,
-    longestStreak: habit.longestStreak || 0,
-    totalCompletions: habit.totalCompletions || 0,
-    consistencyScore: habit.consistencyRate || 0,
-    weeklyPattern: [1, 1, 0, 1, 1, 1, 0], // This would come from real data
-    trend: (habit.currentStreak || 0) > 5 ? 'up' : (habit.currentStreak || 0) < 2 ? 'down' : 'stable',
-    trendPercentage: Math.min((habit.currentStreak || 0) * 5, 25)
-  })) || [
-    {
-      habitId: '1',
-      habitName: 'Morning Exercise',
-      category: 'Fitness',
-      color: '#3B82F6',
-      completionRate: 87,
-      currentStreak: 12,
-      longestStreak: 18,
-      totalCompletions: 26,
-      consistencyScore: 92,
-      weeklyPattern: [1, 1, 0, 1, 1, 1, 0],
-      trend: 'up',
-      trendPercentage: 15
-    },
-    {
-      habitId: '2',
-      habitName: 'Read 30 Minutes',
-      category: 'Learning',
-      color: '#10B981',
-      completionRate: 73,
-      currentStreak: 5,
-      longestStreak: 14,
-      totalCompletions: 22,
-      consistencyScore: 78,
-      weeklyPattern: [1, 0, 1, 1, 1, 0, 1],
-      trend: 'stable',
-      trendPercentage: 2
-    },
-    {
-      habitId: '3',
-      habitName: 'Meditation',
-      category: 'Wellness',
-      color: '#8B5CF6',
-      completionRate: 93,
-      currentStreak: 21,
-      longestStreak: 21,
-      totalCompletions: 28,
-      consistencyScore: 96,
-      weeklyPattern: [1, 1, 1, 1, 1, 1, 1],
-      trend: 'up',
-      trendPercentage: 8
-    },
-    {
-      habitId: '4',
-      habitName: 'Drink 8 Glasses Water',
-      category: 'Health',
-      color: '#06B6D4',
-      completionRate: 67,
-      currentStreak: 3,
-      longestStreak: 9,
-      totalCompletions: 20,
-      consistencyScore: 71,
-      weeklyPattern: [0, 1, 1, 0, 1, 1, 0],
-      trend: 'down',
-      trendPercentage: -12
-    },
-    {
-      habitId: '5',
-      habitName: 'Journal Writing',
-      category: 'Personal',
-      color: '#F59E0B',
-      completionRate: 80,
-      currentStreak: 8,
-      longestStreak: 15,
-      totalCompletions: 24,
-      consistencyScore: 85,
-      weeklyPattern: [1, 1, 0, 1, 1, 1, 1],
-      trend: 'up',
-      trendPercentage: 5
+  // Use real habit data from API or fallback to local habits data
+  const habitPerformances: HabitPerformance[] = React.useMemo(() => {
+    if (habitPerformance?.habits && Array.isArray(habitPerformance.habits)) {
+      // Use data from API
+      return habitPerformance.habits.map((habit: any) => ({
+        habitId: habit.habitId?.toString() || '',
+        habitName: habit.name || 'Unnamed Habit',
+        category: habit.category || 'Other',
+        color: habit.color || '#6B7280',
+        completionRate: habit.completionRate || 0,
+        currentStreak: habit.currentStreak || 0,
+        longestStreak: habit.longestStreak || 0,
+        totalCompletions: habit.completions || 0,
+        consistencyScore: habit.consistencyRate || 0,
+        weeklyPattern: habit.weeklyPattern || [0, 0, 0, 0, 0, 0, 0],
+        trend: (habit.currentStreak || 0) > 5 ? 'up' : (habit.currentStreak || 0) < 2 ? 'down' : 'stable',
+        trendPercentage: Math.min((habit.currentStreak || 0) * 5, 25)
+      }));
     }
-  ];
+    
+    // Fallback to local habits data if API data not available
+    if (habits && habits.length > 0) {
+      return habits.map(habit => ({
+        habitId: habit.id || '',
+        habitName: habit.name || 'Unnamed Habit',
+        category: habit.category || 'Other',
+        color: habit.color || '#6B7280',
+        completionRate: habit.consistencyRate || 0,
+        currentStreak: habit.currentStreak || 0,
+        longestStreak: habit.longestStreak || 0,
+        totalCompletions: habit.totalCompletions || 0,
+        consistencyScore: habit.consistencyRate || 0,
+        weeklyPattern: [0, 0, 0, 0, 0, 0, 0], // Will be populated by API
+        trend: (habit.currentStreak || 0) > 5 ? 'up' : (habit.currentStreak || 0) < 2 ? 'down' : 'stable',
+        trendPercentage: Math.min((habit.currentStreak || 0) * 5, 25)
+      }));
+    }
+    
+    return [];
+  }, [habitPerformance, habits]);
 
   const sortedHabits = [...habitPerformances].sort((a, b) => {
     switch (sortBy) {

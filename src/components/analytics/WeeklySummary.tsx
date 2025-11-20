@@ -9,6 +9,7 @@ import { cn } from '@/utils/cn';
 interface WeeklySummaryProps {
   completions: Completion[];
   totalHabits: number;
+  dailyHabitCounts?: Record<string, number>; // NEW: Number of habits that existed on each day
   week?: Date;
   showInsights?: boolean;
   className?: string;
@@ -25,6 +26,7 @@ interface DayProgress {
 export const WeeklySummary: React.FC<WeeklySummaryProps> = ({
   completions = [],
   totalHabits = 0,
+  dailyHabitCounts = {},
   week = new Date(),
   showInsights = true,
   className,
@@ -60,20 +62,43 @@ export const WeeklySummary: React.FC<WeeklySummaryProps> = ({
       }
     });
 
-    return {
+    // Count unique habits completed on this day
+    const uniqueHabitsCompleted = new Set(dayCompletions.map(c => c.habitId)).size;
+    
+    // Get the number of habits that existed on this day (from backend)
+    const dateKey = format(date, 'yyyy-MM-dd');
+    const habitsOnThisDay = dailyHabitCounts[dateKey] || totalHabits;
+    
+    // Debug logging
+    if (dailyHabitCounts[dateKey] === undefined) {
+      console.warn(`[WeeklySummary] No dailyHabitCount for ${dateKey}, using totalHabits (${totalHabits})`);
+    }
+
+    const dayData = {
       date,
-      completed: dayCompletions.length,
-      total: totalHabits,
-      percentage: totalHabits > 0 ? Math.round((dayCompletions.length / totalHabits) * 100) : 0,
+      completed: uniqueHabitsCompleted,
+      total: habitsOnThisDay, // Use historical count if available
+      percentage: habitsOnThisDay > 0 ? Math.round((uniqueHabitsCompleted / habitsOnThisDay) * 100) : 0,
       isToday: isToday(date),
     };
+
+    // Debug logging
+    console.log(`[WeeklySummary] ${format(date, 'EEE MMM d')}: ${uniqueHabitsCompleted}/${habitsOnThisDay} = ${dayData.percentage}%`, {
+      dayCompletions: dayCompletions.length,
+      uniqueHabits: uniqueHabitsCompleted,
+      totalHabits: habitsOnThisDay,
+      isPerfect: dayData.percentage === 100
+    });
+
+    return dayData;
   });
 
   // Calculate week statistics
   const totalCompletions = dailyProgress.reduce((sum, day) => sum + day.completed, 0);
   const totalPossible = totalHabits * 7;
   const weeklyPercentage = totalPossible > 0 ? Math.round((totalCompletions / totalPossible) * 100) : 0;
-  const perfectDays = dailyProgress.filter(day => day.percentage === 100).length;
+  // Perfect days: days where all habits that existed on that day were completed
+  const perfectDays = dailyProgress.filter(day => day.percentage === 100 && day.total > 0).length;
   const activeDays = dailyProgress.filter(day => day.completed > 0).length;
 
   // Generate insights
@@ -201,7 +226,7 @@ export const WeeklySummary: React.FC<WeeklySummaryProps> = ({
                 className={cn(
                   'w-full h-16 rounded-lg border-2 flex items-end justify-center p-1 transition-all duration-200',
                   day.isToday 
-                    ? 'border-primary-400 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
+                    ? 'border-primary-400 dark:border-primary-400 bg-primary-50 dark:bg-primary-800' 
                     : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
                 )}
               >

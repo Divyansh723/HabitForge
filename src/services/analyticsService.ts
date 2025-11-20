@@ -14,6 +14,7 @@ export interface TrendDataPoint {
 export interface WeeklySummaryData {
   completions: Completion[];
   totalHabits: number;
+  dailyHabitCounts?: Record<string, number>; // Number of habits that existed on each day
   weeklyStats: {
     totalCompletions: number;
     averageCompletionRate: number;
@@ -185,9 +186,17 @@ class AnalyticsService {
         throw new Error('Invalid weekly summary data received');
       }
       
+      console.log('[analyticsService] Weekly summary from backend:', {
+        completions: data.completions?.length,
+        totalHabits: data.totalHabits,
+        dailyHabitCounts: data.dailyHabitCounts,
+        dailyHabitCountsKeys: Object.keys(data.dailyHabitCounts || {})
+      });
+
       return {
         completions: Array.isArray(data.completions) ? data.completions : [],
         totalHabits: typeof data.totalHabits === 'number' ? data.totalHabits : 0,
+        dailyHabitCounts: data.dailyHabitCounts || {}, // Pass through dailyHabitCounts from backend
         weeklyStats: data.weeklyStats || {
           totalCompletions: 0,
           averageCompletionRate: 0,
@@ -247,11 +256,11 @@ class AnalyticsService {
       await this.delay(400);
       
       const habits = [
-        { id: '1', name: 'Morning Exercise', completionRate: 85, totalCompletions: 25 },
-        { id: '2', name: 'Reading', completionRate: 92, totalCompletions: 28 },
-        { id: '3', name: 'Meditation', completionRate: 78, totalCompletions: 22 },
-        { id: '4', name: 'Water Intake', completionRate: 95, totalCompletions: 29 },
-        { id: '5', name: 'Journaling', completionRate: 67, totalCompletions: 20 },
+        { id: '1', name: 'Morning Exercise', completionRate: 85, totalCompletions: 25, weeklyPattern: [1, 1, 0, 1, 1, 1, 0] },
+        { id: '2', name: 'Reading', completionRate: 92, totalCompletions: 28, weeklyPattern: [1, 1, 1, 1, 1, 0, 1] },
+        { id: '3', name: 'Meditation', completionRate: 78, totalCompletions: 22, weeklyPattern: [1, 0, 1, 1, 1, 1, 0] },
+        { id: '4', name: 'Water Intake', completionRate: 95, totalCompletions: 29, weeklyPattern: [1, 1, 1, 1, 1, 1, 1] },
+        { id: '5', name: 'Journaling', completionRate: 67, totalCompletions: 20, weeklyPattern: [0, 1, 1, 0, 1, 1, 0] },
       ];
 
       return {
@@ -262,8 +271,11 @@ class AnalyticsService {
     }
 
     try {
+      // Convert timeRange format from '7d' to '7' for backend
+      const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+      
       const response = await this.api.get('/analytics/habit-performance', {
-        params: { timeRange }
+        params: { timeRange: days }
       });
       return response.data.success ? response.data.data : response.data;
     } catch (error) {

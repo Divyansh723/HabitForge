@@ -7,7 +7,7 @@ export interface TimezoneOption {
 export const COMMON_TIMEZONES: TimezoneOption[] = [
   // UTC
   { value: 'UTC', label: 'UTC (Coordinated Universal Time)', offset: 'UTC+0' },
-  
+
   // Americas - North America
   { value: 'America/New_York', label: 'New York (Eastern Time)', offset: 'UTC-5/-4' },
   { value: 'America/Chicago', label: 'Chicago (Central Time)', offset: 'UTC-6/-5' },
@@ -20,7 +20,7 @@ export const COMMON_TIMEZONES: TimezoneOption[] = [
   { value: 'America/Vancouver', label: 'Vancouver, Canada', offset: 'UTC-8/-7' },
   { value: 'America/Halifax', label: 'Halifax, Canada', offset: 'UTC-4/-3' },
   { value: 'America/St_Johns', label: 'St. Johns, Canada', offset: 'UTC-3:30/-2:30' },
-  
+
   // Americas - Central & South America
   { value: 'America/Mexico_City', label: 'Mexico City, Mexico', offset: 'UTC-6/-5' },
   { value: 'America/Cancun', label: 'Cancun, Mexico', offset: 'UTC-5' },
@@ -34,13 +34,13 @@ export const COMMON_TIMEZONES: TimezoneOption[] = [
   { value: 'America/Buenos_Aires', label: 'Buenos Aires, Argentina', offset: 'UTC-3' },
   { value: 'America/Sao_Paulo', label: 'São Paulo, Brazil', offset: 'UTC-3/-2' },
   { value: 'America/Manaus', label: 'Manaus, Brazil', offset: 'UTC-4' },
-  
+
   // Europe - Western
   { value: 'Europe/London', label: 'London, United Kingdom', offset: 'UTC+0/+1' },
   { value: 'Europe/Dublin', label: 'Dublin, Ireland', offset: 'UTC+0/+1' },
   { value: 'Europe/Lisbon', label: 'Lisbon, Portugal', offset: 'UTC+0/+1' },
   { value: 'Atlantic/Reykjavik', label: 'Reykjavik, Iceland', offset: 'UTC+0' },
-  
+
   // Europe - Central
   { value: 'Europe/Paris', label: 'Paris, France', offset: 'UTC+1/+2' },
   { value: 'Europe/Berlin', label: 'Berlin, Germany', offset: 'UTC+1/+2' },
@@ -55,7 +55,7 @@ export const COMMON_TIMEZONES: TimezoneOption[] = [
   { value: 'Europe/Stockholm', label: 'Stockholm, Sweden', offset: 'UTC+1/+2' },
   { value: 'Europe/Oslo', label: 'Oslo, Norway', offset: 'UTC+1/+2' },
   { value: 'Europe/Copenhagen', label: 'Copenhagen, Denmark', offset: 'UTC+1/+2' },
-  
+
   // Europe - Eastern
   { value: 'Europe/Athens', label: 'Athens, Greece', offset: 'UTC+2/+3' },
   { value: 'Europe/Bucharest', label: 'Bucharest, Romania', offset: 'UTC+2/+3' },
@@ -64,7 +64,7 @@ export const COMMON_TIMEZONES: TimezoneOption[] = [
   { value: 'Europe/Kiev', label: 'Kyiv, Ukraine', offset: 'UTC+2/+3' },
   { value: 'Europe/Istanbul', label: 'Istanbul, Turkey', offset: 'UTC+3' },
   { value: 'Europe/Moscow', label: 'Moscow, Russia', offset: 'UTC+3' },
-  
+
   // Africa
   { value: 'Africa/Cairo', label: 'Cairo, Egypt', offset: 'UTC+2' },
   { value: 'Africa/Johannesburg', label: 'Johannesburg, South Africa', offset: 'UTC+2' },
@@ -74,7 +74,7 @@ export const COMMON_TIMEZONES: TimezoneOption[] = [
   { value: 'Africa/Algiers', label: 'Algiers, Algeria', offset: 'UTC+1' },
   { value: 'Africa/Tunis', label: 'Tunis, Tunisia', offset: 'UTC+1' },
   { value: 'Africa/Accra', label: 'Accra, Ghana', offset: 'UTC+0' },
-  
+
   // Middle East
   { value: 'Asia/Dubai', label: 'Dubai, UAE', offset: 'UTC+4' },
   { value: 'Asia/Riyadh', label: 'Riyadh, Saudi Arabia', offset: 'UTC+3' },
@@ -86,14 +86,14 @@ export const COMMON_TIMEZONES: TimezoneOption[] = [
   { value: 'Asia/Jerusalem', label: 'Jerusalem, Israel', offset: 'UTC+2/+3' },
   { value: 'Asia/Beirut', label: 'Beirut, Lebanon', offset: 'UTC+2/+3' },
   { value: 'Asia/Amman', label: 'Amman, Jordan', offset: 'UTC+2/+3' },
-  
+
   // Asia - South
   { value: 'Asia/Kolkata', label: 'Mumbai/Delhi, India', offset: 'UTC+5:30' },
   { value: 'Asia/Karachi', label: 'Karachi, Pakistan', offset: 'UTC+5' },
   { value: 'Asia/Dhaka', label: 'Dhaka, Bangladesh', offset: 'UTC+6' },
   { value: 'Asia/Colombo', label: 'Colombo, Sri Lanka', offset: 'UTC+5:30' },
   { value: 'Asia/Kathmandu', label: 'Kathmandu, Nepal', offset: 'UTC+5:45' },
-  
+
   // Asia - Southeast
   { value: 'Asia/Bangkok', label: 'Bangkok, Thailand', offset: 'UTC+7' },
   { value: 'Asia/Singapore', label: 'Singapore', offset: 'UTC+8' },
@@ -102,7 +102,7 @@ export const COMMON_TIMEZONES: TimezoneOption[] = [
   { value: 'Asia/Manila', label: 'Manila, Philippines', offset: 'UTC+8' },
   { value: 'Asia/Ho_Chi_Minh', label: 'Ho Chi Minh City, Vietnam', offset: 'UTC+7' },
   { value: 'Asia/Yangon', label: 'Yangon, Myanmar', offset: 'UTC+6:30' },
-  
+
   // Asia - East
   { value: 'Asia/Shanghai', label: 'Beijing/Shanghai, China', offset: 'UTC+8' },
   { value: 'Asia/Hong_Kong', label: 'Hong Kong', offset: 'UTC+8' },
@@ -111,14 +111,14 @@ export const COMMON_TIMEZONES: TimezoneOption[] = [
   { value: 'Asia/Seoul', label: 'Seoul, South Korea', offset: 'UTC+9' },
   { value: 'Asia/Pyongyang', label: 'Pyongyang, North Korea', offset: 'UTC+9' },
   { value: 'Asia/Ulaanbaatar', label: 'Ulaanbaatar, Mongolia', offset: 'UTC+8' },
-  
+
   // Asia - Central
   { value: 'Asia/Almaty', label: 'Almaty, Kazakhstan', offset: 'UTC+6' },
   { value: 'Asia/Tashkent', label: 'Tashkent, Uzbekistan', offset: 'UTC+5' },
   { value: 'Asia/Yekaterinburg', label: 'Yekaterinburg, Russia', offset: 'UTC+5' },
   { value: 'Asia/Novosibirsk', label: 'Novosibirsk, Russia', offset: 'UTC+7' },
   { value: 'Asia/Vladivostok', label: 'Vladivostok, Russia', offset: 'UTC+10' },
-  
+
   // Australia & Pacific
   { value: 'Australia/Sydney', label: 'Sydney, Australia', offset: 'UTC+10/+11' },
   { value: 'Australia/Melbourne', label: 'Melbourne, Australia', offset: 'UTC+10/+11' },
@@ -144,11 +144,11 @@ export const getTimezoneOffset = (timezone: string): string => {
   const utc = new Date(now.getTime() + (now.getTimezoneOffset() * 60000));
   const targetTime = new Date(utc.toLocaleString('en-US', { timeZone: timezone }));
   const offset = (targetTime.getTime() - utc.getTime()) / (1000 * 60 * 60);
-  
+
   const sign = offset >= 0 ? '+' : '-';
   const hours = Math.floor(Math.abs(offset));
   const minutes = Math.round((Math.abs(offset) - hours) * 60);
-  
+
   return `UTC${sign}${hours}${minutes > 0 ? `:${minutes.toString().padStart(2, '0')}` : ''}`;
 };
 
@@ -164,7 +164,7 @@ export const formatInUserTimezone = (
   format: 'full' | 'date' | 'time' | 'datetime' | 'relative' | 'short' = 'datetime'
 ): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+
   if (isNaN(dateObj.getTime())) {
     return 'Invalid date';
   }
@@ -185,7 +185,7 @@ export const formatInUserTimezone = (
         minute: '2-digit',
         hour12: true,
       });
-    
+
     case 'date':
       return dateObj.toLocaleDateString('en-US', {
         ...options,
@@ -193,7 +193,7 @@ export const formatInUserTimezone = (
         month: 'short',
         day: 'numeric',
       });
-    
+
     case 'time':
       return dateObj.toLocaleTimeString('en-US', {
         ...options,
@@ -201,7 +201,7 @@ export const formatInUserTimezone = (
         minute: '2-digit',
         hour12: true,
       });
-    
+
     case 'short':
       return dateObj.toLocaleString('en-US', {
         ...options,
@@ -211,7 +211,7 @@ export const formatInUserTimezone = (
         minute: '2-digit',
         hour12: true,
       });
-    
+
     case 'datetime':
       return dateObj.toLocaleString('en-US', {
         ...options,
@@ -222,10 +222,10 @@ export const formatInUserTimezone = (
         minute: '2-digit',
         hour12: true,
       });
-    
+
     case 'relative':
       return getRelativeTime(dateObj, userTimezone);
-    
+
     default:
       return dateObj.toLocaleString('en-US', options);
   }
@@ -237,11 +237,11 @@ export const formatInUserTimezone = (
 export const getRelativeTime = (date: Date | string, userTimezone: string = 'UTC'): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
-  
+
   // Convert both dates to the user's timezone for comparison
   const userNow = new Date(now.toLocaleString('en-US', { timeZone: userTimezone }));
   const userDate = new Date(dateObj.toLocaleString('en-US', { timeZone: userTimezone }));
-  
+
   const diffMs = userNow.getTime() - userDate.getTime();
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
@@ -315,17 +315,17 @@ export const convertUserTimezoneToUTC = (
   }
 
   const [hours, minutes] = localTime.split(':').map(Number);
-  
+
   // Create a date string in the user's timezone
   const today = new Date();
   const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-  
+
   // Parse as if it's in the user's timezone
   const localDate = new Date(dateStr);
   const utcDate = new Date(localDate.toLocaleString('en-US', { timeZone: 'UTC' }));
-  
+
   const utcHours = utcDate.getHours();
   const utcMinutes = utcDate.getMinutes();
-  
+
   return `${String(utcHours).padStart(2, '0')}:${String(utcMinutes).padStart(2, '0')}`;
 };

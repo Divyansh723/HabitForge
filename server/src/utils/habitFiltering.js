@@ -59,19 +59,66 @@ export const calculatePerfectDays = async (userId, startDate, endDate = new Date
   const start = new Date(startDate);
   start.setHours(0, 0, 0, 0);
   const end = new Date(endDate);
-  end.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+  
+  // Get ALL user habits (we'll filter by date in memory for better performance)
+  const query = Habit.find({
+    userId,
+    softDeleted: { $ne: true }
+  });
+  if (session) query.session(session);
+  const allUserHabits = await query;
   
   let perfectDaysCount = 0;
   const currentDate = new Date(start);
   
   // Check each day
   while (currentDate <= end) {
-    // Get habits that were relevant for this date
-    const query = Habit.find({ userId, active: true });
-    if (session) query.session(session);
-    const allUserHabits = await query;
+    const checkDate = new Date(currentDate);
+    checkDate.setHours(0, 0, 0, 0);
     
-    const relevantHabits = getDisplayableHabitsForDate(allUserHabits, currentDate);
+    // Filter habits that existed on this specific date
+    const habitsOnDate = allUserHabits.filter(habit => {
+      // Get the date the habit was created (normalize to start of day in UTC)
+      const habitCreatedDate = new Date(habit.createdAt);
+      const habitCreatedDateOnly = new Date(Date.UTC(
+        habitCreatedDate.getUTCFullYear(),
+        habitCreatedDate.getUTCMonth(),
+        habitCreatedDate.getUTCDate()
+      ));
+      
+      // Get the check date (normalize to start of day in UTC)
+      const checkDateOnly = new Date(Date.UTC(
+        checkDate.getUTCFullYear(),
+        checkDate.getUTCMonth(),
+        checkDate.getUTCDate()
+      ));
+      
+      // Habit must have been created on or before this date
+      // Compare timestamps to avoid any date comparison issues
+      if (habitCreatedDateOnly.getTime() > checkDateOnly.getTime()) {
+        return false;
+      }
+      
+      // If habit is inactive, check if it was deactivated after this date
+      if (!habit.active) {
+        const habitUpdatedDate = new Date(habit.updatedAt);
+        const habitUpdatedDateOnly = new Date(Date.UTC(
+          habitUpdatedDate.getUTCFullYear(),
+          habitUpdatedDate.getUTCMonth(),
+          habitUpdatedDate.getUTCDate()
+        ));
+        
+        // If habit was deactivated before or on this date, don't count it
+        if (habitUpdatedDateOnly.getTime() <= checkDateOnly.getTime()) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+    
+    const relevantHabits = getDisplayableHabitsForDate(habitsOnDate, currentDate);
     
     if (relevantHabits.length > 0) {
       // Get completions for this date

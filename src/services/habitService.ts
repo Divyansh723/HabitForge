@@ -439,6 +439,7 @@ class HabitService {
         deviceTimezone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
         xpEarned: 5, // Less XP for forgiveness token
         editedFlag: true,
+        forgivenessUsed: true,
         createdAt: new Date(),
       };
 

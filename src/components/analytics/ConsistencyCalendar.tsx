@@ -1,29 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isFuture } from 'date-fns';
-import { CheckCircle, Circle, X } from 'lucide-react';
+import { CheckCircle, Circle, X, Shield } from 'lucide-react';
 import { Card, Badge } from '@/components/ui';
+import { ForgivenessDialog } from '@/components/habit/ForgivenessDialog';
 import { type Completion } from '@/types/habit';
 import { cn } from '@/utils/cn';
 
 interface ConsistencyCalendarProps {
   completions: Completion[];
   month?: Date;
+  habitId?: string;
   habitName?: string;
   habitColor?: string;
+  habitFrequency?: string; // NEW: To check if forgiveness is allowed
+  currentStreak?: number;
   showLegend?: boolean;
   compact?: boolean;
   className?: string;
+  forgivenessTokens?: number;
+  onForgivenessUsed?: () => void;
 }
 
 export const ConsistencyCalendar: React.FC<ConsistencyCalendarProps> = ({
   completions,
   month = new Date(),
+  habitId,
   habitName,
   habitColor = '#3B82F6',
+  habitFrequency = 'daily', // Default to daily
+  currentStreak = 0,
   showLegend = true,
   compact = false,
   className,
+  forgivenessTokens = 0,
+  onForgivenessUsed,
 }) => {
+  const [showForgivenessDialog, setShowForgivenessDialog] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [dailyUsageCount, setDailyUsageCount] = useState(0);
+  const [isProcessingForgiveness, setIsProcessingForgiveness] = useState(false);
+
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
@@ -32,45 +48,93 @@ export const ConsistencyCalendar: React.FC<ConsistencyCalendarProps> = ({
   console.log('ConsistencyCalendar - Completions received:', completions);
   console.log('ConsistencyCalendar - Completions count:', completions?.length || 0);
 
-  // Get completion dates as a Set for fast lookup
-  const completionDates = new Set(
-    (completions || [])
-      .filter(completion => completion && completion.completedAt)
-      .map(completion => {
-        try {
-          const date = new Date(completion.completedAt);
-          // Check if date is valid
-          if (isNaN(date.getTime())) {
-            console.warn('Invalid completion date:', completion.completedAt);
-            return null;
-          }
-          const formatted = format(date, 'yyyy-MM-dd');
-          console.log('Formatted completion date:', formatted);
-          return formatted;
-        } catch (error) {
-          console.warn('Error formatting completion date:', error);
-          return null;
+  // Get completion dates and forgiveness status
+  const completionMap = new Map<string, { completed: boolean; forgiven: boolean }>();
+  
+  (completions || [])
+    .filter(completion => completion && completion.completedAt)
+    .forEach(completion => {
+      try {
+        const date = new Date(completion.completedAt);
+        if (isNaN(date.getTime())) {
+          console.warn('Invalid completion date:', completion.completedAt);
+          return;
         }
-      })
-      .filter((date): date is string => date !== null)
-  );
+        const formatted = format(date, 'yyyy-MM-dd');
+        completionMap.set(formatted, {
+          completed: true,
+          forgiven: completion.forgivenessUsed === true
+        });
+      } catch (error) {
+        console.warn('Error formatting completion date:', error);
+      }
+    });
 
-  console.log('ConsistencyCalendar - Completion dates:', Array.from(completionDates));
+  console.log('ConsistencyCalendar - Completion map:', Array.from(completionMap.entries()));
 
   const getDayStatus = (day: Date) => {
     const dayString = format(day, 'yyyy-MM-dd');
     const today = new Date();
+    const completion = completionMap.get(dayString);
     
     if (isFuture(day)) return 'future';
-    if (completionDates.has(dayString)) return 'completed';
+    if (completion?.completed && completion?.forgiven) return 'forgiven';
+    if (completion?.completed) return 'completed';
     if (isSameDay(day, today)) return 'today';
     return 'missed';
+  };
+
+  const canUseForgiveness = (day: Date) => {
+    if (!habitId) return false;
+    if (forgivenessTokens <= 0) return false;
+    if (dailyUsageCount >= 3) return false;
+    
+    // Only allow forgiveness on daily habits
+    if (habitFrequency !== 'daily') return false;
+    
+    const daysDiff = Math.floor((new Date().getTime() - day.getTime()) / (1000 * 60 * 60 * 24));
+    return daysDiff > 0 && daysDiff <= 7;
+  };
+
+  const handleDayClick = (day: Date, status: string) => {
+    if (status === 'missed' && canUseForgiveness(day)) {
+      setSelectedDate(day);
+      setShowForgivenessDialog(true);
+    }
+  };
+
+  const handleUseForgiveness = async () => {
+    if (!selectedDate || !habitId) return;
+    
+    setIsProcessingForgiveness(true);
+    
+    try {
+      const { habitService } = await import('@/services/habitService');
+      await habitService.useForgivenessToken(habitId, selectedDate);
+      
+      // Update daily usage count
+      setDailyUsageCount(prev => prev + 1);
+      
+      // Close dialog
+      setShowForgivenessDialog(false);
+      setSelectedDate(null);
+      
+      // Trigger parent refresh
+      onForgivenessUsed?.();
+    } catch (error) {
+      // Error will be handled by ForgivenessDialog
+      throw error;
+    } finally {
+      setIsProcessingForgiveness(false);
+    }
   };
 
   const getDayIcon = (status: string) => {
     switch (status) {
       case 'completed':
         return <CheckCircle className="h-4 w-4 text-white" />;
+      case 'forgiven':
+        return <Shield className="h-4 w-4 text-white" />;
       case 'today':
         return <Circle className="h-4 w-4 text-gray-400" />;
       case 'missed':
@@ -80,17 +144,25 @@ export const ConsistencyCalendar: React.FC<ConsistencyCalendarProps> = ({
     }
   };
 
-  const getDayClasses = (_day: Date, status: string) => {
+  const getDayClasses = (day: Date, status: string) => {
     const baseClasses = cn(
       'flex items-center justify-center rounded-lg transition-all duration-200 border',
       compact ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm'
     );
+
+    const canForgive = status === 'missed' && canUseForgiveness(day);
 
     switch (status) {
       case 'completed':
         return cn(
           baseClasses,
           'border-transparent text-white shadow-sm',
+          'hover:scale-105 cursor-pointer'
+        );
+      case 'forgiven':
+        return cn(
+          baseClasses,
+          'border-transparent text-white shadow-sm opacity-75',
           'hover:scale-105 cursor-pointer'
         );
       case 'today':
@@ -103,7 +175,8 @@ export const ConsistencyCalendar: React.FC<ConsistencyCalendarProps> = ({
         return cn(
           baseClasses,
           'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800',
-          'text-gray-400 dark:text-gray-500'
+          'text-gray-400 dark:text-gray-500',
+          canForgive && 'hover:border-purple-400 dark:hover:border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer hover:scale-105'
         );
       case 'future':
         return cn(
@@ -176,15 +249,47 @@ export const ConsistencyCalendar: React.FC<ConsistencyCalendarProps> = ({
           {days.map(day => {
             const status = getDayStatus(day);
             const dayNumber = format(day, 'd');
+            const canForgive = status === 'missed' && canUseForgiveness(day);
             
             return (
               <div
                 key={format(day, 'yyyy-MM-dd')}
                 className={getDayClasses(day, status)}
-                style={status === 'completed' ? { backgroundColor: habitColor } : {}}
-                title={`${format(day, 'MMM d, yyyy')} - ${status}`}
+                style={(status === 'completed' || status === 'forgiven') ? { 
+                  backgroundColor: habitColor,
+                  opacity: status === 'forgiven' ? 0.75 : 1
+                } : {}}
+                title={
+                  status === 'forgiven' 
+                    ? `${format(day, 'MMM d, yyyy')} - Forgiven (🛡️)`
+                    : status === 'missed' && habitId
+                    ? forgivenessTokens <= 0
+                      ? `${format(day, 'MMM d, yyyy')} - No forgiveness tokens available`
+                      : dailyUsageCount >= 3
+                      ? `${format(day, 'MMM d, yyyy')} - Daily limit reached (3/day)`
+                      : !canUseForgiveness(day)
+                      ? `${format(day, 'MMM d, yyyy')} - More than 7 days old`
+                      : `${format(day, 'MMM d, yyyy')} - Click to use forgiveness token`
+                    : `${format(day, 'MMM d, yyyy')} - ${status}`
+                }
+                onClick={() => handleDayClick(day, status)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleDayClick(day, status);
+                  }
+                }}
+                role={canForgive ? 'button' : undefined}
+                tabIndex={canForgive ? 0 : undefined}
+                aria-label={
+                  status === 'forgiven' 
+                    ? `${format(day, 'MMM d, yyyy')} - Forgiven completion`
+                    : status === 'missed' && canForgive
+                    ? `${format(day, 'MMM d, yyyy')} - Missed day. Press Enter to use forgiveness token`
+                    : `${format(day, 'MMM d, yyyy')} - ${status}`
+                }
               >
-                {status === 'completed' || status === 'today' || status === 'missed' ? (
+                {status === 'completed' || status === 'forgiven' || status === 'today' || status === 'missed' ? (
                   getDayIcon(status)
                 ) : (
                   <span className="font-medium">{dayNumber}</span>
@@ -222,6 +327,24 @@ export const ConsistencyCalendar: React.FC<ConsistencyCalendarProps> = ({
             <span className="text-xs text-gray-600 dark:text-gray-400">Today</span>
           </div>
         </div>
+      )}
+
+      {/* Forgiveness Dialog */}
+      {showForgivenessDialog && selectedDate && habitId && habitName && (
+        <ForgivenessDialog
+          isOpen={showForgivenessDialog}
+          onClose={() => {
+            setShowForgivenessDialog(false);
+            setSelectedDate(null);
+          }}
+          onConfirm={handleUseForgiveness}
+          habitName={habitName}
+          habitColor={habitColor}
+          date={selectedDate}
+          currentStreak={currentStreak}
+          remainingTokens={forgivenessTokens}
+          dailyUsageRemaining={3 - dailyUsageCount}
+        />
       )}
     </Card>
   );

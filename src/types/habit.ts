@@ -38,6 +38,7 @@ export interface Completion {
   xpEarned: number;
   notes?: string;
   editedFlag: boolean;
+  forgivenessUsed?: boolean;
   auditLogId?: string;
   createdAt: Date;
 }

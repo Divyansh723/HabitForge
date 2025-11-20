@@ -620,7 +620,7 @@ export const useForgiveness = async (req, res) => {
   try {
     const { habitId } = req.params;
     const userId = req.user._id;
-    const { date, timezone } = req.body;
+    const { date } = req.body;
 
     // Check if user has forgiveness tokens
     const user = req.user;
@@ -640,8 +640,67 @@ export const useForgiveness = async (req, res) => {
       });
     }
 
+    // SECURITY: Only allow forgiveness tokens on daily habits
+    if (habit.frequency !== 'daily') {
+      return res.status(400).json({
+        success: false,
+        message: 'Forgiveness tokens can only be used on daily habits'
+      });
+    }
+
+    // SECURITY: Validate the forgiveness date
     const forgivenessDate = new Date(date);
-    const userTimezone = timezone || user.timezone || 'UTC';
+    const now = new Date();
+    
+    // Prevent future dates
+    if (forgivenessDate > now) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot use forgiveness token for future dates'
+      });
+    }
+
+    // Prevent using forgiveness for today (must wait until day ends)
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    if (forgivenessDate >= todayStart) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot use forgiveness token for today. Please wait until the day ends or complete the habit normally.'
+      });
+    }
+
+    // SECURITY: Limit forgiveness to last 7 days only
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+    
+    if (forgivenessDate < sevenDaysAgo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Forgiveness tokens can only be used for the last 7 days'
+      });
+    }
+
+    // SECURITY: Use user's stored timezone (don't accept from request)
+    const userTimezone = user.timezone || 'UTC';
+
+    // SECURITY: Check daily forgiveness usage limit (max 3 per day)
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+    
+    const todayForgivenessCount = await Completion.countDocuments({
+      userId,
+      forgivenessUsed: true,
+      createdAt: { $gte: todayStart, $lte: todayEnd }
+    });
+
+    if (todayForgivenessCount >= 3) {
+      return res.status(400).json({
+        success: false,
+        message: 'Daily forgiveness limit reached (3 per day). Please try again tomorrow.'
+      });
+    }
 
     // Check if already completed or forgiven on this date
     const startOfDay = new Date(forgivenessDate);
@@ -665,7 +724,7 @@ export const useForgiveness = async (req, res) => {
       });
     }
 
-    // Create forgiveness completion
+    // Create forgiveness completion with audit trail
     const completion = new Completion({
       habitId,
       userId,
@@ -673,7 +732,12 @@ export const useForgiveness = async (req, res) => {
       deviceTimezone: userTimezone,
       xpEarned: 5, // Less XP for forgiveness
       forgivenessUsed: true,
-      editedFlag: true
+      editedFlag: true,
+      metadata: {
+        forgivenessUsedAt: now,
+        forgivenessTimezone: userTimezone,
+        daysLate: Math.floor((now - forgivenessDate) / (1000 * 60 * 60 * 24))
+      }
     });
 
     await completion.save();
@@ -695,16 +759,26 @@ export const useForgiveness = async (req, res) => {
     habit.consistencyRate = Math.round((recentCompletions / 30) * 100);
     await habit.save();
 
+    // Award XP to user (5 XP for forgiveness)
+    user.totalXP = (user.totalXP || 0) + 5;
+    
     // Decrease user's forgiveness tokens
     user.forgivenessTokens -= 1;
     await user.save();
+
+    // Log forgiveness usage for audit trail
+    const daysLate = completion.metadata?.daysLate || Math.floor((now - forgivenessDate) / (1000 * 60 * 60 * 24));
+    console.log(`Forgiveness token used: User ${userId}, Habit ${habitId}, Date ${forgivenessDate.toISOString()}, Days late: ${daysLate}`);
 
     res.json({
       success: true,
       message: 'Forgiveness token used successfully',
       data: {
         completion: completion.toJSON(),
-        remainingTokens: user.forgivenessTokens
+        xpEarned: 5,
+        totalXP: user.totalXP,
+        remainingTokens: user.forgivenessTokens,
+        dailyUsageRemaining: 3 - todayForgivenessCount - 1
       }
     });
   } catch (error) {
