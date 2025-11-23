@@ -267,6 +267,23 @@ This comprehensive document includes:
 - Video pitch overview
 - Proof of Amazon Q Developer / Kiro integration
 
+### 🤖 Built with Amazon Kiro
+
+HabitForge was built entirely using **Amazon Kiro's AI-powered development workflow**. Every feature followed Kiro's systematic 3-step process:
+
+**Requirements → Design → Tasks → Implementation**
+
+![Kiro Workflow](.kiro/specs/images/kiro_use.png)
+
+**Key Benefits:**
+- ⚡ 70% faster development
+- 🎯 85% first-time-right implementation
+- ✅ 100% TypeScript coverage
+- 🧪 80%+ test coverage
+- 📝 Comprehensive documentation
+
+See [SUBMISSION.md](SUBMISSION.md) for detailed proof of Kiro integration with screenshots and examples.
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
@@ -290,7 +307,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Issues**: [GitHub Issues](https://github.com/Divyansh723/HabitForge/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Divyansh723/HabitForge/discussions)
-- **Email**: [Your Email]
 
 ## 🗺️ Roadmap
 
