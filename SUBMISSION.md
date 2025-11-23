@@ -1,4 +1,8 @@
-# 🎯 HabitForge - Project Submission Documentation
+<div align="center">
+  <img src="logo.png" alt="HabitForge Logo" width="200"/>
+  
+  # HabitForge - Project Submission Documentation
+</div>
 
 ## Table of Contents
 
@@ -1195,17 +1199,43 @@ This isn't just a project built _with_ AI assistance - it's a project that showc
 
 ### Phase 1 (Q1 2026)
 
+**Bug Fixes & UX Improvements:**
+- [ ] Fix minor UI inconsistencies across different screen sizes
+- [ ] Improve loading states and skeleton screens
+- [ ] Optimize image loading and caching
+- [ ] Enhance error messages with actionable suggestions
+- [ ] Add keyboard shortcuts for power users
+- [ ] Improve accessibility (ARIA labels, focus management)
+- [ ] Fix timezone edge cases for DST transitions
+- [ ] Optimize database queries for faster load times
+
+**New Features:**
 - [ ] Mobile app (React Native)
 - [ ] Push notifications
 - [ ] Habit templates marketplace
 - [ ] Advanced AI coaching
+- [ ] Offline mode with sync
+- [ ] Export data in multiple formats (CSV, JSON, PDF)
 
 ### Phase 2 (Q2 2026)
 
-- [ ] Social features expansion
-- [ ] Integration with fitness trackers
-- [ ] Team/organization features
-- [ ] Premium subscription tier
+**UX Enhancements:**
+- [ ] Redesign onboarding flow with interactive tutorials
+- [ ] Add drag-and-drop habit reordering
+- [ ] Implement undo/redo functionality
+- [ ] Add bulk actions for habit management
+- [ ] Improve mobile responsiveness on tablets
+- [ ] Add customizable dashboard widgets
+- [ ] Implement progressive web app (PWA) features
+- [ ] Add haptic feedback for mobile interactions
+
+**New Features:**
+- [ ] Social features expansion (habit sharing, friend system)
+- [ ] Integration with fitness trackers (Fitbit, Apple Health, Google Fit)
+- [ ] Team/organization features for corporate wellness
+- [ ] Premium subscription tier with advanced features
+- [ ] Habit streaks recovery challenges
+- [ ] Custom habit categories and tags
 
 ### Phase 3 (Q3 2026)
 

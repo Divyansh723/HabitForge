@@ -73,9 +73,11 @@ export const Header: React.FC<HeaderProps> = ({
               to={isAuthenticated ? '/dashboard' : '/'}
               className="flex items-center gap-2 font-bold text-xl text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
             >
-              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg">
-                <Zap className="h-5 w-5 text-white" />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="HabitForge Logo" 
+                className="w-8 h-8 object-contain rounded-lg"
+              />
               <span>HabitForge</span>
             </Link>
           </div>

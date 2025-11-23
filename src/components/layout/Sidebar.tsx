@@ -128,9 +128,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="flex items-center gap-2"
               onClick={onClose}
             >
-              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg">
-                <Zap className="h-5 w-5 text-white" />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="HabitForge Logo" 
+                className="w-8 h-8 object-contain rounded-lg"
+              />
               <span className="font-bold text-xl text-gray-900 dark:text-white">
                 HabitForge
               </span>

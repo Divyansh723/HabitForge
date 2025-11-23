@@ -15,9 +15,11 @@ export const Footer: React.FC<FooterProps> = ({ variant = 'default' }) => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-5 h-5 bg-gradient-to-br from-primary-500 to-secondary-500 rounded">
-                <Zap className="h-3 w-3 text-white" fill="white" />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="HabitForge Logo" 
+                className="w-5 h-5 object-contain rounded-lg"
+              />
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 © {currentYear} HabitForge. All rights reserved.
               </span>
@@ -49,9 +51,11 @@ export const Footer: React.FC<FooterProps> = ({ variant = 'default' }) => {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-br from-primary-500 to-secondary-500 rounded">
-                <Zap className="h-4 w-4 text-white" fill="white" />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="HabitForge Logo" 
+                className="w-6 h-6 object-contain rounded-lg"
+              />
               <span className="font-semibold text-lg text-gray-900 dark:text-white">
                 HabitForge
               </span>

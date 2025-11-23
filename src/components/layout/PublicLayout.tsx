@@ -16,9 +16,11 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-xl shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
-                <Zap className="h-6 w-6 text-white" fill="white" />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="HabitForge Logo" 
+                className="w-10 h-10 object-contain rounded-xl group-hover:scale-105 transition-transform duration-300"
+              />
               <span className="font-bold text-xl text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                 HabitForge
               </span>

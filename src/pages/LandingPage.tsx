@@ -132,9 +132,11 @@ const LandingPage: React.FC = () => {
               <div className="flex-shrink-0">
                 <Link to="/" className="flex items-center space-x-3 group">
                   {/* Logo Icon */}
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                    <Zap className="h-6 w-6 text-white" fill="white" />
-                  </div>
+                  <img 
+                    src="/logo.png" 
+                    alt="HabitForge Logo" 
+                    className="w-10 h-10 object-contain rounded-xl group-hover:scale-105 transition-transform duration-300"
+                  />
                   {/* Logo Text */}
                   <span className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                     HabitForge
@@ -229,9 +231,11 @@ const LandingPage: React.FC = () => {
           <div className="max-w-4xl mx-auto text-center">
             {/* Hero Logo */}
             <div className="flex justify-center mb-6 sm:mb-8 animate-fade-in">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-3xl flex items-center justify-center shadow-2xl">
-                <Zap className="h-12 w-12 sm:h-14 sm:w-14 text-white" fill="white" strokeWidth={2} />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="HabitForge Logo" 
+                className="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-3xl drop-shadow-2xl"
+              />
             </div>
             
             <Badge variant="primary" className="mb-4 sm:mb-6 animate-fade-in text-xs sm:text-sm">

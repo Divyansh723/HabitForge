@@ -1,6 +1,10 @@
-# 🎯 HabitForge
-
-> Transform your habits with gamified tracking, AI coaching, and community support
+<div align="center">
+  <img src="logo.png" alt="HabitForge Logo" width="200"/>
+  
+  # HabitForge
+  
+  > Transform your habits with gamified tracking, AI coaching, and community support
+</div>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue)](https://www.typescriptlang.org/)
