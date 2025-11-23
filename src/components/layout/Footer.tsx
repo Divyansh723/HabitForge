@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Zap } from 'lucide-react';
 
 interface FooterProps {
   variant?: 'default' | 'minimal';

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Footer } from './Footer';
 import { Link } from 'react-router-dom';
-import { Zap } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
 
 interface PublicLayoutProps {
