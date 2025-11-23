@@ -12,6 +12,7 @@ HabitForge is a modern, full-stack habit tracking application that makes buildin
 ## 🌟 Key Features
 
 ### 🎮 Gamification System
+
 - **XP & Leveling**: Earn experience points for completing habits and level up from Beginner to Grandmaster
 - **Streak Tracking**: Build momentum with daily streaks and earn bonus XP
 - **Achievement Badges**: Unlock special badges at milestone levels (5, 10, 25, 50, 75, 100)
@@ -19,6 +20,7 @@ HabitForge is a modern, full-stack habit tracking application that makes buildin
 - **Visual Celebrations**: Confetti animations and level-up notifications
 
 ### 📊 Advanced Analytics
+
 - **Weekly Summary**: Track perfect days, active days, and completion rates
 - **Consistency Calendar**: Visual heatmap of your habit completion history
 - **Trend Analysis**: Identify patterns and track progress over time
@@ -26,17 +28,20 @@ HabitForge is a modern, full-stack habit tracking application that makes buildin
 - **Data Export**: Download your data for external analysis
 
 ### 🤖 AI-Powered Coaching
+
 - **Personalized Insights**: Get motivational messages tailored to your progress
 - **Smart Recommendations**: AI suggests optimal times and strategies
 - **Progress Analysis**: Understand what's working and what needs adjustment
 
 ### 👥 Community Features
+
 - **Circles**: Join or create accountability groups
 - **Challenges**: Participate in time-bound habit challenges
 - **Leaderboards**: See how you rank among friends and community
 - **Social Sharing**: Celebrate milestones with your circle
 
 ### 🎨 User Experience
+
 - **Dark Mode**: Beautiful themes that adapt to your preference
 - **Responsive Design**: Seamless experience on desktop, tablet, and mobile
 - **Accessibility**: WCAG compliant with keyboard navigation and screen reader support
@@ -54,17 +59,20 @@ HabitForge is a modern, full-stack habit tracking application that makes buildin
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/Divyansh723/HabitForge.git
    cd HabitForge
    ```
 
 2. **Install frontend dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Install backend dependencies**
+
    ```bash
    cd server
    npm install
@@ -72,37 +80,42 @@ HabitForge is a modern, full-stack habit tracking application that makes buildin
    ```
 
 4. **Set up environment variables**
-   
+
    Frontend (.env):
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Backend (server/.env):
+
    ```bash
    cp server/.env.example server/.env
    ```
-   
+
    Update the `.env` files with your configuration:
+
    - MongoDB connection string
    - JWT secret
    - API keys (if using AI features)
 
 5. **Start the development servers**
-   
+
    Terminal 1 (Backend):
+
    ```bash
    cd server
    npm run dev
    ```
-   
+
    Terminal 2 (Frontend):
+
    ```bash
    npm run dev
    ```
 
 6. **Open your browser**
-   
+
    Navigate to [http://localhost:3001](http://localhost:3001)
 
 ## 📁 Project Structure
@@ -140,6 +153,7 @@ HabitForge/
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with custom design system
@@ -152,6 +166,7 @@ HabitForge/
 - **Date Handling**: date-fns with timezone support
 
 ### Backend
+
 - **Runtime**: Node.js 18+
 - **Framework**: Express.js
 - **Database**: MongoDB with Mongoose ODM
@@ -160,6 +175,7 @@ HabitForge/
 - **API Documentation**: OpenAPI/Swagger (planned)
 
 ### DevOps & Tools
+
 - **Testing**: Jest + React Testing Library
 - **Linting**: ESLint + Prettier
 - **Type Checking**: TypeScript
@@ -170,23 +186,27 @@ HabitForge/
 ## 🎯 Core Concepts
 
 ### Habit Frequency Types
+
 - **Daily**: Track habits that should be done every day
 - **Weekly**: Set specific days of the week
 - **Custom**: Define your own schedule
 
 ### XP & Leveling System
+
 - Base XP: 10 points per habit completion
 - Streak Bonus: Up to 50 bonus XP based on streak length
 - Progressive Leveling: Each level requires 20% more XP than the previous
 - Level Titles: Beginner → Novice → Intermediate → Advanced → Expert → Master → Grandmaster
 
 ### Forgiveness System
+
 - Earn tokens at milestone levels (every 10 levels)
 - Use tokens to maintain streaks for missed days
 - Limited to 3 uses per day
 - Only works for daily habits within the last 7 days
 
 ### Perfect Days
+
 - A perfect day = completing all daily habits
 - Weekly and custom habits don't count toward perfect days
 - Tracked in weekly summary analytics
@@ -194,6 +214,7 @@ HabitForge/
 ## 📚 API Documentation
 
 ### Authentication Endpoints
+
 ```
 POST   /api/auth/register        # Create new account
 POST   /api/auth/login           # Login
@@ -202,6 +223,7 @@ GET    /api/auth/me              # Get current user
 ```
 
 ### Habit Endpoints
+
 ```
 GET    /api/habits               # Get all habits
 POST   /api/habits               # Create habit
@@ -212,6 +234,7 @@ POST   /api/habits/:id/complete  # Mark habit complete
 ```
 
 ### Analytics Endpoints
+
 ```
 GET    /api/analytics/overview        # Get overview stats
 GET    /api/analytics/weekly-summary  # Get weekly summary
@@ -220,6 +243,7 @@ GET    /api/analytics/consistency     # Get consistency data
 ```
 
 ### Gamification Endpoints
+
 ```
 GET    /api/gamification/profile      # Get XP and level info
 POST   /api/gamification/forgiveness  # Use forgiveness token
@@ -245,12 +269,14 @@ npm test
 ## 🚢 Deployment
 
 ### Frontend (Render Static Site)
+
 1. Connect your GitHub repository to Render
 2. Set build command: `npm run build`
 3. Set publish directory: `dist`
 4. Add environment variables
 
 ### Backend (Render Web Service)
+
 1. Connect your GitHub repository to Render
 2. Set build command: `cd server && npm install`
 3. Set start command: `cd server && npm start`
@@ -261,6 +287,7 @@ npm test
 **Complete project documentation, demo, and Amazon Kiro integration details**: [SUBMISSION.md](SUBMISSION.md)
 
 This comprehensive document includes:
+
 - Technical documentation and architecture
 - Solution impact and user metrics
 - Live demo and code repository
@@ -276,6 +303,7 @@ HabitForge was built entirely using **Amazon Kiro's AI-powered development workf
 ![Kiro Workflow](.kiro/specs/images/kiro_use.png)
 
 **Key Benefits:**
+
 - ⚡ 70% faster development
 - 🎯 85% first-time-right implementation
 - ✅ 100% TypeScript coverage
@@ -287,6 +315,7 @@ See [SUBMISSION.md](SUBMISSION.md) for detailed proof of Kiro integration with s
 ## 🤝 Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
+
 - Code of Conduct
 - Development workflow
 - Coding standards
