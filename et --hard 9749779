@@ -1,0 +1,5 @@
+[33m411f487[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: add Docker Hub build and push scripts with comprehensive documentation
+[33m796c8a9[m feat: add Docker support with comprehensive documentation
+[33m9749779[m docs: add comprehensive README, LICENSE, and CONTRIBUTING documentation
+[33maf188a6[m Remove .env files from repo and update weekly summary to only count daily habits for perfect days
+[33m8a3cbf1[m Add serve for SPA routing support

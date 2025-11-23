@@ -47,43 +47,11 @@ HabitForge is a modern, full-stack habit tracking application that makes buildin
 
 ### Prerequisites
 
-**Option 1: Docker (Recommended)**
-- Docker Engine 20.10+
-- Docker Compose 2.0+
-
-**Option 2: Manual Setup**
-- Node.js 18+
-- npm or yarn
-- MongoDB
+- **Node.js** 18 or higher
+- **npm** or **yarn**
+- **MongoDB** (for backend)
 
 ### Installation
-
-#### 🐳 Option 1: Docker (Recommended)
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Divyansh723/HabitForge.git
-   cd HabitForge
-   ```
-
-2. **Configure environment**
-   ```bash
-   cp .env.docker .env.docker.local
-   # Edit .env.docker.local with your credentials
-   ```
-
-3. **Start with Docker Compose**
-   ```bash
-   docker-compose --env-file .env.docker.local up -d
-   ```
-
-4. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend: http://localhost:8000
-
-📖 **See [DOCKER.md](DOCKER.md) for detailed Docker documentation**
-
-#### 💻 Option 2: Manual Setup
 
 1. **Clone the repository**
    ```bash
