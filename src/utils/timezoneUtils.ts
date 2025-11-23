@@ -316,16 +316,21 @@ export const convertUserTimezoneToUTC = (
 
   const [hours, minutes] = localTime.split(':').map(Number);
 
-  // Create a date string in the user's timezone
+  // Create a date in the user's timezone
   const today = new Date();
-  const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-
-  // Parse as if it's in the user's timezone
-  const localDate = new Date(dateStr);
-  const utcDate = new Date(localDate.toLocaleString('en-US', { timeZone: 'UTC' }));
-
-  const utcHours = utcDate.getHours();
-  const utcMinutes = utcDate.getMinutes();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+  
+  // Create ISO string and parse it as if it's in the user's timezone
+  const dateStr = `${year}-${month}-${day}T${timeStr}`;
+  const localDateStr = new Date(dateStr).toLocaleString('en-US', { timeZone: userTimezone });
+  const localDate = new Date(localDateStr);
+  
+  // Convert to UTC
+  const utcHours = localDate.getUTCHours();
+  const utcMinutes = localDate.getUTCMinutes();
 
   return `${String(utcHours).padStart(2, '0')}:${String(utcMinutes).padStart(2, '0')}`;
 };

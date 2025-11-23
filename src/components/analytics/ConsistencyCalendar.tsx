@@ -38,7 +38,6 @@ export const ConsistencyCalendar: React.FC<ConsistencyCalendarProps> = ({
   const [showForgivenessDialog, setShowForgivenessDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dailyUsageCount, setDailyUsageCount] = useState(0);
-  const [isProcessingForgiveness, setIsProcessingForgiveness] = useState(false);
 
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
@@ -106,8 +105,6 @@ export const ConsistencyCalendar: React.FC<ConsistencyCalendarProps> = ({
   const handleUseForgiveness = async () => {
     if (!selectedDate || !habitId) return;
     
-    setIsProcessingForgiveness(true);
-    
     try {
       const { habitService } = await import('@/services/habitService');
       await habitService.useForgivenessToken(habitId, selectedDate);
@@ -124,8 +121,6 @@ export const ConsistencyCalendar: React.FC<ConsistencyCalendarProps> = ({
     } catch (error) {
       // Error will be handled by ForgivenessDialog
       throw error;
-    } finally {
-      setIsProcessingForgiveness(false);
     }
   };
 
