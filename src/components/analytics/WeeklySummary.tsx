@@ -9,7 +9,8 @@ import { cn } from '@/utils/cn';
 interface WeeklySummaryProps {
   completions: Completion[];
   totalHabits: number;
-  dailyHabitCounts?: Record<string, number>; // NEW: Number of habits that existed on each day
+  dailyHabitCounts?: Record<string, number>; // Number of DAILY habits that existed on each day
+  habits?: Array<{ id: string; frequency: string }>; // NEW: Habit list to filter daily habits
   week?: Date;
   showInsights?: boolean;
   className?: string;
@@ -27,6 +28,7 @@ export const WeeklySummary: React.FC<WeeklySummaryProps> = ({
   completions = [],
   totalHabits = 0,
   dailyHabitCounts = {},
+  habits = [],
   week = new Date(),
   showInsights = true,
   className,
@@ -46,9 +48,14 @@ export const WeeklySummary: React.FC<WeeklySummaryProps> = ({
   const weekEnd = endOfWeek(week, { weekStartsOn: 1 });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
+  // Filter completions to only include DAILY habits for perfect day calculation
+  const dailyHabits = habits.filter(h => h.frequency === 'daily');
+  const dailyHabitIds = new Set(dailyHabits.map(h => h.id));
+  const dailyCompletions = completions.filter(c => dailyHabitIds.has(c.habitId));
+
   // Calculate daily progress
   const dailyProgress: DayProgress[] = weekDays.map(date => {
-    const dayCompletions = completions.filter(completion => {
+    const dayCompletions = dailyCompletions.filter(completion => {
       try {
         const completionDate = new Date(completion.completedAt);
         if (isNaN(completionDate.getTime())) {
@@ -62,12 +69,13 @@ export const WeeklySummary: React.FC<WeeklySummaryProps> = ({
       }
     });
 
-    // Count unique habits completed on this day
+    // Count unique DAILY habits completed on this day
     const uniqueHabitsCompleted = new Set(dayCompletions.map(c => c.habitId)).size;
     
-    // Get the number of habits that existed on this day (from backend)
+    // Get the number of DAILY habits that existed on this day
+    // Use the frontend count of daily habits instead of backend count to ensure accuracy
     const dateKey = format(date, 'yyyy-MM-dd');
-    const habitsOnThisDay = dailyHabitCounts[dateKey] || totalHabits;
+    const habitsOnThisDay = dailyHabits.length; // Always use current daily habit count
     
     // Debug logging
     if (dailyHabitCounts[dateKey] === undefined) {
@@ -97,7 +105,8 @@ export const WeeklySummary: React.FC<WeeklySummaryProps> = ({
   const totalCompletions = dailyProgress.reduce((sum, day) => sum + day.completed, 0);
   const totalPossible = totalHabits * 7;
   const weeklyPercentage = totalPossible > 0 ? Math.round((totalCompletions / totalPossible) * 100) : 0;
-  // Perfect days: days where all habits that existed on that day were completed
+  // Perfect days: days where all DAILY habits that existed on that day were completed
+  // Note: Weekly and custom habits are excluded from perfect day calculation (filtered by backend)
   const perfectDays = dailyProgress.filter(day => day.percentage === 100 && day.total > 0).length;
   const activeDays = dailyProgress.filter(day => day.completed > 0).length;
 

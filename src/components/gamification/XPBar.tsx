@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Zap, TrendingUp } from 'lucide-react';
 import { Badge } from '@/components/ui';
 import { 
@@ -27,6 +27,38 @@ export const XPBar: React.FC<XPBarProps> = ({
   const levelInfo = calculateLevelInfo(totalXP);
   const levelTitle = getLevelTitle(levelInfo.currentLevel);
   const levelColors = getLevelColor(levelInfo.currentLevel);
+  
+  const [showMilestone, setShowMilestone] = useState(false);
+
+  // Check if milestone should be shown (within 24 hours of achieving it)
+  useEffect(() => {
+    const isMilestoneLevel = levelInfo.currentLevel % 5 === 0;
+    
+    if (!isMilestoneLevel) {
+      setShowMilestone(false);
+      return;
+    }
+
+    const storageKey = `milestone_level_${levelInfo.currentLevel}`;
+    const achievedTimestamp = localStorage.getItem(storageKey);
+
+    if (!achievedTimestamp) {
+      // First time reaching this milestone level
+      localStorage.setItem(storageKey, Date.now().toString());
+      setShowMilestone(true);
+    } else {
+      // Check if 24 hours have passed
+      const achievedTime = parseInt(achievedTimestamp, 10);
+      const now = Date.now();
+      const hoursPassed = (now - achievedTime) / (1000 * 60 * 60);
+
+      if (hoursPassed < 24) {
+        setShowMilestone(true);
+      } else {
+        setShowMilestone(false);
+      }
+    }
+  }, [levelInfo.currentLevel]);
 
   const sizeClasses = {
     sm: {
@@ -150,8 +182,8 @@ export const XPBar: React.FC<XPBarProps> = ({
           )}
         </div>
 
-        {/* Level milestone indicator */}
-        {showDetails && levelInfo.currentLevel % 5 === 0 && (
+        {/* Level milestone indicator - shown for 24 hours after achieving milestone */}
+        {showDetails && showMilestone && (
           <div className="mt-3 p-2 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
             <div className="flex items-center gap-2">
               <div className="text-yellow-600 dark:text-yellow-400 text-lg">🏆</div>

@@ -437,6 +437,7 @@ const AnalyticsPage: React.FC = () => {
                         completions={filteredWeeklySummary.completions || []}
                         totalHabits={filteredWeeklySummary.totalHabits || 0}
                         dailyHabitCounts={filteredWeeklySummary.dailyHabitCounts}
+                        habits={habits.map(h => ({ id: h.id, frequency: h.frequency }))}
                         showInsights
                       />
                     </>
@@ -609,6 +610,7 @@ const AnalyticsPage: React.FC = () => {
                     completions={filteredWeeklySummary.completions || []}
                     totalHabits={filteredWeeklySummary.totalHabits || 0}
                     dailyHabitCounts={filteredWeeklySummary.dailyHabitCounts}
+                    habits={habits.map(h => ({ id: h.id, frequency: h.frequency }))}
                     showInsights
                   />
                 ) : (
