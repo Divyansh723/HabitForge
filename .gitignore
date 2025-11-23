@@ -32,8 +32,13 @@ dist-ssr
 .env.test.local
 .env.production
 .env.production.local
+.env.docker.local
 server/.env
 server/.env.local
+
+# Docker
+docker-compose.override.yml
+.docker
 
 # Testing
 coverage
