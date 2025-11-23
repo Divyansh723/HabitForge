@@ -1,132 +1,295 @@
-# HabitForge
+# 🎯 HabitForge
 
-A modern, gamified habit-tracking web application built with React, TypeScript, and Tailwind CSS.
+> Transform your habits with gamified tracking, AI coaching, and community support
 
-## Features
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18.2-61dafb)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green)](https://nodejs.org/)
 
-- 🎯 **Habit Tracking**: Create and track custom habits with flexible scheduling
-- 🎮 **Gamification**: XP points, levels, streaks, and achievement badges
-- 🤖 **AI Coaching**: Personalized motivational messages and insights
-- 🌙 **Dark Mode**: Beautiful light and dark themes with smooth transitions
-- 📱 **Responsive**: Works seamlessly on desktop and mobile devices
-- 👥 **Community**: Join circles, share progress, and stay accountable
-- 📊 **Analytics**: Detailed insights and progress visualization
-- 🔒 **Privacy-First**: Granular controls and transparent data handling
+HabitForge is a modern, full-stack habit tracking application that makes building better habits engaging and rewarding. By combining gamification mechanics, AI-powered insights, and community features, HabitForge helps users stay motivated and accountable on their personal growth journey.
 
-## Tech Stack
+## 🌟 Key Features
 
-- **Frontend**: React 18, TypeScript, Vite
-- **Styling**: Tailwind CSS with custom theme system
-- **State Management**: Zustand
-- **Animations**: Framer Motion
-- **Charts**: Chart.js
-- **Icons**: Lucide React
-- **Testing**: Jest, React Testing Library
-- **Documentation**: Storybook
+### 🎮 Gamification System
+- **XP & Leveling**: Earn experience points for completing habits and level up from Beginner to Grandmaster
+- **Streak Tracking**: Build momentum with daily streaks and earn bonus XP
+- **Achievement Badges**: Unlock special badges at milestone levels (5, 10, 25, 50, 75, 100)
+- **Forgiveness Tokens**: Redeem tokens to maintain streaks when life gets in the way
+- **Visual Celebrations**: Confetti animations and level-up notifications
 
-## Getting Started
+### 📊 Advanced Analytics
+- **Weekly Summary**: Track perfect days, active days, and completion rates
+- **Consistency Calendar**: Visual heatmap of your habit completion history
+- **Trend Analysis**: Identify patterns and track progress over time
+- **Performance Charts**: Compare habits and see which ones you're crushing
+- **Data Export**: Download your data for external analysis
+
+### 🤖 AI-Powered Coaching
+- **Personalized Insights**: Get motivational messages tailored to your progress
+- **Smart Recommendations**: AI suggests optimal times and strategies
+- **Progress Analysis**: Understand what's working and what needs adjustment
+
+### 👥 Community Features
+- **Circles**: Join or create accountability groups
+- **Challenges**: Participate in time-bound habit challenges
+- **Leaderboards**: See how you rank among friends and community
+- **Social Sharing**: Celebrate milestones with your circle
+
+### 🎨 User Experience
+- **Dark Mode**: Beautiful themes that adapt to your preference
+- **Responsive Design**: Seamless experience on desktop, tablet, and mobile
+- **Accessibility**: WCAG compliant with keyboard navigation and screen reader support
+- **Timezone Support**: Accurate tracking across different timezones
+- **Offline Capable**: Track habits even without internet connection
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ and npm
-- Modern web browser
+- **Node.js** 18 or higher
+- **npm** or **yarn**
+- **MongoDB** (for backend)
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd habitforge
+   git clone https://github.com/Divyansh723/HabitForge.git
+   cd HabitForge
    ```
 
-2. Install dependencies:
+2. **Install frontend dependencies**
    ```bash
    npm install
    ```
 
-3. Copy environment variables:
+3. **Install backend dependencies**
+   ```bash
+   cd server
+   npm install
+   cd ..
+   ```
+
+4. **Set up environment variables**
+   
+   Frontend (.env):
    ```bash
    cp .env.example .env
    ```
+   
+   Backend (server/.env):
+   ```bash
+   cp server/.env.example server/.env
+   ```
+   
+   Update the `.env` files with your configuration:
+   - MongoDB connection string
+   - JWT secret
+   - API keys (if using AI features)
 
-4. Start the development server:
+5. **Start the development servers**
+   
+   Terminal 1 (Backend):
+   ```bash
+   cd server
+   npm run dev
+   ```
+   
+   Terminal 2 (Frontend):
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+6. **Open your browser**
+   
+   Navigate to [http://localhost:3001](http://localhost:3001)
 
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm test` - Run tests
-- `npm run test:watch` - Run tests in watch mode
-- `npm run storybook` - Start Storybook
-
-## Project Structure
+## 📁 Project Structure
 
 ```
-src/
-├── components/          # Reusable UI components
-│   ├── ui/             # Base UI components
-│   ├── layout/         # Layout components
-│   ├── habit/          # Habit-specific components
-│   ├── gamification/   # Gamification components
-│   ├── analytics/      # Analytics components
-│   └── community/      # Community components
-├── pages/              # Page components
-├── hooks/              # Custom React hooks
-├── services/           # API service layer
-├── stores/             # Zustand stores
-├── utils/              # Utility functions
-├── types/              # TypeScript type definitions
-├── contexts/           # React contexts
-└── routes/             # Route configuration
+HabitForge/
+├── src/                          # Frontend source code
+│   ├── components/               # React components
+│   │   ├── ui/                  # Base UI components (Button, Card, etc.)
+│   │   ├── layout/              # Layout components (Header, Sidebar)
+│   │   ├── habit/               # Habit-specific components
+│   │   ├── gamification/        # XP, levels, badges
+│   │   ├── analytics/           # Charts and statistics
+│   │   └── community/           # Circles and challenges
+│   ├── pages/                   # Page components
+│   ├── hooks/                   # Custom React hooks
+│   ├── services/                # API service layer
+│   ├── stores/                  # Zustand state management
+│   ├── utils/                   # Utility functions
+│   ├── types/                   # TypeScript definitions
+│   └── contexts/                # React contexts
+├── server/                      # Backend source code
+│   ├── src/
+│   │   ├── controllers/         # Route controllers
+│   │   ├── models/              # MongoDB models
+│   │   ├── routes/              # API routes
+│   │   ├── middleware/          # Express middleware
+│   │   ├── services/            # Business logic
+│   │   └── utils/               # Helper functions
+│   └── tests/                   # Backend tests
+├── public/                      # Static assets
+└── docs/                        # Documentation
 ```
 
-## Development Guidelines
+## 🛠️ Tech Stack
 
-### Code Style
+### Frontend
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS with custom design system
+- **State Management**: Zustand
+- **Routing**: React Router v6
+- **Forms**: React Hook Form + Zod validation
+- **Animations**: Framer Motion
+- **Charts**: Chart.js with react-chartjs-2
+- **Icons**: Lucide React
+- **Date Handling**: date-fns with timezone support
 
-- Use TypeScript for all new code
-- Follow the existing ESLint and Prettier configuration
-- Use functional components with hooks
-- Implement proper error boundaries
-- Write meaningful commit messages
+### Backend
+- **Runtime**: Node.js 18+
+- **Framework**: Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT with bcrypt
+- **Validation**: Express Validator
+- **API Documentation**: OpenAPI/Swagger (planned)
 
-### Component Development
+### DevOps & Tools
+- **Testing**: Jest + React Testing Library
+- **Linting**: ESLint + Prettier
+- **Type Checking**: TypeScript
+- **Documentation**: Storybook
+- **Version Control**: Git
+- **Deployment**: Render (frontend & backend)
 
-- Create reusable components in the `ui/` directory
-- Use proper TypeScript interfaces for props
-- Implement accessibility features (ARIA labels, keyboard navigation)
-- Support both light and dark themes
-- Add Storybook stories for complex components
+## 🎯 Core Concepts
 
-### Testing
+### Habit Frequency Types
+- **Daily**: Track habits that should be done every day
+- **Weekly**: Set specific days of the week
+- **Custom**: Define your own schedule
 
-- Write unit tests for utility functions
-- Test component behavior, not implementation details
-- Use React Testing Library for component tests
-- Maintain good test coverage for critical paths
+### XP & Leveling System
+- Base XP: 10 points per habit completion
+- Streak Bonus: Up to 50 bonus XP based on streak length
+- Progressive Leveling: Each level requires 20% more XP than the previous
+- Level Titles: Beginner → Novice → Intermediate → Advanced → Expert → Master → Grandmaster
 
-## Contributing
+### Forgiveness System
+- Earn tokens at milestone levels (every 10 levels)
+- Use tokens to maintain streaks for missed days
+- Limited to 3 uses per day
+- Only works for daily habits within the last 7 days
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+### Perfect Days
+- A perfect day = completing all daily habits
+- Weekly and custom habits don't count toward perfect days
+- Tracked in weekly summary analytics
 
-## License
+## 📚 API Documentation
+
+### Authentication Endpoints
+```
+POST   /api/auth/register        # Create new account
+POST   /api/auth/login           # Login
+POST   /api/auth/logout          # Logout
+GET    /api/auth/me              # Get current user
+```
+
+### Habit Endpoints
+```
+GET    /api/habits               # Get all habits
+POST   /api/habits               # Create habit
+GET    /api/habits/:id           # Get habit by ID
+PUT    /api/habits/:id           # Update habit
+DELETE /api/habits/:id           # Delete habit
+POST   /api/habits/:id/complete  # Mark habit complete
+```
+
+### Analytics Endpoints
+```
+GET    /api/analytics/overview        # Get overview stats
+GET    /api/analytics/weekly-summary  # Get weekly summary
+GET    /api/analytics/trends          # Get trend data
+GET    /api/analytics/consistency     # Get consistency data
+```
+
+### Gamification Endpoints
+```
+GET    /api/gamification/profile      # Get XP and level info
+POST   /api/gamification/forgiveness  # Use forgiveness token
+GET    /api/gamification/achievements # Get achievements
+```
+
+## 🧪 Testing
+
+Run the test suite:
+
+```bash
+# Frontend tests
+npm test
+
+# Watch mode
+npm run test:watch
+
+# Backend tests
+cd server
+npm test
+```
+
+## 🚢 Deployment
+
+### Frontend (Render Static Site)
+1. Connect your GitHub repository to Render
+2. Set build command: `npm run build`
+3. Set publish directory: `dist`
+4. Add environment variables
+
+### Backend (Render Web Service)
+1. Connect your GitHub repository to Render
+2. Set build command: `cd server && npm install`
+3. Set start command: `cd server && npm start`
+4. Add environment variables (MongoDB URI, JWT secret, etc.)
+
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
+- Code of Conduct
+- Development workflow
+- Coding standards
+- Pull request process
+- Issue reporting
+
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
-- Built with [Vite](https://vitejs.dev/) for fast development
-- Styled with [Tailwind CSS](https://tailwindcss.com/)
-- Icons by [Lucide](https://lucide.dev/)
-- Animations powered by [Framer Motion](https://www.framer.com/motion/)
+- **Design Inspiration**: Modern productivity apps and gamification principles
+- **Open Source Libraries**: Built on the shoulders of giants
+- **Community**: Thanks to all contributors and users
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/Divyansh723/HabitForge/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Divyansh723/HabitForge/discussions)
+- **Email**: [Your Email]
+
+## 🗺️ Roadmap
+
+- [ ] Mobile app (React Native)
+- [ ] Social features expansion
+- [ ] Advanced AI coaching
+- [ ] Integration with fitness trackers
+- [ ] Habit templates marketplace
+- [ ] Team/organization features
+
+---
+
+**Built with ❤️ by the HabitForge Team**
