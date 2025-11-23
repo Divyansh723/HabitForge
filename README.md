@@ -256,6 +256,17 @@ npm test
 3. Set start command: `cd server && npm start`
 4. Add environment variables (MongoDB URI, JWT secret, etc.)
 
+## 📋 Project Submission
+
+**Complete project documentation, demo, and Amazon Kiro integration details**: [SUBMISSION.md](SUBMISSION.md)
+
+This comprehensive document includes:
+- Technical documentation and architecture
+- Solution impact and user metrics
+- Live demo and code repository
+- Video pitch overview
+- Proof of Amazon Q Developer / Kiro integration
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
