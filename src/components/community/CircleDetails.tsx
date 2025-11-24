@@ -34,8 +34,7 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
     postMessage,
     toggleLeaderboardOptOut,
     reportMessage,
-    refreshCircle,
-    refreshLeaderboard
+    refreshCircle
   } = useCircleDetails(circleId);
 
   const [messageContent, setMessageContent] = useState('');
