@@ -7,11 +7,13 @@ import { cn } from '@/utils/cn';
 interface CreateCircleModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onCircleCreated?: () => void;
 }
 
 export const CreateCircleModal: React.FC<CreateCircleModalProps> = ({
   isOpen,
-  onClose
+  onClose,
+  onCircleCreated
 }) => {
   const { createCircle, loading } = useCommunity();
   const [formData, setFormData] = useState({
@@ -33,6 +35,10 @@ export const CreateCircleModal: React.FC<CreateCircleModalProps> = ({
       if (result.inviteCode) {
         setInviteCode(result.inviteCode);
       } else {
+        // Public circle created - refresh the list and close modal
+        if (onCircleCreated) {
+          onCircleCreated();
+        }
         onClose();
         resetForm();
       }
@@ -54,6 +60,10 @@ export const CreateCircleModal: React.FC<CreateCircleModalProps> = ({
   };
 
   const handleClose = () => {
+    // Notify parent that circle was created so it can refresh (for private circles)
+    if (inviteCode && onCircleCreated) {
+      onCircleCreated();
+    }
     onClose();
     resetForm();
   };
@@ -112,11 +122,11 @@ export const CreateCircleModal: React.FC<CreateCircleModalProps> = ({
               value={formData.maxMembers}
               onChange={(e) => setFormData({ ...formData, maxMembers: parseInt(e.target.value) })}
               min={2}
-              max={50}
+              max={100}
               required
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Between 2 and 50 members
+              Between 2 and 100 members
             </p>
           </div>
 

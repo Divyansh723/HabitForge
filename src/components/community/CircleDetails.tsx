@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Trophy, Flag, Eye, EyeOff, Users, UserMinus, Shield, Crown, Edit } from 'lucide-react';
+import { ArrowLeft, Send, Trophy, Flag, Eye, EyeOff, Users, UserMinus, Shield, Crown, Edit, Copy, Lock } from 'lucide-react';
 import { Button, Input, Card } from '@/components/ui';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useCircleDetails } from '@/hooks/useCommunity';
@@ -256,6 +256,39 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
           </div>
         </div>
       </Card>
+
+      {/* Invite Code Display for Private Circles */}
+      {circle.isPrivate && circle.inviteCode && isMember && (
+        <Card className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200 dark:border-purple-800">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-1">
+                <Lock className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                Invite Code
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Share this code with others to invite them to this private circle
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <code className="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg text-lg font-mono font-bold text-purple-600 dark:text-purple-400 border-2 border-purple-200 dark:border-purple-700">
+                {circle.inviteCode}
+              </code>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(circle.inviteCode!);
+                  // You could add a toast notification here
+                }}
+                className="bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white border-purple-600 dark:border-purple-500"
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Admin Controls - Outside Header */}
       {circle.userIsAdmin && isMember && (

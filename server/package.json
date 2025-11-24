@@ -10,7 +10,8 @@
     "build": "echo 'No build step needed for Node.js'",
     "test": "jest",
     "seed:challenges": "node src/scripts/seedChallenges.js",
-    "test:notifications": "node test-notifications-scheduler.js"
+    "test:notifications": "node test-notifications-scheduler.js",
+    "fix:invite-code-index": "node src/scripts/fixInviteCodeIndex.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",

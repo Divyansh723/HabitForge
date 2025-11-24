@@ -16,21 +16,27 @@ export const createCircle = async (req, res) => {
     const { name, description, maxMembers, isPrivate } = req.body;
     const userId = req.user._id;
 
-    const inviteCode = isPrivate ? generateInviteCode() : null;
+    const inviteCode = isPrivate ? generateInviteCode() : undefined;
 
-    const circle = new CommunityCircle({
+    const circleData = {
       name,
       description,
       createdBy: userId,
       maxMembers: maxMembers || 10,
       isPrivate: isPrivate || false,
-      inviteCode,
       members: [{
         userId,
         role: 'admin',
         joinedAt: new Date()
       }]
-    });
+    };
+
+    // Only add inviteCode if it's a private circle
+    if (isPrivate) {
+      circleData.inviteCode = inviteCode;
+    }
+
+    const circle = new CommunityCircle(circleData);
 
     await circle.save();
 

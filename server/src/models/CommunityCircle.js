@@ -286,7 +286,7 @@ const communityCircleSchema = new mongoose.Schema({
 // Indexes
 communityCircleSchema.index({ createdBy: 1 });
 communityCircleSchema.index({ 'members.userId': 1 });
-communityCircleSchema.index({ inviteCode: 1 });
+// inviteCode index is already defined in the schema with unique: true, sparse: true
 
 // Virtual for member count
 communityCircleSchema.virtual('memberCount').get(function() {

@@ -42,6 +42,10 @@ export const CommunityPage: React.FC = () => {
       <CreateCircleModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
+        onCircleCreated={() => {
+          // Reload the page to ensure fresh data
+          window.location.reload();
+        }}
       />
     </div>
   );
