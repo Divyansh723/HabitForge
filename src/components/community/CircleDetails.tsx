@@ -99,11 +99,8 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
 
   const handleToggleLeaderboard = async () => {
     try {
+      // The hook already handles refreshing both circle and leaderboard
       await toggleLeaderboardOptOut();
-      // Refresh circle data to update the opt-out status
-      await refreshCircle();
-      // Refresh leaderboard to show/hide the user immediately
-      await refreshLeaderboard();
     } catch (err) {
       // Error is handled by the hook
     }

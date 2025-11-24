@@ -157,13 +157,18 @@ export const useCircleDetails = (circleId: string | null) => {
     
     try {
       await communityService.toggleLeaderboardOptOut(circleId);
-      await fetchCircle();
+      
+      // Force immediate refresh of both circle and leaderboard
+      await Promise.all([
+        fetchCircle(),
+        fetchLeaderboard()
+      ]);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update settings';
       setError(errorMessage);
       throw new Error(errorMessage);
     }
-  }, [circleId, fetchCircle]);
+  }, [circleId, fetchCircle, fetchLeaderboard]);
 
   const reportMessage = useCallback(async (messageId: string) => {
     if (!circleId) return;

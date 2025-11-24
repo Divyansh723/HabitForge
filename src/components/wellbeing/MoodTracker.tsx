@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Heart, Calendar, Zap, AlertTriangle, Smile, CheckCircle2 } from 'lucide-react';
 import { Card, Button, Textarea } from '@/components/ui';
 import { useWellbeing } from '@/hooks/useWellbeing';
@@ -10,18 +10,13 @@ interface MoodTrackerProps {
 }
 
 export const MoodTracker: React.FC<MoodTrackerProps> = ({ className }) => {
-  const { moodEntries, fetchMoodEntries, createMoodEntry } = useWellbeing();
+  const { moodEntries, createMoodEntry, fetchMoodEntries } = useWellbeing();
   const [selectedMood, setSelectedMood] = useState<number>(0);
   const [selectedEnergy, setSelectedEnergy] = useState<number>(3);
   const [selectedStress, setSelectedStress] = useState<number>(3);
   const [notes, setNotes] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitMessage, setSubmitMessage] = useState<string>('');
-
-  // Fetch mood entries on component mount
-  useEffect(() => {
-    fetchMoodEntries(30); // Get last 30 days
-  }, [fetchMoodEntries]); // Include fetchMoodEntries in dependency array
 
   const handleSaveMood = async () => {
     if (!selectedMood) return;
@@ -37,6 +32,9 @@ export const MoodTracker: React.FC<MoodTrackerProps> = ({ className }) => {
         notes: notes || undefined,
         date: new Date()
       });
+      
+      // Explicitly refresh the mood entries list to ensure it's up to date
+      await fetchMoodEntries(30);
       
       // Reset form
       setSelectedMood(0);

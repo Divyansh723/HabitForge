@@ -206,15 +206,38 @@ const AnalyticsPage: React.FC = () => {
   const calculateInsights = () => {
     const insights = [];
     
+    // Consistency insights (multi-tier)
     if (stats.averageConsistency >= 90) {
       insights.push({
         type: 'success',
         title: 'Exceptional Consistency',
-        description: `You're maintaining ${stats.averageConsistency}% consistency across all habits!`,
+        description: `You're maintaining ${Math.round(stats.averageConsistency)}% consistency across all habits!`,
         icon: '🏆'
+      });
+    } else if (stats.averageConsistency >= 70) {
+      insights.push({
+        type: 'success',
+        title: 'Great Progress',
+        description: `You're at ${Math.round(stats.averageConsistency)}% consistency. Keep up the excellent work!`,
+        icon: '👏'
+      });
+    } else if (stats.averageConsistency >= 50) {
+      insights.push({
+        type: 'encourage',
+        title: 'Building Momentum',
+        description: `You're at ${Math.round(stats.averageConsistency)}% consistency. You're on the right track!`,
+        icon: '💪'
+      });
+    } else if (stats.averageConsistency > 0) {
+      insights.push({
+        type: 'encourage',
+        title: 'Getting Started',
+        description: `Every journey begins with a single step. Keep going!`,
+        icon: '🌱'
       });
     }
     
+    // Streak insights (multi-tier)
     if (stats.longestStreak >= 30) {
       insights.push({
         type: 'achievement',
@@ -222,8 +245,30 @@ const AnalyticsPage: React.FC = () => {
         description: `Your longest streak is ${stats.longestStreak} days. That's incredible dedication!`,
         icon: '🔥'
       });
+    } else if (stats.longestStreak >= 14) {
+      insights.push({
+        type: 'achievement',
+        title: 'Two Week Warrior',
+        description: `${stats.longestStreak} day streak! You're building serious momentum!`,
+        icon: '⚡'
+      });
+    } else if (stats.longestStreak >= 7) {
+      insights.push({
+        type: 'achievement',
+        title: 'Week Strong',
+        description: `${stats.longestStreak} days in a row! That's a solid week of consistency!`,
+        icon: '💫'
+      });
+    } else if (stats.longestStreak >= 3) {
+      insights.push({
+        type: 'achievement',
+        title: 'Streak Started',
+        description: `${stats.longestStreak} days and counting! Keep the momentum going!`,
+        icon: '✨'
+      });
     }
     
+    // Completion milestones (multi-tier)
     if (stats.totalCompletions >= 100) {
       insights.push({
         type: 'milestone',
@@ -231,8 +276,37 @@ const AnalyticsPage: React.FC = () => {
         description: `You've completed ${stats.totalCompletions} habits total. Amazing progress!`,
         icon: '💯'
       });
+    } else if (stats.totalCompletions >= 50) {
+      insights.push({
+        type: 'milestone',
+        title: 'Half Century',
+        description: `${stats.totalCompletions} completions! You're halfway to 100!`,
+        icon: '🎯'
+      });
+    } else if (stats.totalCompletions >= 25) {
+      insights.push({
+        type: 'milestone',
+        title: 'Quarter Century',
+        description: `${stats.totalCompletions} habits completed. You're making real progress!`,
+        icon: '🌟'
+      });
+    } else if (stats.totalCompletions >= 10) {
+      insights.push({
+        type: 'milestone',
+        title: 'First Milestone',
+        description: `${stats.totalCompletions} completions! You're building a strong foundation!`,
+        icon: '🎉'
+      });
+    } else if (stats.totalCompletions >= 1) {
+      insights.push({
+        type: 'milestone',
+        title: 'Journey Begun',
+        description: `You've started your habit journey. Every completion counts!`,
+        icon: '🚀'
+      });
     }
     
+    // Active habits insights (multi-tier)
     const activeHabits = habits.filter(h => h.active);
     if (activeHabits.length >= 5) {
       insights.push({
@@ -240,6 +314,20 @@ const AnalyticsPage: React.FC = () => {
         title: 'Habit Juggler',
         description: `Managing ${activeHabits.length} active habits shows great ambition!`,
         icon: '🎯'
+      });
+    } else if (activeHabits.length >= 3) {
+      insights.push({
+        type: 'info',
+        title: 'Multi-Tasker',
+        description: `Tracking ${activeHabits.length} habits at once. You're building a well-rounded routine!`,
+        icon: '🎪'
+      });
+    } else if (activeHabits.length >= 1) {
+      insights.push({
+        type: 'info',
+        title: 'Focused Approach',
+        description: `Starting with ${activeHabits.length === 1 ? 'one habit' : `${activeHabits.length} habits`} is a smart strategy!`,
+        icon: '🎨'
       });
     }
     

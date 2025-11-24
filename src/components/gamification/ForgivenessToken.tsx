@@ -50,7 +50,7 @@ const UseTokenModal: React.FC<UseTokenModalProps> = ({
               <div className="text-sm text-warning-700 dark:text-warning-300">
                 <p className="font-medium mb-1">Remember:</p>
                 <ul className="space-y-1 text-xs">
-                  <li>• You get 2 tokens per month</li>
+                  <li>• You get 3 tokens per month</li>
                   <li>• Tokens can only be used within 24 hours</li>
                   <li>• No XP is earned for forgiven days</li>
                 </ul>
@@ -137,13 +137,13 @@ export const ForgivenessToken: React.FC<ForgivenessTokenProps> = ({
               variant={available > 0 ? 'primary' : 'outline'}
               className="text-lg px-3 py-1"
             >
-              {available}/2
+              {available}/3
             </Badge>
           </div>
 
           <div className="space-y-3">
             <div className="flex gap-2">
-              {[...Array(2)].map((_, index) => (
+              {[...Array(3)].map((_, index) => (
                 <div
                   key={index}
                   className={cn(

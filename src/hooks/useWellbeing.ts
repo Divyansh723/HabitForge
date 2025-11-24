@@ -47,34 +47,6 @@ export const useWellbeing = () => {
     }
   }, []);
 
-  const createMoodEntry = useCallback(async (entry: Omit<MoodEntry, 'id' | 'userId' | 'createdAt'>) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const newEntry = await wellbeingService.createMoodEntry(entry);
-      
-      // Ensure date is properly converted to Date object
-      const normalizedEntry = {
-        ...newEntry,
-        date: newEntry.date ? new Date(newEntry.date) : new Date(),
-        createdAt: newEntry.createdAt ? new Date(newEntry.createdAt) : new Date()
-      };
-      
-      setMoodEntries(prev => [normalizedEntry, ...prev]);
-      
-      // Emit event to notify other components
-      eventBus.emit(EVENTS.MOOD_LOGGED, normalizedEntry);
-      
-      return normalizedEntry;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create mood entry';
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   const fetchHabitImpacts = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -103,6 +75,43 @@ export const useWellbeing = () => {
     }
   }, []);
 
+  const createMoodEntry = useCallback(async (entry: Omit<MoodEntry, 'id' | 'userId' | 'createdAt'>) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const newEntry = await wellbeingService.createMoodEntry(entry);
+      
+      // Ensure date is properly converted to Date object
+      const normalizedEntry = {
+        ...newEntry,
+        date: newEntry.date ? new Date(newEntry.date) : new Date(),
+        createdAt: newEntry.createdAt ? new Date(newEntry.createdAt) : new Date()
+      };
+      
+      // Update mood entries list immediately
+      setMoodEntries(prev => [normalizedEntry, ...prev]);
+      
+      // Refresh wellbeing score and insights in the background
+      Promise.all([
+        fetchWellbeingScore(),
+        fetchInsights()
+      ]).catch(err => {
+        console.error('Failed to refresh wellbeing data:', err);
+      });
+      
+      // Emit event to notify other components
+      eventBus.emit(EVENTS.MOOD_LOGGED, normalizedEntry);
+      
+      return normalizedEntry;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create mood entry';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchWellbeingScore, fetchInsights]);
+
   // Auto-fetch all wellbeing data on mount
   useEffect(() => {
     const initializeData = async () => {
@@ -115,7 +124,7 @@ export const useWellbeing = () => {
     };
     
     initializeData();
-  }, []); // Empty dependency array to run only on mount
+  }, [fetchWellbeingScore, fetchMoodEntries, fetchHabitImpacts, fetchInsights]);
 
   return {
     // State
