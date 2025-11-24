@@ -4,6 +4,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { PageLayout } from './components/layout';
 import { useAuth } from './hooks/useAuth';
 import { useAccentColorStore } from './stores/accentColorStore';
+import { ScrollToTop } from './components/ScrollToTop';
 import AppRoutes from './routes/AppRoutes';
 
 function AppContent() {
@@ -55,6 +56,7 @@ function App() {
             v7_relativeSplatPath: true,
           }}
         >
+          <ScrollToTop />
           <AppContent />
         </Router>
       </ThemeProvider>
