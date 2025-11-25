@@ -57,18 +57,13 @@ export const createCircle = async (req, res) => {
   }
 };
 
-// Get all circles (public + user's private circles)
+// Get all circles (public + private)
 export const getCircles = async (req, res) => {
   try {
     const userId = req.user._id;
     const { search, page = 1, limit = 20 } = req.query;
 
-    const query = {
-      $or: [
-        { isPrivate: false },
-        { 'members.userId': userId }
-      ]
-    };
+    const query = {};
 
     if (search) {
       query.name = { $regex: search, $options: 'i' };
@@ -139,17 +134,35 @@ export const getCircleById = async (req, res) => {
       });
     }
 
-    // Check access for private circles
-    if (circle.isPrivate && !circle.isMember(userId)) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied to private circle'
+    const circleObj = circle.toObject({ virtuals: true });
+    const isMember = circle.isMember(userId);
+    circleObj.userIsMember = isMember;
+    circleObj.userIsAdmin = circle.isAdmin(userId);
+
+    // For private circles, hide sensitive data if user is not a member
+    if (circle.isPrivate && !isMember) {
+      // Return only basic information for non-members
+      return res.json({
+        success: true,
+        data: {
+          _id: circleObj._id,
+          name: circleObj.name,
+          description: circleObj.description,
+          isPrivate: circleObj.isPrivate,
+          maxMembers: circleObj.maxMembers,
+          memberCount: circleObj.members.filter(m => m.userId != null).length,
+          availableSpots: circleObj.maxMembers - circleObj.members.filter(m => m.userId != null).length,
+          createdBy: circleObj.createdBy,
+          createdAt: circleObj.createdAt,
+          userIsMember: false,
+          userIsAdmin: false,
+          members: [], // Hide member list for non-members
+          messages: [], // Hide messages for non-members
+          announcements: [], // Hide announcements for non-members
+          challenges: [] // Hide challenges for non-members
+        }
       });
     }
-
-    const circleObj = circle.toObject({ virtuals: true });
-    circleObj.userIsMember = circle.isMember(userId);
-    circleObj.userIsAdmin = circle.isAdmin(userId);
 
     // Clean up members with deleted user accounts
     circleObj.members = circleObj.members.filter(member => {

@@ -10,6 +10,7 @@ import { CreateAnnouncementModal } from './CreateAnnouncementModal';
 import { CreateChallengeModal } from './CreateChallengeModal';
 import { RemoveMemberModal } from './RemoveMemberModal';
 import { EditCircleModal } from './EditCircleModal';
+import { InviteCodeModal } from './InviteCodeModal';
 import { formatInUserTimezone } from '@/utils/timezoneUtils';
 import { cn } from '@/utils/cn';
 
@@ -52,6 +53,8 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
   const [showReportMessageConfirm, setShowReportMessageConfirm] = useState<string | null>(null);
   const [showDeleteAnnouncementConfirm, setShowDeleteAnnouncementConfirm] = useState<string | null>(null);
   const [showDeleteChallengeConfirm, setShowDeleteChallengeConfirm] = useState<string | null>(null);
+  const [showInviteCodeModal, setShowInviteCodeModal] = useState(false);
+  const [showLeaveCircleConfirm, setShowLeaveCircleConfirm] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Clear justJoined flag once circle data confirms membership
@@ -168,11 +171,39 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
   const handleJoinCircle = async () => {
     if (joiningCircle || isFull) return;
     
+    // For private circles, show invite code modal
+    if (circle.isPrivate) {
+      setShowInviteCodeModal(true);
+    } else {
+      // For public circles, join directly
+      setJoiningCircle(true);
+      try {
+        await communityService.joinCircle(circleId);
+        
+        console.log('Join API call successful, refreshing circle data...');
+        
+        // Refresh the circle data to update membership status
+        await refreshCircle();
+        
+        console.log('Circle refreshed, new membership status:', circle?.userIsMember);
+        
+        // Mark that user just joined (backup flag)
+        setJustJoined(true);
+      } catch (err) {
+        console.error('Failed to join circle:', err);
+        setJustJoined(false);
+        // Error will be shown in the UI via the error state
+      } finally {
+        setJoiningCircle(false);
+      }
+    }
+  };
+
+  // Handle invite code submission
+  const handleInviteCodeSubmit = async (inviteCode: string) => {
     setJoiningCircle(true);
     try {
-      // For private circles, we might need an invite code
-      // For now, we'll just try to join without one
-      await communityService.joinCircle(circleId);
+      await communityService.joinCircle(circleId, inviteCode);
       
       console.log('Join API call successful, refreshing circle data...');
       
@@ -183,10 +214,14 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
       
       // Mark that user just joined (backup flag)
       setJustJoined(true);
+      
+      // Close the modal
+      setShowInviteCodeModal(false);
     } catch (err) {
       console.error('Failed to join circle:', err);
       setJustJoined(false);
       // Error will be shown in the UI via the error state
+      // Keep modal open so user can try again
     } finally {
       setJoiningCircle(false);
     }
@@ -204,6 +239,21 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
     } catch (err) {
       console.error('Failed to delete circle:', err);
       alert('Failed to delete circle. Please try again.');
+    }
+  };
+
+  // Handle leave circle
+  const handleLeaveCircle = async () => {
+    try {
+      await communityService.leaveCircle(circleId);
+      console.log('Left circle successfully');
+      // Navigate back to circle list
+      if (onBack) {
+        onBack();
+      }
+    } catch (err) {
+      console.error('Failed to leave circle:', err);
+      alert('Failed to leave circle. Please try again.');
     }
   };
 
@@ -326,6 +376,30 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
         </Card>
       )}
 
+      {/* Leave Circle Option - For Non-Admin Members */}
+      {!circle.userIsAdmin && isMember && (
+        <Card className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-200 dark:border-gray-600">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                👋 Membership
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                You can leave this circle at any time
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowLeaveCircleConfirm(true)}
+              className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white border-red-600 dark:border-red-500"
+            >
+              Leave Circle
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {/* Edit Circle Modal */}
       {showEditCircleModal && (
         <EditCircleModal
@@ -339,6 +413,15 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
           }}
         />
       )}
+
+      {/* Invite Code Modal */}
+      <InviteCodeModal
+        isOpen={showInviteCodeModal}
+        onClose={() => setShowInviteCodeModal(false)}
+        onSubmit={handleInviteCodeSubmit}
+        circleName={circle.name}
+        isLoading={joiningCircle}
+      />
 
       {/* Error */}
       {error && (
@@ -1227,6 +1310,20 @@ export const CircleDetails: React.FC<CircleDetailsProps> = ({
         title="Delete Circle"
         message={`Are you sure you want to delete "${circle.name}"? This action cannot be undone and all members will be notified.`}
         confirmText="Delete Circle"
+        variant="danger"
+      />
+
+      {/* Leave Circle Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showLeaveCircleConfirm}
+        onClose={() => setShowLeaveCircleConfirm(false)}
+        onConfirm={() => {
+          setShowLeaveCircleConfirm(false);
+          handleLeaveCircle();
+        }}
+        title="Leave Circle"
+        message={`Are you sure you want to leave "${circle.name}"? You can rejoin later if it's a public circle or if you have the invite code.`}
+        confirmText="Leave Circle"
         variant="danger"
       />
 
